@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Qube",
+    "slug": "qube",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#06091A"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.qube.mathapp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#06091A"
+      },
+      "package": "com.qube.mathapp"
+    }
+  }
+}

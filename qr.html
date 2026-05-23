@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <title>Scan to open Qube</title>
+  <style>
+    body {
+      background: #06091A; color: #F0F4FF;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; font-family: -apple-system, sans-serif;
+      gap: 20px; margin: 0;
+    }
+    h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+    .qr-wrap {
+      background: #fff; padding: 20px; border-radius: 16px;
+      box-shadow: 0 0 60px rgba(79,142,247,0.3);
+    }
+    p { color: #94A3B8; font-size: 14px; }
+    .url { color: #4F8EF7; font-size: 13px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h2>📱 Scan to open Qube</h2>
+  <div class="qr-wrap">
+    <canvas id="qr"></canvas>
+  </div>
+  <p>Make sure your phone is on the same WiFi</p>
+  <p class="url">http://192.168.1.178:3000/preview.html</p>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    new QRCode(document.getElementById('qr'), {
+      text: 'http://192.168.1.178:3000/preview.html',
+      width: 260, height: 260,
+      colorDark: '#000000', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+  </script>
+</body>
+</html>

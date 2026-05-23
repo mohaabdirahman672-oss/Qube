@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Qube – Math. Every Dimension.</title>
+  <script src="courses_data.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+    :root {
+      --bg:           #06091A;
+      --surface:      #0C1228;
+      --surface-high: #111A35;
+      --border:       #1A2744;
+      --blue:         #4F8EF7;
+      --blue-mid:     #2563EB;
+      --blue-dark:    #1E3A8A;
+      --gold:         #F59E0B;
+      --gold-dark:    #D97706;
+      --gold-light:   #FCD34D;
+      --purple:       #8B5CF6;
+      --purple-dark:  #6D28D9;
+      --green:        #10B981;
+      --red:          #EF4444;
+      --text:         #F0F4FF;
+      --text-sub:     #94A3B8;
+      --text-muted:   #4B5563;
+      --white:        #FFFFFF;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Background glows ── */
+    .bg-glow-blue {
+      position: fixed; top: -120px; left: -80px;
+      width: 340px; height: 340px; border-radius: 50%;
+      background: var(--blue); opacity: 0.07;
+      pointer-events: none; z-index: 0;
+    }
+    .bg-glow-gold {
+      position: fixed; top: 220px; right: -100px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: var(--gold); opacity: 0.05;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Floating math symbols ── */
+    .symbols-layer {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .symbol {
+      position: absolute;
+      font-weight: 200;
+      animation: floatUp linear infinite alternate;
+      user-select: none;
+    }
+    @keyframes floatUp {
+      from { transform: translateY(0px); }
+      to   { transform: translateY(-22px); }
+    }
+
+    /* ── Layout ── */
+    .app {
+      position: relative; z-index: 1;
+      max-width: 430px; margin: 0 auto;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; flex: 1; flex-direction: column; }
+    .tab-panel.active { display: flex; }
+
+    .scroll {
+      flex: 1;
+      padding: 52px 16px 120px;
+      overflow-y: auto;
+    }
+
+    /* ── Logo row ── */
+    .logo-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 28px;
+      animation: fadeSlideDown 0.5s ease forwards;
+    }
+    .logo-badge {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: #0A1428;
+      border: 1px solid rgba(201,168,76,0.28);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(201,168,76,0.22);
+      flex-shrink: 0; overflow: hidden;
+    }
+    .logo-wordmark {
+      font-size: 20px; font-weight: 700;
+      color: var(--text); letter-spacing: 1.5px;
+    }
+    .logo-wordmark .wm-gold { color: #C9A84C; }
+    .beta-tag {
+      background: rgba(79,142,247,0.18);
+      border: 1px solid rgba(79,142,247,0.4);
+      border-radius: 999px; padding: 2px 8px;
+      font-size: 9px; font-weight: 800;
+      color: var(--blue); letter-spacing: 1px;
+    }
+    .notif-btn {
+      margin-left: auto;
+      width: 40px; height: 40px; border-radius: 11px;
+      background: var(--surface-high); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; position: relative; flex-shrink: 0;
+    }
+    .notif-dot {
+      position: absolute; top: 8px; right: 8px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--gold); border: 1.5px solid var(--bg);
+    }
+
+    /* ── Page title row (for non-home tabs) ── */
+    .page-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .back-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--surface-high); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 18px; flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .back-btn:hover { background: var(--border); }
+    .page-title {
+      font-size: 22px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.4px;
+    }
+
+    /* ── Greeting ── */
+    .greet-block { margin-bottom: 22px; animation: fadeSlideUp 0.5s 0.15s ease both; }
+    .greet-hello { font-size: 30px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; margin-bottom: 5px; }
+    .greet-tagline { font-size: 16px; font-weight: 400; color: var(--text-sub); letter-spacing: 0.3px; }
+
+    /* ── Stats pills ── */
+    .stats-row { display: flex; gap: 10px; margin-bottom: 28px; animation: fadeSlideUp 0.5s 0.25s ease both; }
+    .stat-pill {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 13px; padding: 11px 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+    }
+    .stat-icon { font-size: 14px; margin-bottom: 2px; }
+    .stat-value { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .stat-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ── Scan card ── */
+    .scan-outer { position: relative; margin-bottom: 32px; animation: popIn 0.5s 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+    .glow-ring-outer {
+      position: absolute; inset: -12px; border-radius: 32px;
+      background: var(--gold); opacity: 0.12;
+      animation: glowPulse 1.8s ease-in-out infinite alternate;
+    }
+    .glow-ring-inner {
+      position: absolute; inset: -5px; border-radius: 27px;
+      background: var(--gold); opacity: 0.22;
+      animation: glowPulse 1.8s ease-in-out infinite alternate;
+    }
+    @keyframes glowPulse { from { opacity: 0.10; } to { opacity: 0.35; } }
+    .scan-card {
+      position: relative; z-index: 1;
+      background: linear-gradient(135deg, #0E1D3F, #091428);
+      border: 1.5px solid rgba(245,158,11,0.28); border-radius: 22px;
+      padding: 22px 20px; display: flex; align-items: center; gap: 16px;
+      cursor: pointer; transition: transform 0.15s ease;
+    }
+    .scan-card:hover  { transform: scale(1.015); }
+    .scan-card:active { transform: scale(0.985); }
+    .scan-icon-badge {
+      width: 64px; height: 64px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; box-shadow: 0 6px 20px rgba(245,158,11,0.55); flex-shrink: 0;
+    }
+    .scan-text { flex: 1; }
+    .scan-badge-row { margin-bottom: 6px; }
+    .scan-badge {
+      display: inline-block; background: rgba(245,158,11,0.15);
+      border: 1px solid rgba(245,158,11,0.3); border-radius: 999px;
+      padding: 2px 9px; font-size: 9px; font-weight: 800;
+      color: var(--gold); letter-spacing: 1px;
+    }
+    .scan-title { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; margin-bottom: 3px; }
+    .scan-subtitle { font-size: 13px; color: var(--text-sub); line-height: 1.4; }
+    .scan-arrow-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: var(--gold); flex-shrink: 0;
+    }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; margin-top: 4px;
+    }
+    .section-title { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.2px; }
+    .section-link { font-size: 13px; color: var(--blue); font-weight: 600; cursor: pointer; }
+
+    /* ── Feature cards ── */
+    .feature-cards { display: flex; flex-direction: column; gap: 10px; }
+    .feature-card {
+      background: var(--surface); border-radius: 16px; border: 1px solid transparent;
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px; position: relative; overflow: hidden;
+      cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .feature-card:hover  { transform: translateY(-2px); }
+    .feature-card:active { transform: scale(0.98); }
+    .feature-card.blue   { border-color: rgba(79,142,247,0.22);  box-shadow: 0 4px 20px rgba(37,99,235,0.12);  }
+    .feature-card.purple { border-color: rgba(139,92,246,0.22); box-shadow: 0 4px 20px rgba(109,40,217,0.12); }
+    .feature-card.gold   { border-color: rgba(245,158,11,0.22);  box-shadow: 0 4px 20px rgba(217,119,6,0.12);  }
+    .feature-edge { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 16px 0 0 16px; opacity: 0.8; }
+    .blue   .feature-edge  { background: var(--blue); }
+    .purple .feature-edge  { background: var(--purple); }
+    .gold   .feature-edge  { background: var(--gold); }
+    .feature-icon-badge {
+      width: 48px; height: 48px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .blue   .feature-icon-badge { background: linear-gradient(135deg,#1E3A8A,#2563EB); }
+    .purple .feature-icon-badge { background: linear-gradient(135deg,#6D28D9,#8B5CF6); }
+    .gold   .feature-icon-badge { background: linear-gradient(135deg,#D97706,#F59E0B); }
+    .feature-text { flex: 1; }
+    .feature-label { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+    .blue   .feature-label  { color: var(--blue); }
+    .purple .feature-label  { color: var(--purple); }
+    .gold   .feature-label  { color: var(--gold); }
+    .feature-title { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; margin-bottom: 3px; }
+    .feature-subtitle { font-size: 12px; color: var(--text-sub); line-height: 1.45; }
+    .feature-chevron {
+      width: 32px; height: 32px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .blue   .feature-chevron { background: rgba(79,142,247,0.15);  color: var(--blue); }
+    .purple .feature-chevron { background: rgba(139,92,246,0.15); color: var(--purple); }
+    .gold   .feature-chevron { background: rgba(245,158,11,0.15);  color: var(--gold); }
+    .feature-cards .feature-card:nth-child(1) { animation: fadeSlideUp 0.45s 0.48s ease both; }
+    .feature-cards .feature-card:nth-child(2) { animation: fadeSlideUp 0.45s 0.59s ease both; }
+    .feature-cards .feature-card:nth-child(3) { animation: fadeSlideUp 0.45s 0.70s ease both; }
+
+    /* ── Recent ── */
+    .recent-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px;
+      display: flex; align-items: center; gap: 14px;
+      margin-top: 28px; animation: fadeSlideUp 0.45s 0.80s ease both;
+    }
+    .recent-icon {
+      width: 40px; height: 40px; border-radius: 11px;
+      background: var(--surface-high); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .recent-text { font-size: 13px; color: var(--text-sub); line-height: 1.55; }
+    .recent-text span { color: var(--blue); font-weight: 600; cursor: pointer; }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: var(--surface); border-top: 0.5px solid var(--border);
+      display: flex; align-items: flex-end;
+      padding: 8px 4px 20px; z-index: 100;
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.45);
+    }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 3px;
+      cursor: pointer; padding: 4px 0; position: relative;
+    }
+    .nav-tab .tab-icon { font-size: 22px; }
+    .nav-tab .tab-label { font-size: 10px; font-weight: 500; color: var(--text-muted); letter-spacing: 0.2px; }
+    .nav-tab.active .tab-label { color: var(--blue); font-weight: 700; }
+    .nav-tab.active::before {
+      content: ''; position: absolute; top: -2px; left: 20%; right: 20%;
+      height: 2.5px; border-radius: 999px; background: var(--blue);
+    }
+    .nav-tab-scan {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 4px; cursor: pointer; margin-top: -22px;
+    }
+    .scan-circle {
+      width: 58px; height: 58px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; box-shadow: 0 4px 20px rgba(245,158,11,0.6);
+      border: 3px solid var(--surface); transition: transform 0.15s;
+    }
+    .scan-circle:hover  { transform: scale(1.08); }
+    .scan-circle:active { transform: scale(0.94); }
+    .scan-nav-label { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: 0.2px; }
+
+    /* ── LEARN TAB ── */
+    .level-filters {
+      display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;
+      padding-bottom: 4px; scrollbar-width: none;
+    }
+    .level-filters::-webkit-scrollbar { display: none; }
+    .level-pill {
+      flex-shrink: 0; padding: 6px 14px; border-radius: 999px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      border: 1.5px solid var(--border); color: var(--text-sub);
+      background: var(--surface); transition: all 0.15s;
+    }
+    .level-pill.active {
+      background: var(--blue); border-color: var(--blue);
+      color: var(--white);
+    }
+    .courses-grid { display: flex; flex-direction: column; gap: 10px; }
+    .course-card {
+      background: var(--surface); border-radius: 16px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+      position: relative; overflow: hidden;
+    }
+    .course-card:hover  { transform: translateX(3px); }
+    .course-card:active { transform: scale(0.98); }
+    .course-accent {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px; border-radius: 16px 0 0 16px;
+    }
+    .course-icon-wrap {
+      width: 46px; height: 46px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0; font-style: normal;
+    }
+    .course-info { flex: 1; min-width: 0; }
+    .course-card-title { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
+    .course-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+    .course-level-badge {
+      font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
+      text-transform: uppercase; padding: 2px 7px;
+      border-radius: 999px; border: 1px solid;
+    }
+    .course-lessons-count { font-size: 11px; color: var(--text-muted); }
+    .course-chevron { font-size: 18px; color: var(--text-muted); flex-shrink: 0; }
+
+    /* ── LESSON LIST ── */
+    .lessons-list { display: flex; flex-direction: column; gap: 8px; }
+    .lesson-row {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .lesson-row:hover  { border-color: var(--blue); background: var(--surface-high); }
+    .lesson-row:active { transform: scale(0.98); }
+    .lesson-num {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: var(--surface-high); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: var(--text-sub);
+      flex-shrink: 0;
+    }
+    .lesson-info { flex: 1; }
+    .lesson-title-text { font-size: 14px; font-weight: 700; color: var(--text); }
+    .lesson-duration { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .lesson-row-chevron { font-size: 16px; color: var(--text-muted); }
+
+    /* ── LESSON DETAIL / PRACTICE ── */
+    .practice-header { margin-bottom: 24px; }
+    .practice-lesson-name {
+      font-size: 20px; font-weight: 800; color: var(--text);
+      letter-spacing: -0.3px; margin-bottom: 6px;
+    }
+    .practice-course-name { font-size: 13px; color: var(--text-sub); }
+    .practice-cards { display: flex; flex-direction: column; gap: 14px; }
+    .practice-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 18px;
+      transition: all 0.2s;
+    }
+    .practice-card.revealed { border-color: var(--green); }
+    .diff-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 999px;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .diff-badge.easy   { background: rgba(16,185,129,0.12); color: var(--green);  border: 1px solid rgba(16,185,129,0.3); }
+    .diff-badge.medium { background: rgba(245,158,11,0.12);  color: var(--gold);   border: 1px solid rgba(245,158,11,0.3); }
+    .diff-badge.hard   { background: rgba(239,68,68,0.12);   color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+    .practice-question {
+      font-size: 15px; font-weight: 600; color: var(--text);
+      line-height: 1.55; margin-bottom: 14px;
+    }
+    .reveal-btn {
+      width: 100%; padding: 10px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface-high);
+      color: var(--text-sub); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .reveal-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .answer-block {
+      margin-top: 12px; padding: 12px;
+      background: rgba(16,185,129,0.06); border-radius: 10px;
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+    .answer-label { font-size: 10px; font-weight: 800; color: var(--green); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .answer-text { font-size: 14px; font-weight: 700; color: var(--text); }
+
+    /* ── PRACTICE QUIZ TAB ── */
+    .quiz-course-selector { margin-bottom: 20px; }
+    .quiz-course-selector select {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; font-weight: 600;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234F8EF7' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      cursor: pointer;
+    }
+    .quiz-lesson-selector { margin-bottom: 20px; }
+    .quiz-lesson-selector select {
+      width: 100%; padding: 12px 14px; border-radius: 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; font-weight: 600;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234F8EF7' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      cursor: pointer;
+    }
+    .select-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+    .quiz-difficulty-row { display: flex; gap: 8px; margin-bottom: 20px; }
+    .diff-filter-btn {
+      flex: 1; padding: 8px 4px; border-radius: 10px;
+      border: 1.5px solid var(--border); background: var(--surface);
+      color: var(--text-sub); font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .diff-filter-btn.active-easy   { background: rgba(16,185,129,0.12); border-color: var(--green);  color: var(--green); }
+    .diff-filter-btn.active-medium { background: rgba(245,158,11,0.12);  border-color: var(--gold);   color: var(--gold); }
+    .diff-filter-btn.active-hard   { background: rgba(239,68,68,0.12);   border-color: var(--red);    color: var(--red); }
+    .diff-filter-btn.active-all    { background: rgba(79,142,247,0.12);  border-color: var(--blue);   color: var(--blue); }
+    #quiz-problems-container { display: flex; flex-direction: column; gap: 14px; }
+    .quiz-empty {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-sub); font-size: 14px; line-height: 1.7;
+    }
+    .quiz-empty .big-emoji { font-size: 40px; margin-bottom: 12px; display: block; }
+
+    /* ── SAVED TAB ── */
+    .saved-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center;
+      padding: 60px 30px; gap: 14px;
+    }
+    .saved-empty-icon {
+      width: 80px; height: 80px; border-radius: 22px;
+      background: var(--surface-high); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; margin-bottom: 6px;
+    }
+    .saved-empty-title { font-size: 18px; font-weight: 800; color: var(--text); }
+    .saved-empty-sub { font-size: 13px; color: var(--text-sub); line-height: 1.6; max-width: 260px; }
+    .saved-start-btn {
+      margin-top: 8px; padding: 12px 28px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--bg); font-size: 14px; font-weight: 800;
+      border: none; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(245,158,11,0.4);
+      transition: transform 0.15s;
+    }
+    .saved-start-btn:hover  { transform: scale(1.04); }
+    .saved-start-btn:active { transform: scale(0.97); }
+    .history-section-title {
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      letter-spacing: 0.8px; text-transform: uppercase;
+      margin-bottom: 12px; margin-top: 20px;
+    }
+    .scan-history-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 8px; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .scan-history-item:hover { border-color: var(--gold); }
+    .scan-thumb {
+      width: 52px; height: 52px; border-radius: 11px;
+      background: var(--surface-high); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .scan-history-info { flex: 1; min-width: 0; }
+    .scan-history-problem { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .scan-history-meta { font-size: 11px; color: var(--text-muted); }
+    .scan-history-badge {
+      padding: 3px 8px; border-radius: 999px;
+      font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+      background: rgba(79,142,247,0.12); color: var(--blue);
+      border: 1px solid rgba(79,142,247,0.25);
+    }
+
+    /* ── SCAN TAB ── */
+    .scan-panel-inner {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 20px;
+      min-height: 60vh; text-align: center;
+    }
+    .scan-viewfinder {
+      width: 260px; height: 260px; border-radius: 24px;
+      background: var(--surface); border: 2px dashed rgba(245,158,11,0.4);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px; position: relative;
+      animation: glowPulse 2s ease-in-out infinite alternate;
+    }
+    .scan-corner {
+      position: absolute; width: 24px; height: 24px;
+      border-color: var(--gold); border-style: solid; border-width: 0;
+    }
+    .scan-corner.tl { top: 10px; left: 10px; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 6px; }
+    .scan-corner.tr { top: 10px; right: 10px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 6px; }
+    .scan-corner.bl { bottom: 10px; left: 10px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 6px; }
+    .scan-corner.br { bottom: 10px; right: 10px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 6px; }
+    .scan-viewfinder-icon { font-size: 48px; }
+    .scan-viewfinder-hint { font-size: 13px; color: var(--text-sub); }
+    .scan-cta-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .scan-cta-sub { font-size: 14px; color: var(--text-sub); max-width: 280px; line-height: 1.55; }
+    .scan-big-btn {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      border: none; cursor: pointer; font-size: 30px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 24px rgba(245,158,11,0.55);
+      transition: transform 0.15s;
+    }
+    .scan-big-btn:hover  { transform: scale(1.1); }
+    .scan-big-btn:active { transform: scale(0.94); }
+    .scan-tip {
+      font-size: 11px; color: var(--text-muted); letter-spacing: 0.3px;
+      padding: 8px 14px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 999px;
+    }
+
+    /* ── PROFILE TAB ── */
+    .profile-header {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 20px 0 28px; gap: 10px;
+    }
+    .avatar-ring {
+      width: 84px; height: 84px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--blue);
+    }
+    .profile-name { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
+    .profile-tagline { font-size: 13px; color: var(--text-sub); }
+    .profile-stats-row { display: flex; gap: 10px; margin-bottom: 24px; }
+    .profile-stat {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 8px;
+      text-align: center;
+    }
+    .profile-stat-val { font-size: 22px; font-weight: 800; color: var(--text); }
+    .profile-stat-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .profile-section-title {
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .profile-menu-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 8px; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .profile-menu-item:hover { border-color: var(--blue); }
+    .profile-menu-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--surface-high); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .profile-menu-text { flex: 1; }
+    .profile-menu-label { font-size: 14px; font-weight: 600; color: var(--text); }
+    .profile-menu-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .profile-menu-chevron { font-size: 16px; color: var(--text-muted); }
+    .progress-bar-wrap { background: var(--surface-high); border-radius: 999px; height: 6px; margin-top: 8px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--purple)); }
+
+    /* ── Keyframe animations ── */
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.88); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* ── Splash screen ── */
+    #splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: radial-gradient(ellipse at 28% 42%, #0E1F3A 0%, #060D18 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 0;
+      cursor: pointer; transition: opacity 0.7s ease;
+    }
+    #splash.hiding { opacity: 0; pointer-events: none; }
+    .splash-glow {
+      position: absolute;
+      width: 340px; height: 340px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    /* Corner accents (matching the SVG) */
+    .splash-corner {
+      position: absolute; width: 44px; height: 44px;
+      border-color: #C9A84C; border-style: solid; border-width: 0;
+      opacity: 0.4;
+    }
+    .splash-corner.tl { top: 44px; left: 44px; border-top-width: 1px; border-left-width: 1px; }
+    .splash-corner.tr { top: 44px; right: 44px; border-top-width: 1px; border-right-width: 1px; }
+    .splash-corner.bl { bottom: 44px; left: 44px; border-bottom-width: 1px; border-left-width: 1px; }
+    .splash-corner.br { bottom: 44px; right: 44px; border-bottom-width: 1px; border-right-width: 1px; }
+    .splash-icon {
+      position: relative; z-index: 1;
+      animation: splashPop 0.85s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    /* Bracket + wordmark row */
+    .splash-name-row {
+      display: flex; align-items: center;
+      margin-top: 22px; position: relative; z-index: 1;
+      overflow: hidden;
+    }
+    .sp-bracket {
+      font-size: 62px; font-weight: 200; color: #C9A84C;
+      line-height: 1; opacity: 0; font-family: -apple-system, sans-serif;
+    }
+    .sp-bracket-l { animation: bracketOpen 0.55s 0.65s cubic-bezier(0.34,1.3,0.64,1) forwards; }
+    .sp-bracket-r { animation: bracketOpen 0.55s 0.65s cubic-bezier(0.34,1.3,0.64,1) forwards; }
+    .splash-wordmark {
+      font-size: 56px; font-weight: 300; color: #F0F4FF;
+      letter-spacing: 3px; padding: 0 6px; opacity: 0;
+      animation: splashFadeUp 0.5s 0.95s ease forwards;
+    }
+    .splash-wordmark .sp-gold { color: #C9A84C; }
+    /* Divider line (matching logo SVG) */
+    .splash-divider {
+      width: 0; height: 1px; background: #C9A84C; opacity: 0.4;
+      margin-top: 14px; position: relative; z-index: 1;
+      animation: dividerExpand 0.5s 1.15s ease forwards;
+    }
+    .splash-tagline {
+      font-size: 12px; font-weight: 400;
+      letter-spacing: 5px; color: #C9A84C;
+      margin-top: 10px; opacity: 0;
+      position: relative; z-index: 1;
+      animation: splashFadeUp 0.5s 1.3s ease forwards;
+    }
+    .splash-tap-hint {
+      position: absolute; bottom: 52px;
+      font-size: 10px; color: rgba(201,168,76,0.38);
+      letter-spacing: 2.5px; text-transform: uppercase;
+      animation: splashFadeUp 0.5s 1.8s ease both;
+    }
+    @keyframes splashPop {
+      from { transform: scale(0.15); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+    @keyframes bracketOpen {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .sp-bracket-l { transform: translateX(34px); }
+    .sp-bracket-r { transform: translateX(-34px); }
+    @keyframes bracketOpen {
+      from { opacity: 0; transform: translateX(var(--bx, 34px)); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .sp-bracket-l { --bx: 38px; }
+    .sp-bracket-r { --bx: -38px; }
+    @keyframes splashFadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes dividerExpand {
+      from { width: 0; opacity: 0; }
+      to   { width: 200px; opacity: 0.4; }
+    }
+
+    /* ── Math background ── */
+    .math-bg {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .mbg {
+      position: absolute; font-weight: 300;
+      user-select: none; letter-spacing: 0.5px;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background glows -->
+  <div class="bg-glow-blue"></div>
+  <div class="bg-glow-gold"></div>
+
+  <!-- Math equation background -->
+  <div class="math-bg">
+    <span class="mbg" style="left:2%;top:7%;font-size:17px;color:#4F8EF7;opacity:0.10;transform:rotate(-8deg);">a² + b² = c²</span>
+    <span class="mbg" style="left:65%;top:4%;font-size:16px;color:#7BAFF0;opacity:0.09;transform:rotate(5deg);">y = mx + b</span>
+    <span class="mbg" style="left:10%;top:28%;font-size:26px;color:#4F8EF7;opacity:0.08;transform:rotate(-4deg);">∫ f(x) dx</span>
+    <span class="mbg" style="left:74%;top:18%;font-size:15px;color:#C9A84C;opacity:0.10;transform:rotate(7deg);">√(x² + y²)</span>
+    <span class="mbg" style="left:48%;top:10%;font-size:15px;color:#5F9EF7;opacity:0.09;transform:rotate(-5deg);">E = mc²</span>
+    <span class="mbg" style="left:85%;top:36%;font-size:30px;color:#7BAFF0;opacity:0.09;transform:rotate(12deg);">π</span>
+    <span class="mbg" style="left:3%;top:50%;font-size:15px;color:#C9A84C;opacity:0.09;transform:rotate(-9deg);">x² + 2x + 1 = 0</span>
+    <span class="mbg" style="left:60%;top:44%;font-size:14px;color:#4F8EF7;opacity:0.08;transform:rotate(4deg);">sin²θ + cos²θ = 1</span>
+    <span class="mbg" style="left:25%;top:64%;font-size:18px;color:#7BAFF0;opacity:0.08;transform:rotate(-6deg);">lim<tspan style="font-size:10px">x→∞</tspan> f(x)</span>
+    <span class="mbg" style="left:70%;top:68%;font-size:14px;color:#C9A84C;opacity:0.09;transform:rotate(8deg);">∑ n(n+1) / 2</span>
+    <span class="mbg" style="left:12%;top:80%;font-size:15px;color:#4F8EF7;opacity:0.07;transform:rotate(-4deg);">f'(x) = dy/dx</span>
+    <span class="mbg" style="left:42%;top:86%;font-size:13px;color:#7BAFF0;opacity:0.07;transform:rotate(5deg);">P(A∪B) = P(A)+P(B)</span>
+    <span class="mbg" style="left:82%;top:80%;font-size:22px;color:#4F8EF7;opacity:0.08;transform:rotate(-10deg);">∞</span>
+    <span class="mbg" style="left:55%;top:75%;font-size:18px;color:#C9A84C;opacity:0.07;transform:rotate(6deg);">Δx → 0</span>
+    <span class="mbg" style="left:88%;top:12%;font-size:20px;color:#4F8EF7;opacity:0.08;transform:rotate(-7deg);">∑</span>
+    <span class="mbg" style="left:36%;top:20%;font-size:24px;color:#7BAFF0;opacity:0.07;transform:rotate(3deg);">∞</span>
+    <!-- Triangle SVG -->
+    <svg style="position:absolute;left:6%;top:14%;width:70px;height:62px;opacity:0.09;" viewBox="0 0 70 62">
+      <polygon points="35,3 67,59 3,59" fill="none" stroke="#7BAFF0" stroke-width="1.2"/>
+      <text x="30" y="16" font-size="10" fill="#7BAFF0" font-family="Georgia,serif">c</text>
+      <text x="1" y="60" font-size="10" fill="#7BAFF0" font-family="Georgia,serif">a</text>
+      <text x="60" y="60" font-size="10" fill="#7BAFF0" font-family="Georgia,serif">b</text>
+    </svg>
+    <!-- Cube wireframe SVG -->
+    <svg style="position:absolute;left:76%;top:55%;width:72px;height:72px;opacity:0.08;" viewBox="0 0 72 72">
+      <g stroke="#4F8EF7" stroke-width="1.1" fill="none">
+        <rect x="18" y="26" width="36" height="36"/>
+        <rect x="8" y="16" width="36" height="36"/>
+        <line x1="8" y1="16" x2="18" y2="26"/>
+        <line x1="44" y1="16" x2="54" y2="26"/>
+        <line x1="44" y1="52" x2="54" y2="62"/>
+        <line x1="8" y1="52" x2="18" y2="62"/>
+      </g>
+    </svg>
+    <!-- Right-angle symbol -->
+    <svg style="position:absolute;left:90%;top:72%;width:30px;height:30px;opacity:0.08;" viewBox="0 0 30 30">
+      <polyline points="5,25 5,5 25,5" fill="none" stroke="#C9A84C" stroke-width="1.5"/>
+      <rect x="5" y="14" width="7" height="7" fill="none" stroke="#C9A84C" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <!-- ════════ SPLASH SCREEN ════════ -->
+  <div id="splash" onclick="dismissSplash()">
+    <div class="splash-glow"></div>
+    <!-- Corner accents from the SVG logo -->
+    <div class="splash-corner tl"></div>
+    <div class="splash-corner tr"></div>
+    <div class="splash-corner bl"></div>
+    <div class="splash-corner br"></div>
+
+    <!-- Icon — exact match to qube_midnight_final.svg -->
+    <div class="splash-icon">
+      <svg viewBox="-90 -90 180 180" width="174" height="174" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="iconshine2" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3.5" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <linearGradient id="spGoldRing" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE898"/>
+            <stop offset="45%" stop-color="#C9A84C"/>
+            <stop offset="100%" stop-color="#8A6010"/>
+          </linearGradient>
+          <linearGradient id="spGoldFace" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE898"/>
+            <stop offset="50%" stop-color="#D4B050"/>
+            <stop offset="100%" stop-color="#9A7020"/>
+          </linearGradient>
+          <radialGradient id="spInnerCircle" cx="35%" cy="30%" r="65%">
+            <stop offset="0%" stop-color="#112040"/>
+            <stop offset="100%" stop-color="#070F1E"/>
+          </radialGradient>
+          <radialGradient id="spIconGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#C9A84C" stop-opacity="0.18"/>
+            <stop offset="100%" stop-color="#C9A84C" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- Ambient glow -->
+        <circle cx="0" cy="0" r="90" fill="url(#spIconGlow)"/>
+        <!-- Outer dark circle -->
+        <circle cx="0" cy="0" r="82" fill="url(#spInnerCircle)" filter="url(#iconshine2)"/>
+        <!-- Gold ring -->
+        <circle cx="0" cy="0" r="68" fill="url(#spGoldRing)"/>
+        <!-- Inner dark circle -->
+        <circle cx="0" cy="0" r="57" fill="url(#spInnerCircle)"/>
+        <!-- Top face: bright white -->
+        <polygon points="0,-43 37,-21 0,0 -37,-21" fill="white" opacity="0.97"/>
+        <!-- Left face: gold gradient -->
+        <polygon points="-37,-21 0,0 0,43 -37,22" fill="url(#spGoldFace)"/>
+        <!-- Right face: dim white -->
+        <polygon points="37,-21 0,0 0,43 37,22" fill="white" opacity="0.22"/>
+        <!-- Edge lines -->
+        <line x1="0" y1="0" x2="0" y2="43" stroke="#060D18" stroke-width="1.4" opacity="0.8"/>
+        <line x1="0" y1="-43" x2="-37" y2="-21" stroke="#060D18" stroke-width="1" opacity="0.5"/>
+        <line x1="0" y1="-43" x2="37" y2="-21" stroke="#060D18" stroke-width="1" opacity="0.5"/>
+      </svg>
+    </div>
+
+    <!-- Brackets slide open → Qube revealed -->
+    <div class="splash-name-row">
+      <span class="sp-bracket sp-bracket-l">[</span>
+      <div class="splash-wordmark">Q<span class="sp-gold">ube</span></div>
+      <span class="sp-bracket sp-bracket-r">]</span>
+    </div>
+
+    <!-- Divider line (matches logo SVG) -->
+    <div class="splash-divider"></div>
+
+    <!-- Tagline -->
+    <div class="splash-tagline">MATH. EVERY DIMENSION.</div>
+
+    <div class="splash-tap-hint">Tap to continue</div>
+  </div>
+
+  <div class="app">
+
+    <!-- ════════════════════════════════════════ HOME TAB ══ -->
+    <div class="tab-panel active" id="panel-home">
+      <div class="scroll">
+        <div class="logo-row">
+          <div class="logo-badge"><svg viewBox="-45 -45 90 90" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="0" cy="0" r="41" fill="#070F1E"/><circle cx="0" cy="0" r="34" fill="#C9A84C"/><circle cx="0" cy="0" r="28" fill="#0A1428"/><polygon points="0,-22 19,-11 0,0 -19,-11" fill="white" opacity="0.96"/><polygon points="-19,-11 0,0 0,22 -19,11" fill="#D4A832"/><polygon points="19,-11 0,0 0,22 19,11" fill="white" opacity="0.18"/><line x1="0" y1="0" x2="0" y2="22" stroke="#060D18" stroke-width="1.2" opacity="0.75"/></svg></div>
+          <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
+          <span class="beta-tag">BETA</span>
+          <div class="notif-btn">🔔<div class="notif-dot"></div></div>
+        </div>
+        <div class="greet-block">
+          <div class="greet-hello">Welcome to Qube</div>
+          <div class="greet-tagline">Math. Every Dimension.</div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-pill"><div class="stat-icon">📖</div><div class="stat-value">29</div><div class="stat-label">Courses</div></div>
+          <div class="stat-pill"><div class="stat-icon">🧮</div><div class="stat-value">522</div><div class="stat-label">Problems</div></div>
+          <div class="stat-pill"><div class="stat-icon">⭐</div><div class="stat-value">174</div><div class="stat-label">Lessons</div></div>
+        </div>
+        <div class="scan-outer">
+          <div class="glow-ring-outer"></div>
+          <div class="glow-ring-inner"></div>
+          <div class="scan-card" onclick="switchTab('scan')">
+            <div class="scan-icon-badge">📷</div>
+            <div class="scan-text">
+              <div class="scan-badge-row"><span class="scan-badge">INSTANT</span></div>
+              <div class="scan-title">Scan Problem</div>
+              <div class="scan-subtitle">Take a photo and get step-by-step help</div>
+            </div>
+            <div class="scan-arrow-circle">→</div>
+          </div>
+        </div>
+        <div class="section-header">
+          <span class="section-title">Features</span>
+          <span class="section-link" onclick="switchTab('learn')">See all →</span>
+        </div>
+        <div class="feature-cards">
+          <div class="feature-card blue" onclick="switchTab('scan')">
+            <div class="feature-edge"></div>
+            <div class="feature-icon-badge">⚡</div>
+            <div class="feature-text">
+              <div class="feature-label">AI Powered</div>
+              <div class="feature-title">Solve with AI</div>
+              <div class="feature-subtitle">Get instant step-by-step solutions to any problem.</div>
+            </div>
+            <div class="feature-chevron">›</div>
+          </div>
+          <div class="feature-card purple" onclick="switchTab('learn')">
+            <div class="feature-edge"></div>
+            <div class="feature-icon-badge">📚</div>
+            <div class="feature-text">
+              <div class="feature-label">Guided Lessons</div>
+              <div class="feature-title">Learn Step by Step</div>
+              <div class="feature-subtitle">Master concepts with structured, visual lessons.</div>
+            </div>
+            <div class="feature-chevron">›</div>
+          </div>
+          <div class="feature-card gold" onclick="switchTab('practice')">
+            <div class="feature-edge"></div>
+            <div class="feature-icon-badge">🏆</div>
+            <div class="feature-text">
+              <div class="feature-label">Practice Mode</div>
+              <div class="feature-title">Practice Quizzes</div>
+              <div class="feature-subtitle">Sharpen skills with adaptive difficulty quizzes.</div>
+            </div>
+            <div class="feature-chevron">›</div>
+          </div>
+        </div>
+        <div class="recent-card">
+          <div class="recent-icon">🕐</div>
+          <div class="recent-text">
+            No recent activity yet.<br>
+            <span onclick="switchTab('scan')">Scan a problem</span> to get started.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ SAVED TAB ══ -->
+    <div class="tab-panel" id="panel-saved">
+      <div class="scroll">
+        <div class="logo-row">
+          <div class="logo-badge"><svg viewBox="-45 -45 90 90" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="0" cy="0" r="41" fill="#070F1E"/><circle cx="0" cy="0" r="34" fill="#C9A84C"/><circle cx="0" cy="0" r="28" fill="#0A1428"/><polygon points="0,-22 19,-11 0,0 -19,-11" fill="white" opacity="0.96"/><polygon points="-19,-11 0,0 0,22 -19,11" fill="#D4A832"/><polygon points="19,-11 0,0 0,22 19,11" fill="white" opacity="0.18"/><line x1="0" y1="0" x2="0" y2="22" stroke="#060D18" stroke-width="1.2" opacity="0.75"/></svg></div>
+          <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
+          <span class="beta-tag">BETA</span>
+        </div>
+        <div class="page-title" style="font-size:26px;font-weight:800;letter-spacing:-0.4px;margin-bottom:20px;">Saved &amp; History</div>
+
+        <div class="saved-empty" id="saved-empty-state">
+          <div class="saved-empty-icon">📷</div>
+          <div class="saved-empty-title">No scans yet</div>
+          <div class="saved-empty-sub">Your scanned problems and saved solutions will appear here.</div>
+          <button class="saved-start-btn" onclick="switchTab('scan')">📷 Scan Your First Problem</button>
+        </div>
+
+        <div id="saved-history-list" style="display:none;">
+          <div class="history-section-title">Recent Scans</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ SCAN TAB ══ -->
+    <div class="tab-panel" id="panel-scan">
+      <div class="scroll">
+        <div class="logo-row">
+          <div class="logo-badge"><svg viewBox="-45 -45 90 90" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="0" cy="0" r="41" fill="#070F1E"/><circle cx="0" cy="0" r="34" fill="#C9A84C"/><circle cx="0" cy="0" r="28" fill="#0A1428"/><polygon points="0,-22 19,-11 0,0 -19,-11" fill="white" opacity="0.96"/><polygon points="-19,-11 0,0 0,22 -19,11" fill="#D4A832"/><polygon points="19,-11 0,0 0,22 19,11" fill="white" opacity="0.18"/><line x1="0" y1="0" x2="0" y2="22" stroke="#060D18" stroke-width="1.2" opacity="0.75"/></svg></div>
+          <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
+          <span class="beta-tag">BETA</span>
+        </div>
+        <div class="scan-panel-inner">
+          <div class="scan-viewfinder">
+            <div class="scan-corner tl"></div>
+            <div class="scan-corner tr"></div>
+            <div class="scan-corner bl"></div>
+            <div class="scan-corner br"></div>
+            <div class="scan-viewfinder-icon">📐</div>
+            <div class="scan-viewfinder-hint">Point at a math problem</div>
+          </div>
+          <div>
+            <div class="scan-cta-title">Scan a Problem</div>
+            <div class="scan-cta-sub" style="margin-top:6px;">Photograph any math problem and Qube will solve it step by step with AI.</div>
+          </div>
+          <button class="scan-big-btn">📷</button>
+          <div class="scan-tip">📱 Camera access required on device</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ LEARN TAB ══ -->
+    <div class="tab-panel" id="panel-learn">
+
+      <!-- Course list view -->
+      <div id="learn-course-list" class="scroll">
+        <div class="logo-row">
+          <div class="logo-badge"><svg viewBox="-45 -45 90 90" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="0" cy="0" r="41" fill="#070F1E"/><circle cx="0" cy="0" r="34" fill="#C9A84C"/><circle cx="0" cy="0" r="28" fill="#0A1428"/><polygon points="0,-22 19,-11 0,0 -19,-11" fill="white" opacity="0.96"/><polygon points="-19,-11 0,0 0,22 -19,11" fill="#D4A832"/><polygon points="19,-11 0,0 0,22 19,11" fill="white" opacity="0.18"/><line x1="0" y1="0" x2="0" y2="22" stroke="#060D18" stroke-width="1.2" opacity="0.75"/></svg></div>
+          <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
+          <span class="beta-tag">BETA</span>
+        </div>
+        <div class="page-title" style="font-size:26px;font-weight:800;letter-spacing:-0.4px;margin-bottom:16px;">Learn</div>
+        <div class="level-filters" id="level-filters">
+          <div class="level-pill active" onclick="filterCourses('All', this)">All</div>
+          <div class="level-pill" onclick="filterCourses('Beginner', this)">Beginner</div>
+          <div class="level-pill" onclick="filterCourses('Intermediate', this)">Intermediate</div>
+          <div class="level-pill" onclick="filterCourses('Advanced', this)">Advanced</div>
+          <div class="level-pill" onclick="filterCourses('Expert', this)">Expert</div>
+        </div>
+        <div class="courses-grid" id="courses-grid"></div>
+      </div>
+
+      <!-- Lesson list view -->
+      <div id="learn-lesson-list" class="scroll" style="display:none;">
+        <div class="page-header">
+          <div class="back-btn" onclick="showCourseList()">←</div>
+          <div class="page-title" id="lesson-list-title">Lessons</div>
+        </div>
+        <div id="course-detail-header" style="margin-bottom:20px;"></div>
+        <div class="lessons-list" id="lessons-list"></div>
+      </div>
+
+      <!-- Lesson detail / practice view -->
+      <div id="learn-lesson-detail" class="scroll" style="display:none;">
+        <div class="page-header">
+          <div class="back-btn" id="lesson-detail-back-btn">←</div>
+          <div class="page-title" id="lesson-detail-title">Practice</div>
+        </div>
+        <div class="practice-header">
+          <div class="practice-lesson-name" id="practice-lesson-name"></div>
+          <div class="practice-course-name" id="practice-course-name"></div>
+        </div>
+        <div class="practice-cards" id="practice-cards"></div>
+      </div>
+
+    </div>
+
+    <!-- ════════════════════════════════════════ PRACTICE TAB ══ (part of learn nav slot) -->
+    <div class="tab-panel" id="panel-practice">
+      <div class="scroll">
+        <div class="logo-row">
+          <div class="logo-badge"><svg viewBox="-45 -45 90 90" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="0" cy="0" r="41" fill="#070F1E"/><circle cx="0" cy="0" r="34" fill="#C9A84C"/><circle cx="0" cy="0" r="28" fill="#0A1428"/><polygon points="0,-22 19,-11 0,0 -19,-11" fill="white" opacity="0.96"/><polygon points="-19,-11 0,0 0,22 -19,11" fill="#D4A832"/><polygon points="19,-11 0,0 0,22 19,11" fill="white" opacity="0.18"/><line x1="0" y1="0" x2="0" y2="22" stroke="#060D18" stroke-width="1.2" opacity="0.75"/></svg></div>
+          <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
+          <span class="beta-tag">BETA</span>
+        </div>
+        <div class="page-title" style="font-size:26px;font-weight:800;letter-spacing:-0.4px;margin-bottom:20px;">Practice Quiz</div>
+
+        <div class="quiz-course-selector">
+          <div class="select-label">Select Course</div>
+          <select id="quiz-course-select" onchange="onQuizCourseChange()"></select>
+        </div>
+        <div class="quiz-lesson-selector">
+          <div class="select-label">Select Lesson</div>
+          <select id="quiz-lesson-select" onchange="renderQuizProblems()"></select>
+        </div>
+        <div>
+          <div class="select-label" style="margin-bottom:8px;">Difficulty</div>
+          <div class="quiz-difficulty-row">
+            <div class="diff-filter-btn active-all" id="diff-all"   onclick="setDiffFilter('all')">All</div>
+            <div class="diff-filter-btn" id="diff-easy"  onclick="setDiffFilter('easy')">🟢 Easy</div>
+            <div class="diff-filter-btn" id="diff-medium"onclick="setDiffFilter('medium')">🟡 Medium</div>
+            <div class="diff-filter-btn" id="diff-hard"  onclick="setDiffFilter('hard')">🔴 Hard</div>
+          </div>
+        </div>
+        <div id="quiz-problems-container"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ PROFILE TAB ══ -->
+    <div class="tab-panel" id="panel-profile">
+      <div class="scroll">
+        <div class="logo-row">
+          <div class="logo-badge"><svg viewBox="-45 -45 90 90" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="0" cy="0" r="41" fill="#070F1E"/><circle cx="0" cy="0" r="34" fill="#C9A84C"/><circle cx="0" cy="0" r="28" fill="#0A1428"/><polygon points="0,-22 19,-11 0,0 -19,-11" fill="white" opacity="0.96"/><polygon points="-19,-11 0,0 0,22 -19,11" fill="#D4A832"/><polygon points="19,-11 0,0 0,22 19,11" fill="white" opacity="0.18"/><line x1="0" y1="0" x2="0" y2="22" stroke="#060D18" stroke-width="1.2" opacity="0.75"/></svg></div>
+          <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
+          <span class="beta-tag">BETA</span>
+        </div>
+        <div class="profile-header">
+          <div class="avatar-ring">🧑‍🎓</div>
+          <div class="profile-name">Math Student</div>
+          <div class="profile-tagline">Qube learner · Getting started</div>
+        </div>
+        <div class="profile-stats-row">
+          <div class="profile-stat"><div class="profile-stat-val">0</div><div class="profile-stat-lbl">Lessons</div></div>
+          <div class="profile-stat"><div class="profile-stat-val">0</div><div class="profile-stat-lbl">Scans</div></div>
+          <div class="profile-stat"><div class="profile-stat-val">0</div><div class="profile-stat-lbl">Streak</div></div>
+        </div>
+        <div class="profile-section-title">Progress</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:13px;font-weight:700;color:var(--text);">Overall Progress</span>
+            <span style="font-size:13px;color:var(--blue);font-weight:700;">0%</span>
+          </div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">0 of 174 lessons completed</div>
+        </div>
+        <div class="profile-section-title">Account</div>
+        <div class="profile-menu-item">
+          <div class="profile-menu-icon">📊</div>
+          <div class="profile-menu-text">
+            <div class="profile-menu-label">Statistics</div>
+            <div class="profile-menu-sub">Detailed performance breakdown</div>
+          </div>
+          <div class="profile-menu-chevron">›</div>
+        </div>
+        <div class="profile-menu-item">
+          <div class="profile-menu-icon">🔔</div>
+          <div class="profile-menu-text">
+            <div class="profile-menu-label">Notifications</div>
+            <div class="profile-menu-sub">Daily reminders &amp; alerts</div>
+          </div>
+          <div class="profile-menu-chevron">›</div>
+        </div>
+        <div class="profile-menu-item">
+          <div class="profile-menu-icon">⚙️</div>
+          <div class="profile-menu-text">
+            <div class="profile-menu-label">Settings</div>
+            <div class="profile-menu-sub">App preferences</div>
+          </div>
+          <div class="profile-menu-chevron">›</div>
+        </div>
+        <div class="profile-menu-item">
+          <div class="profile-menu-icon">❓</div>
+          <div class="profile-menu-text">
+            <div class="profile-menu-label">Help &amp; Support</div>
+            <div class="profile-menu-sub">FAQs and contact</div>
+          </div>
+          <div class="profile-menu-chevron">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════ BOTTOM NAV ══ -->
+    <div class="bottom-nav">
+      <div class="nav-tab active" id="nav-home" onclick="switchTab('home')">
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">Home</span>
+      </div>
+      <div class="nav-tab" id="nav-saved" onclick="switchTab('saved')">
+        <span class="tab-icon">🔖</span>
+        <span class="tab-label">Saved</span>
+      </div>
+      <div class="nav-tab-scan" onclick="switchTab('scan')">
+        <div class="scan-circle">📷</div>
+        <span class="scan-nav-label">Scan</span>
+      </div>
+      <div class="nav-tab" id="nav-learn" onclick="switchTab('learn')">
+        <span class="tab-icon">📖</span>
+        <span class="tab-label">Learn</span>
+      </div>
+      <div class="nav-tab" id="nav-profile" onclick="switchTab('profile')">
+        <span class="tab-icon">👤</span>
+        <span class="tab-label">Profile</span>
+      </div>
+    </div>
+
+  </div><!-- /app -->
+
+  <script>
+  // ── Tab switching ──────────────────────────────────────────────
+  const TABS = ['home','saved','scan','learn','profile','practice'];
+  let currentTab = 'home';
+
+  function switchTab(tab) {
+    TABS.forEach(t => {
+      const panel = document.getElementById('panel-' + t);
+      const nav   = document.getElementById('nav-' + t);
+      if (panel) panel.classList.toggle('active', t === tab);
+      if (nav)   nav.classList.toggle('active', t === tab);
+    });
+    currentTab = tab;
+    // scroll to top
+    const panel = document.getElementById('panel-' + tab);
+    if (panel) { const scroll = panel.querySelector('.scroll'); if (scroll) scroll.scrollTop = 0; }
+    if (tab === 'learn') showCourseList();
+  }
+
+  // ── Level color helper ─────────────────────────────────────────
+  function levelColor(level) {
+    return { Beginner:'#06B6D4', Intermediate:'#10B981', Advanced:'#8B5CF6', Expert:'#F59E0B' }[level] || '#4F8EF7';
+  }
+
+  // ── LEARN TAB ─────────────────────────────────────────────────
+  let currentFilter = 'All';
+  let currentCourse = null;
+
+  function showCourseList() {
+    document.getElementById('learn-course-list').style.display = '';
+    document.getElementById('learn-lesson-list').style.display = 'none';
+    document.getElementById('learn-lesson-detail').style.display = 'none';
+    renderCourses(currentFilter);
+  }
+
+  function filterCourses(level, el) {
+    currentFilter = level;
+    document.querySelectorAll('.level-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    renderCourses(level);
+  }
+
+  function renderCourses(level) {
+    const grid = document.getElementById('courses-grid');
+    const filtered = level === 'All' ? COURSES : COURSES.filter(c => c.level === level);
+    grid.innerHTML = filtered.map(c => {
+      const lc = levelColor(c.level);
+      const lcount = c.lessons.length;
+      return `<div class="course-card" onclick="openCourse('${c.id}')">
+        <div class="course-accent" style="background:${c.color}"></div>
+        <div class="course-icon-wrap" style="background:${c.color}22">${c.icon}</div>
+        <div class="course-info">
+          <div class="course-card-title">${c.title}</div>
+          <div class="course-meta">
+            <span class="course-level-badge" style="color:${lc};border-color:${lc}44;background:${lc}11">${c.level}</span>
+            <span class="course-lessons-count">${lcount} lessons</span>
+          </div>
+        </div>
+        <div class="course-chevron">›</div>
+      </div>`;
+    }).join('');
+  }
+
+  function openCourse(courseId) {
+    currentCourse = COURSES.find(c => c.id === courseId);
+    if (!currentCourse) return;
+    document.getElementById('learn-course-list').style.display = 'none';
+    document.getElementById('learn-lesson-list').style.display = '';
+    document.getElementById('learn-lesson-detail').style.display = 'none';
+    document.getElementById('lesson-list-title').textContent = currentCourse.title;
+    const lc = levelColor(currentCourse.level);
+    document.getElementById('course-detail-header').innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;">
+        <div style="width:52px;height:52px;border-radius:14px;background:${currentCourse.color}22;display:flex;align-items:center;justify-content:center;font-size:26px;">${currentCourse.icon}</div>
+        <div>
+          <div style="font-size:12px;font-weight:800;color:${lc};letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">${currentCourse.level}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">${currentCourse.lessons.length} lessons · ${currentCourse.lessons.reduce((s,l)=>s+parseInt(l.duration),0)} min total</div>
+        </div>
+      </div>`;
+    const list = document.getElementById('lessons-list');
+    list.innerHTML = currentCourse.lessons.map((l, i) => `
+      <div class="lesson-row" onclick="openLesson('${l.id}')">
+        <div class="lesson-num">${i+1}</div>
+        <div class="lesson-info">
+          <div class="lesson-title-text">${l.title}</div>
+          <div class="lesson-duration">⏱ ${l.duration} · ${l.practice.length} practice problems</div>
+        </div>
+        <div class="lesson-row-chevron">›</div>
+      </div>`).join('');
+  }
+
+  function openLesson(lessonId) {
+    const lesson = currentCourse.lessons.find(l => l.id === lessonId);
+    if (!lesson) return;
+    document.getElementById('learn-lesson-list').style.display = 'none';
+    document.getElementById('learn-lesson-detail').style.display = '';
+    document.getElementById('lesson-detail-title').textContent = 'Practice';
+    document.getElementById('lesson-detail-back-btn').onclick = () => openCourse(currentCourse.id);
+    document.getElementById('practice-lesson-name').textContent = lesson.title;
+    document.getElementById('practice-course-name').textContent = currentCourse.title + ' · ' + currentCourse.level;
+    renderPracticeCards(lesson.practice, 'practice-cards');
+  }
+
+  function renderPracticeCards(practice, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = practice.map((p, i) => {
+      const diff = p.difficulty.toLowerCase();
+      return `<div class="practice-card" id="pcard-${containerId}-${i}">
+        <div class="diff-badge ${diff}">${diff === 'easy' ? '🟢' : diff === 'medium' ? '🟡' : '🔴'} ${p.difficulty}</div>
+        <div class="practice-question">${p.question}</div>
+        <button class="reveal-btn" onclick="revealAnswer('${containerId}',${i})">Show Answer</button>
+        <div class="answer-block" id="ans-${containerId}-${i}" style="display:none;">
+          <div class="answer-label">Answer</div>
+          <div class="answer-text">${p.answer}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function revealAnswer(containerId, idx) {
+    const ans = document.getElementById(`ans-${containerId}-${idx}`);
+    const card = document.getElementById(`pcard-${containerId}-${idx}`);
+    const btn = card.querySelector('.reveal-btn');
+    if (ans.style.display === 'none') {
+      ans.style.display = 'block';
+      btn.textContent = 'Hide Answer';
+      card.classList.add('revealed');
+    } else {
+      ans.style.display = 'none';
+      btn.textContent = 'Show Answer';
+      card.classList.remove('revealed');
+    }
+  }
+
+  // ── PRACTICE QUIZ TAB ─────────────────────────────────────────
+  let quizDiffFilter = 'all';
+
+  function initPracticeTab() {
+    const sel = document.getElementById('quiz-course-select');
+    sel.innerHTML = COURSES.map(c => `<option value="${c.id}">${c.icon} ${c.title} (${c.level})</option>`).join('');
+    onQuizCourseChange();
+  }
+
+  function onQuizCourseChange() {
+    const courseId = document.getElementById('quiz-course-select').value;
+    const course = COURSES.find(c => c.id === courseId);
+    if (!course) return;
+    const lsel = document.getElementById('quiz-lesson-select');
+    lsel.innerHTML = course.lessons.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
+    renderQuizProblems();
+  }
+
+  function setDiffFilter(diff) {
+    quizDiffFilter = diff;
+    ['all','easy','medium','hard'].forEach(d => {
+      const btn = document.getElementById('diff-' + d);
+      btn.className = 'diff-filter-btn' + (d === diff ? ` active-${d}` : '');
+    });
+    renderQuizProblems();
+  }
+
+  function renderQuizProblems() {
+    const courseId  = document.getElementById('quiz-course-select').value;
+    const lessonId  = document.getElementById('quiz-lesson-select').value;
+    const course    = COURSES.find(c => c.id === courseId);
+    const lesson    = course && course.lessons.find(l => l.id === lessonId);
+    const container = document.getElementById('quiz-problems-container');
+    if (!lesson) { container.innerHTML = '<div class="quiz-empty"><span class="big-emoji">📚</span>Select a lesson to start.</div>'; return; }
+    const problems = quizDiffFilter === 'all'
+      ? lesson.practice
+      : lesson.practice.filter(p => p.difficulty.toLowerCase() === quizDiffFilter);
+    if (!problems.length) {
+      container.innerHTML = `<div class="quiz-empty"><span class="big-emoji">🔍</span>No ${quizDiffFilter} problems for this lesson.</div>`;
+      return;
+    }
+    renderPracticeCards(problems, 'quiz-problems-container');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  renderCourses('All');
+  initPracticeTab();
+
+  // ── Splash ────────────────────────────────────────────────────
+  function dismissSplash() {
+    const s = document.getElementById('splash');
+    s.classList.add('hiding');
+    setTimeout(() => { s.style.display = 'none'; }, 700);
+  }
+  setTimeout(dismissSplash, 3000);
+  </script>
+
+</body>
+</html>
