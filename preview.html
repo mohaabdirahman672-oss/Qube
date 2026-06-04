@@ -452,75 +452,7 @@
     }
 
     /* ── SCAN TAB ── */
-    .scan-panel-inner {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 20px;
-      min-height: 60vh; text-align: center;
-    }
-    .scan-viewfinder {
-      width: 260px; height: 260px; border-radius: 24px;
-      background: var(--surface); border: 2px dashed rgba(245,158,11,0.4);
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 12px; position: relative;
-      animation: glowPulse 2s ease-in-out infinite alternate;
-    }
-    .scan-corner {
-      position: absolute; width: 24px; height: 24px;
-      border-color: var(--gold); border-style: solid; border-width: 0;
-    }
-    .scan-corner.tl { top: 10px; left: 10px; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 6px; }
-    .scan-corner.tr { top: 10px; right: 10px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 6px; }
-    .scan-corner.bl { bottom: 10px; left: 10px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 6px; }
-    .scan-corner.br { bottom: 10px; right: 10px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 6px; }
-    .scan-viewfinder-icon { font-size: 48px; }
-    .scan-viewfinder-hint { font-size: 13px; color: var(--text-sub); }
-    .scan-cta-title { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-    .scan-cta-sub { font-size: 14px; color: var(--text-sub); max-width: 280px; line-height: 1.55; }
-    .scan-big-btn {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      border: none; cursor: pointer; font-size: 30px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 6px 24px rgba(245,158,11,0.55);
-      transition: transform 0.15s;
-    }
-    .scan-big-btn:hover  { transform: scale(1.1); }
-    .scan-big-btn:active { transform: scale(0.94); }
-    .scan-tip {
-      font-size: 11px; color: var(--text-muted); letter-spacing: 0.3px;
-      padding: 8px 14px; background: var(--surface);
-      border: 1px solid var(--border); border-radius: 999px;
-    }
-
-    /* ── SCAN TAB (AI) ── */
     .scan-ai-wrap { display:flex; flex-direction:column; gap:16px; padding-bottom:24px; }
-    .scan-settings-row { display:flex; justify-content:flex-end; }
-    .scan-settings-btn {
-      background:none; border:none; cursor:pointer;
-      color:var(--text-sub); font-size:13px;
-      display:flex; align-items:center; gap:5px;
-      padding:6px 10px; border-radius:8px; transition:background 0.15s;
-    }
-    .scan-settings-btn:hover { background:var(--surface); }
-    .scan-api-panel {
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:14px; padding:14px 16px; display:none; flex-direction:column; gap:10px;
-    }
-    .scan-api-panel.open { display:flex; }
-    .scan-api-label { font-size:12px; color:var(--text-sub); letter-spacing:0.3px; text-transform:uppercase; }
-    .scan-api-input-row { display:flex; gap:8px; }
-    .scan-api-input {
-      flex:1; background:var(--bg); border:1px solid var(--border);
-      border-radius:10px; padding:10px 12px; color:var(--text);
-      font-size:13px; outline:none;
-    }
-    .scan-api-input:focus { border-color:var(--blue); }
-    .scan-api-save {
-      background:var(--blue); color:#fff; border:none; border-radius:10px;
-      padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer;
-      white-space:nowrap; transition:opacity 0.15s;
-    }
-    .scan-api-save:hover { opacity:0.85; }
     .scan-mode-tabs { display:flex; gap:8px; }
     .scan-mode-tab {
       flex:1; padding:10px 4px; border-radius:12px; border:1.5px solid var(--border);
