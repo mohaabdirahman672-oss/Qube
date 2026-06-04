@@ -626,6 +626,49 @@
       cursor:pointer; transition:background 0.15s;
     }
     .scan-save-btn:hover { background:rgba(79,142,247,0.1); }
+    .scan-type-badge { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .scan-type-pill {
+      padding:4px 12px; border-radius:999px; font-size:11px; font-weight:800;
+      letter-spacing:0.6px; text-transform:uppercase;
+      background:rgba(79,142,247,0.12); color:var(--blue); border:1px solid rgba(79,142,247,0.3);
+    }
+    .scan-diff-pill {
+      padding:4px 12px; border-radius:999px; font-size:11px; font-weight:800;
+      letter-spacing:0.6px; text-transform:uppercase;
+    }
+    .scan-diff-pill.easy     { background:rgba(16,185,129,0.12); color:var(--green);  border:1px solid rgba(16,185,129,0.3); }
+    .scan-diff-pill.medium   { background:rgba(245,158,11,0.12);  color:var(--gold);   border:1px solid rgba(245,158,11,0.3); }
+    .scan-diff-pill.hard     { background:rgba(239,68,68,0.12);   color:#f87171;       border:1px solid rgba(239,68,68,0.3); }
+    .scan-diff-pill.advanced { background:rgba(139,92,246,0.12);  color:var(--purple); border:1px solid rgba(139,92,246,0.3); }
+    .scan-explanation {
+      font-size:13px; color:var(--text-sub); line-height:1.6; font-style:italic;
+      padding:10px 14px; border-left:3px solid var(--blue);
+      background:rgba(79,142,247,0.06); border-radius:0 10px 10px 0;
+    }
+    .scan-mistake-box {
+      background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3);
+      border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:4px;
+    }
+    .scan-mistake-label { font-size:11px; font-weight:800; color:var(--gold); letter-spacing:0.6px; text-transform:uppercase; }
+    .scan-mistake-text  { font-size:13px; color:var(--text); line-height:1.5; }
+    .scan-formula-chip {
+      background:rgba(79,142,247,0.08); border:1px solid rgba(79,142,247,0.25);
+      border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:4px;
+    }
+    .scan-formula-label { font-size:11px; font-weight:800; color:var(--blue); letter-spacing:0.6px; text-transform:uppercase; }
+    .scan-formula-text  { font-size:14px; font-weight:700; color:var(--text); font-family:monospace; }
+    .scan-practice-next {
+      background:var(--surface-high); border:1.5px dashed rgba(245,158,11,0.4);
+      border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; gap:10px;
+    }
+    .scan-practice-next-label { font-size:11px; font-weight:800; color:var(--gold); letter-spacing:0.8px; text-transform:uppercase; }
+    .scan-practice-next-q { font-size:14px; font-weight:600; color:var(--text); line-height:1.55; }
+    .scan-practice-next-btn {
+      align-self:flex-start; background:none; border:1.5px solid var(--gold);
+      border-radius:10px; color:var(--gold); font-size:13px; font-weight:700;
+      padding:8px 16px; cursor:pointer; transition:background 0.15s;
+    }
+    .scan-practice-next-btn:hover { background:rgba(245,158,11,0.1); }
 
     /* ── PROFILE TAB ── */
     .profile-header {
@@ -1092,10 +1135,35 @@
               <div class="scan-solution-title">Step-by-Step Solution</div>
               <button class="scan-solution-reset" onclick="resetScan()">New problem</button>
             </div>
+            <!-- Problem type + difficulty -->
+            <div class="scan-type-badge" id="scan-type-badge" style="display:none;">
+              <span class="scan-type-pill" id="scan-type-pill"></span>
+              <span class="scan-diff-pill" id="scan-diff-pill"></span>
+            </div>
+            <!-- Steps -->
             <div id="scan-solution-steps"></div>
+            <!-- Final answer -->
             <div class="scan-answer-box" id="scan-answer-box" style="display:none;">
               <div class="scan-answer-label">Answer</div>
               <div class="scan-answer-value" id="scan-answer-value"></div>
+            </div>
+            <!-- Method explanation -->
+            <div class="scan-explanation" id="scan-explanation" style="display:none;"></div>
+            <!-- Common mistake warning -->
+            <div class="scan-mistake-box" id="scan-mistake-box" style="display:none;">
+              <div class="scan-mistake-label">⚠️ Common Mistake</div>
+              <div class="scan-mistake-text" id="scan-mistake-text"></div>
+            </div>
+            <!-- Key formula -->
+            <div class="scan-formula-chip" id="scan-formula-chip" style="display:none;">
+              <div class="scan-formula-label">📐 Key Formula</div>
+              <div class="scan-formula-text" id="scan-formula-text"></div>
+            </div>
+            <!-- Practice next -->
+            <div class="scan-practice-next" id="scan-practice-next" style="display:none;">
+              <div class="scan-practice-next-label">✏️ Try This Next</div>
+              <div class="scan-practice-next-q" id="scan-practice-next-q"></div>
+              <button class="scan-practice-next-btn" onclick="tryPracticeQuestion()">Solve This →</button>
             </div>
             <button class="scan-save-btn" onclick="saveScanResult()">📌 Save to Saved</button>
           </div>
@@ -1522,18 +1590,76 @@
     hideSolution();
   }
 
+  const SOLVE_SYSTEM_PROMPT = `You are Qube, an expert math tutor. Solve math problems step by step.
+
+You handle: arithmetic, algebra, equations, inequalities, systems of equations, factoring, expanding, simplifying, functions, geometry, trigonometry, logarithms, exponents, calculus (derivatives, integrals, limits), probability, statistics, and word problems.
+
+Respond ONLY with a valid JSON object using this exact structure:
+{
+  "hasMath": true,
+  "problemType": "Quadratic Equation",
+  "difficulty": "Medium",
+  "steps": [
+    { "title": "Verb-led title (3-6 words)", "body": "Full explanation of this step showing all work" }
+  ],
+  "answer": "Final answer (concise)",
+  "explanation": "One sentence summary of the method or technique used",
+  "commonMistake": "The single most common error students make on this problem type",
+  "formula": "Key formula used — omit this field entirely if none applies",
+  "practiceQuestion": "A similar follow-up problem at the same difficulty for the student to try"
+}
+
+If no math problem is found:
+{ "hasMath": false, "message": "Brief description of what you see instead" }
+
+Rules:
+- Plain text only — no LaTeX, no markdown, no special symbols except standard math operators
+- difficulty must be exactly: Easy, Medium, Hard, or Advanced
+- Step titles: short (3-6 words), verb-led — e.g. "Identify the coefficients", "Apply the formula"
+- Step bodies: show every calculation clearly, educational tone
+- Always include practiceQuestion`;
+
+  async function callOpenAI(messages, attempt) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + OPENAI_KEY
+        },
+        body: JSON.stringify({ model: 'gpt-4o', max_tokens: 2000, messages })
+      });
+      clearTimeout(timeout);
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        if (response.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
+        throw new Error((err.error && err.error.message) || ('Error ' + response.status));
+      }
+      return await response.json();
+    } catch (e) {
+      clearTimeout(timeout);
+      if (e.name === 'AbortError') throw new Error('Request timed out. Please try again.');
+      if (!attempt) return callOpenAI(messages, true);
+      throw e;
+    }
+  }
+
   async function solveProblem() {
     showScanError('');
     hideSolution();
 
     let messages;
+    const loadingText = document.querySelector('.scan-loading-text');
 
     if (scanMode === 'type') {
       const text = document.getElementById('scan-type-input').value.trim();
       if (!text) { showScanError('Please type your math problem first.'); return; }
       messages = [
         { role: 'system', content: SOLVE_SYSTEM_PROMPT },
-        { role: 'user', content: 'Solve this math problem step by step:\n\n' + text }
+        { role: 'user',   content: 'Solve this problem:\n\n' + text }
       ];
     } else {
       if (!scanImageDataUrl) return;
@@ -1543,7 +1669,7 @@
           role: 'user',
           content: [
             { type: 'image_url', image_url: { url: scanImageDataUrl, detail: 'high' } },
-            { type: 'text', text: 'Solve the math problem in this image step by step. If there is no math problem, say so.' }
+            { type: 'text', text: 'Solve the math problem shown in this image. If no math problem is visible, say so.' }
           ]
         }
       ];
@@ -1551,29 +1677,11 @@
 
     document.getElementById('scan-solve-btn').disabled = true;
     document.getElementById('scan-loading-wrap').classList.add('show');
+    if (loadingText) loadingText.textContent = 'Analyzing your problem…';
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + OPENAI_KEY
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          max_tokens: 1500,
-          messages
-        })
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        if (response.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
-        throw new Error((err.error && err.error.message) || ('Error ' + response.status));
-      }
-
-      const data = await response.json();
-      const raw = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      const data = await callOpenAI(messages);
+      const raw  = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
       if (!raw) throw new Error('Empty response from AI.');
 
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -1583,7 +1691,7 @@
       document.getElementById('scan-loading-wrap').classList.remove('show');
 
       if (!result.hasMath) {
-        showScanError('⚠️ ' + (result.message || 'No math problem detected. Try a clearer image or type your problem.'));
+        showScanError('⚠️ ' + (result.message || 'No math problem detected. Try a clearer photo or switch to Type mode.'));
         document.getElementById('scan-solve-btn').disabled = false;
         return;
       }
@@ -1599,31 +1707,9 @@
     document.getElementById('scan-solve-btn').disabled = false;
   }
 
-  const SOLVE_SYSTEM_PROMPT = `You are Qube, an expert math tutor. Solve math problems clearly and step by step.
-
-Respond ONLY with a JSON object in this exact structure:
-{
-  "hasMath": true,
-  "steps": [
-    { "title": "Step title", "body": "Full explanation of this step" }
-  ],
-  "answer": "Final answer"
-}
-
-If there is no recognizable math problem, respond with:
-{ "hasMath": false, "message": "Brief description of what you see" }
-
-Rules:
-- Plain text only inside JSON strings — no LaTeX, no markdown
-- Be thorough: show every calculation
-- Keep step titles short (3-6 words)
-- Keep step bodies clear and educational`;
-
   function renderSolution(result) {
+    // Steps
     const stepsEl = document.getElementById('scan-solution-steps');
-    const answerBox = document.getElementById('scan-answer-box');
-    const answerVal = document.getElementById('scan-answer-value');
-
     let html = '';
     (result.steps || []).forEach((step, i) => {
       if (i > 0) html += '<div class="scan-step-divider"></div>';
@@ -1637,15 +1723,81 @@ Rules:
     });
     stepsEl.innerHTML = html;
 
+    // Answer
+    const answerBox = document.getElementById('scan-answer-box');
     if (result.answer) {
-      answerVal.textContent = result.answer;
+      document.getElementById('scan-answer-value').textContent = result.answer;
       answerBox.style.display = 'flex';
     } else {
       answerBox.style.display = 'none';
     }
 
+    // Problem type + difficulty badge
+    const badge    = document.getElementById('scan-type-badge');
+    const typePill = document.getElementById('scan-type-pill');
+    const diffPill = document.getElementById('scan-diff-pill');
+    if (result.problemType || result.difficulty) {
+      typePill.textContent = result.problemType || '';
+      typePill.style.display = result.problemType ? '' : 'none';
+      diffPill.textContent = result.difficulty || '';
+      diffPill.className   = 'scan-diff-pill ' + (result.difficulty || '').toLowerCase();
+      diffPill.style.display = result.difficulty ? '' : 'none';
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+
+    // Explanation
+    const expl = document.getElementById('scan-explanation');
+    if (result.explanation) {
+      expl.textContent    = result.explanation;
+      expl.style.display  = '';
+    } else {
+      expl.style.display  = 'none';
+    }
+
+    // Common mistake
+    const mistakeBox  = document.getElementById('scan-mistake-box');
+    const mistakeText = document.getElementById('scan-mistake-text');
+    if (result.commonMistake) {
+      mistakeText.textContent = result.commonMistake;
+      mistakeBox.style.display = 'flex';
+    } else {
+      mistakeBox.style.display = 'none';
+    }
+
+    // Key formula
+    const formulaChip = document.getElementById('scan-formula-chip');
+    const formulaText = document.getElementById('scan-formula-text');
+    if (result.formula) {
+      formulaText.textContent  = result.formula;
+      formulaChip.style.display = 'flex';
+    } else {
+      formulaChip.style.display = 'none';
+    }
+
+    // Practice next
+    const practiceNext = document.getElementById('scan-practice-next');
+    const practiceQ    = document.getElementById('scan-practice-next-q');
+    if (result.practiceQuestion) {
+      practiceQ.textContent     = result.practiceQuestion;
+      practiceNext.style.display = 'flex';
+    } else {
+      practiceNext.style.display = 'none';
+    }
+
     document.getElementById('scan-solution-card').classList.add('show');
     document.getElementById('scan-solution-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function tryPracticeQuestion() {
+    const q = document.getElementById('scan-practice-next-q').textContent;
+    if (!q) return;
+    setScanMode('type');
+    switchTab('scan');
+    document.getElementById('scan-type-input').value = q;
+    updateScanCharCount();
+    solveProblem();
   }
 
   function formatStepBody(text) {
