@@ -348,7 +348,9 @@ export default function HomeScreen() {
               },
             ]}
           >
-            <Text style={styles.greetHello}>Welcome to Qube</Text>
+            <Text style={styles.greetHello}>
+              {firstName ? `Welcome back, ${firstName}` : 'Welcome to Qube'}
+            </Text>
             <Text style={styles.greetTagline}>Math. Every Dimension.</Text>
           </Animated.View>
 

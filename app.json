@@ -11,13 +11,19 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.qube.mathapp"
+      "bundleIdentifier": "com.qube.mathapp",
+      "usesAppleSignIn": true,
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#06091A"
       },
-      "package": "com.qube.mathapp"
-    }
+      "package": "com.qube.mathapp",
+      "googleServicesFile": "./google-services.json"
+    },
+    "plugins": [
+      "@react-native-google-signin/google-signin"
+    ]
   }
 }

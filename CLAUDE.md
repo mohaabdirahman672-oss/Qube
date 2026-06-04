@@ -137,6 +137,19 @@ Every teammate must leave a **completion summary** that includes:
 
 ---
 
+## Previewing the App
+
+**Always use `preview.html` to preview in a browser. Never use `expo start --web`.**
+
+```
+npm run preview        # opens preview.html directly in the browser
+```
+
+`expo start --web` produces a white screen due to a babel-preset-expo version mismatch and should not be used.
+`preview.html` is a complete standalone HTML prototype — splash screen, all 5 tabs, all courses, full navigation — no server needed.
+
+---
+
 ## Current App State
 
 ### Built

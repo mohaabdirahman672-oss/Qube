@@ -2,10 +2,11 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { registerRootComponent } from 'expo';
 import HomeScreen from './src/screens/HomeScreen';
 import { colors } from './src/theme';
 
-export default function App() {
+function App() {
   return (
     <SafeAreaProvider>
       <View style={styles.root}>
@@ -22,3 +23,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
 });
+
+export default registerRootComponent(App);
