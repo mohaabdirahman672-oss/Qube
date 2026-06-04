@@ -16,7 +16,7 @@ const TABS = [
   { key: 'home',    label: 'Home',    icon: 'home'     },
   { key: 'saved',   label: 'Saved',   icon: 'bookmark' },
   { key: 'scan',    label: 'Scan',    icon: 'scan'     },  // center — special
-  { key: 'learn',   label: 'Learn',   icon: 'book'     },
+  { key: 'practice', label: 'Practice', icon: 'layers'   },
   { key: 'profile', label: 'Profile', icon: 'person'   },
 ];
 

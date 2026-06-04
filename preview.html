@@ -307,156 +307,96 @@
     .scan-circle:active { transform: scale(0.94); }
     .scan-nav-label { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: 0.2px; }
 
-    /* ── LEARN TAB ── */
-    .level-filters {
-      display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto;
-      padding-bottom: 4px; scrollbar-width: none;
+    /* ── PRACTICE TAB ── */
+    .prac-category-tabs {
+      display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+      margin-bottom: 24px; scrollbar-width: none;
     }
-    .level-filters::-webkit-scrollbar { display: none; }
-    .level-pill {
-      flex-shrink: 0; padding: 6px 14px; border-radius: 999px;
+    .prac-category-tabs::-webkit-scrollbar { display: none; }
+    .prac-pill {
+      flex-shrink: 0; padding: 7px 16px; border-radius: 999px;
       font-size: 12px; font-weight: 700; cursor: pointer;
       border: 1.5px solid var(--border); color: var(--text-sub);
       background: var(--surface); transition: all 0.15s;
     }
-    .level-pill.active {
-      background: var(--blue); border-color: var(--blue);
-      color: var(--white);
+    .prac-pill.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .prac-section-hd {
+      font-size: 13px; font-weight: 800; color: var(--text-muted);
+      letter-spacing: 0.8px; text-transform: uppercase;
+      margin-bottom: 14px; margin-top: 28px;
     }
-    .courses-grid { display: flex; flex-direction: column; gap: 10px; }
-    .course-card {
-      background: var(--surface); border-radius: 16px;
-      border: 1px solid var(--border);
-      display: flex; align-items: center; gap: 14px;
-      padding: 14px 16px; cursor: pointer;
-      transition: transform 0.15s, border-color 0.15s;
+    .flashcard-wrap { display: flex; flex-direction: column; gap: 12px; }
+    .flashcard {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 20px; min-height: 160px; cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
       position: relative; overflow: hidden;
     }
-    .course-card:hover  { transform: translateX(3px); }
-    .course-card:active { transform: scale(0.98); }
-    .course-accent {
-      position: absolute; left: 0; top: 0; bottom: 0;
-      width: 3px; border-radius: 16px 0 0 16px;
+    .flashcard:hover { border-color: var(--blue); box-shadow: 0 4px 20px rgba(79,142,247,0.15); }
+    .flashcard.revealed { border-color: var(--green); box-shadow: 0 4px 20px rgba(16,185,129,0.15); }
+    .flashcard-face {
+      padding: 24px 20px 20px; display: flex;
+      flex-direction: column; gap: 10px; min-height: 160px;
     }
-    .course-icon-wrap {
-      width: 46px; height: 46px; border-radius: 13px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; flex-shrink: 0; font-style: normal;
+    .flashcard-tag {
+      font-size: 10px; font-weight: 800; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--blue);
     }
-    .course-info { flex: 1; min-width: 0; }
-    .course-card-title { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; }
-    .course-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
-    .course-level-badge {
-      font-size: 9px; font-weight: 800; letter-spacing: 0.8px;
-      text-transform: uppercase; padding: 2px 7px;
-      border-radius: 999px; border: 1px solid;
+    .flashcard.revealed .flashcard-tag { color: var(--green); }
+    .flashcard-text {
+      font-size: 17px; font-weight: 700; color: var(--text);
+      line-height: 1.5; flex: 1; white-space: pre-line;
     }
-    .course-lessons-count { font-size: 11px; color: var(--text-muted); }
-    .course-chevron { font-size: 18px; color: var(--text-muted); flex-shrink: 0; }
-
-    /* ── LESSON LIST ── */
-    .lessons-list { display: flex; flex-direction: column; gap: 8px; }
-    .lesson-row {
+    .flashcard-hint {
+      font-size: 11px; color: var(--text-muted); letter-spacing: 0.2px;
+    }
+    .flashcard-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4px;
+    }
+    .flashcard-nav-btn {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 14px; padding: 14px 16px;
-      display: flex; align-items: center; gap: 12px;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .lesson-row:hover  { border-color: var(--blue); background: var(--surface-high); }
-    .lesson-row:active { transform: scale(0.98); }
-    .lesson-num {
-      width: 32px; height: 32px; border-radius: 9px;
-      background: var(--surface-high); border: 1px solid var(--border);
+      border-radius: 10px; width: 40px; height: 40px; cursor: pointer;
+      font-size: 18px; color: var(--text-sub); transition: all 0.15s;
       display: flex; align-items: center; justify-content: center;
+    }
+    .flashcard-nav-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .flashcard-counter {
       font-size: 13px; font-weight: 700; color: var(--text-sub);
-      flex-shrink: 0;
     }
-    .lesson-info { flex: 1; }
-    .lesson-title-text { font-size: 14px; font-weight: 700; color: var(--text); }
-    .lesson-duration { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-    .lesson-row-chevron { font-size: 16px; color: var(--text-muted); }
-
-    /* ── LESSON DETAIL / PRACTICE ── */
-    .practice-header { margin-bottom: 24px; }
-    .practice-lesson-name {
-      font-size: 20px; font-weight: 800; color: var(--text);
-      letter-spacing: -0.3px; margin-bottom: 6px;
-    }
-    .practice-course-name { font-size: 13px; color: var(--text-sub); }
-    .practice-cards { display: flex; flex-direction: column; gap: 14px; }
-    .practice-card {
+    .pq-list { display: flex; flex-direction: column; gap: 12px; }
+    .pq-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 16px; padding: 18px;
-      transition: all 0.2s;
+      border-radius: 16px; padding: 16px; transition: border-color 0.2s;
     }
-    .practice-card.revealed { border-color: var(--green); }
-    .diff-badge {
+    .pq-card.revealed { border-color: var(--green); }
+    .pq-badge {
       display: inline-flex; align-items: center; gap: 4px;
-      padding: 3px 10px; border-radius: 999px;
-      font-size: 10px; font-weight: 800; letter-spacing: 0.8px;
-      text-transform: uppercase; margin-bottom: 10px;
+      padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;
     }
-    .diff-badge.easy   { background: rgba(16,185,129,0.12); color: var(--green);  border: 1px solid rgba(16,185,129,0.3); }
-    .diff-badge.medium { background: rgba(245,158,11,0.12);  color: var(--gold);   border: 1px solid rgba(245,158,11,0.3); }
-    .diff-badge.hard   { background: rgba(239,68,68,0.12);   color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
-    .practice-question {
-      font-size: 15px; font-weight: 600; color: var(--text);
-      line-height: 1.55; margin-bottom: 14px;
-    }
-    .reveal-btn {
+    .pq-badge.easy   { background: rgba(16,185,129,0.12); color: var(--green);  border: 1px solid rgba(16,185,129,0.3); }
+    .pq-badge.medium { background: rgba(245,158,11,0.12);  color: var(--gold);   border: 1px solid rgba(245,158,11,0.3); }
+    .pq-badge.hard   { background: rgba(239,68,68,0.12);   color: var(--red);    border: 1px solid rgba(239,68,68,0.3); }
+    .pq-question { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.55; margin-bottom: 14px; }
+    .pq-reveal-btn {
       width: 100%; padding: 10px; border-radius: 10px;
       border: 1px solid var(--border); background: var(--surface-high);
       color: var(--text-sub); font-size: 13px; font-weight: 600;
       cursor: pointer; transition: all 0.15s;
     }
-    .reveal-btn:hover { border-color: var(--blue); color: var(--blue); }
-    .answer-block {
-      margin-top: 12px; padding: 12px;
-      background: rgba(16,185,129,0.06); border-radius: 10px;
-      border: 1px solid rgba(16,185,129,0.2);
+    .pq-reveal-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .pq-answer {
+      margin-top: 12px; padding: 12px; border-radius: 10px;
+      background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2);
     }
-    .answer-label { font-size: 10px; font-weight: 800; color: var(--green); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
-    .answer-text { font-size: 14px; font-weight: 700; color: var(--text); }
-
-    /* ── PRACTICE QUIZ TAB ── */
-    .quiz-course-selector { margin-bottom: 20px; }
-    .quiz-course-selector select {
-      width: 100%; padding: 12px 14px; border-radius: 12px;
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text); font-size: 14px; font-weight: 600;
-      appearance: none; -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234F8EF7' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 14px center;
-      cursor: pointer;
+    .pq-answer-label { font-size: 10px; font-weight: 800; color: var(--green); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+    .pq-answer-text { font-size: 14px; font-weight: 700; color: var(--text); }
+    .prac-empty {
+      text-align: center; padding: 40px 20px; color: var(--text-sub);
+      font-size: 14px; line-height: 1.7;
     }
-    .quiz-lesson-selector { margin-bottom: 20px; }
-    .quiz-lesson-selector select {
-      width: 100%; padding: 12px 14px; border-radius: 12px;
-      background: var(--surface); border: 1px solid var(--border);
-      color: var(--text); font-size: 14px; font-weight: 600;
-      appearance: none; -webkit-appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234F8EF7' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-      background-repeat: no-repeat; background-position: right 14px center;
-      cursor: pointer;
-    }
-    .select-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
-    .quiz-difficulty-row { display: flex; gap: 8px; margin-bottom: 20px; }
-    .diff-filter-btn {
-      flex: 1; padding: 8px 4px; border-radius: 10px;
-      border: 1.5px solid var(--border); background: var(--surface);
-      color: var(--text-sub); font-size: 12px; font-weight: 700;
-      cursor: pointer; transition: all 0.15s; text-align: center;
-    }
-    .diff-filter-btn.active-easy   { background: rgba(16,185,129,0.12); border-color: var(--green);  color: var(--green); }
-    .diff-filter-btn.active-medium { background: rgba(245,158,11,0.12);  border-color: var(--gold);   color: var(--gold); }
-    .diff-filter-btn.active-hard   { background: rgba(239,68,68,0.12);   border-color: var(--red);    color: var(--red); }
-    .diff-filter-btn.active-all    { background: rgba(79,142,247,0.12);  border-color: var(--blue);   color: var(--blue); }
-    #quiz-problems-container { display: flex; flex-direction: column; gap: 14px; }
-    .quiz-empty {
-      text-align: center; padding: 40px 20px;
-      color: var(--text-sub); font-size: 14px; line-height: 1.7;
-    }
-    .quiz-empty .big-emoji { font-size: 40px; margin-bottom: 12px; display: block; }
+    .prac-empty-icon { font-size: 40px; margin-bottom: 12px; }
 
     /* ── SAVED TAB ── */
     .saved-empty {
@@ -1008,7 +948,7 @@
         </div>
         <div class="section-header">
           <span class="section-title">Features</span>
-          <span class="section-link" onclick="switchTab('learn')">See all →</span>
+          <span class="section-link" onclick="switchTab('practice')">See all →</span>
         </div>
         <div class="feature-cards">
           <div class="feature-card blue" onclick="switchTab('scan')">
@@ -1021,7 +961,7 @@
             </div>
             <div class="feature-chevron">›</div>
           </div>
-          <div class="feature-card purple" onclick="switchTab('learn')">
+          <div class="feature-card purple" onclick="switchTab('practice')">
             <div class="feature-edge"></div>
             <div class="feature-icon-badge">📚</div>
             <div class="feature-text">
@@ -1164,53 +1104,7 @@
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════ LEARN TAB ══ -->
-    <div class="tab-panel" id="panel-learn">
-
-      <!-- Course list view -->
-      <div id="learn-course-list" class="scroll">
-        <div class="logo-row">
-          <div class="logo-badge"><svg viewBox="-45 -45 90 90" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><circle cx="0" cy="0" r="41" fill="#070F1E"/><circle cx="0" cy="0" r="34" fill="#C9A84C"/><circle cx="0" cy="0" r="28" fill="#0A1428"/><polygon points="0,-22 19,-11 0,0 -19,-11" fill="white" opacity="0.96"/><polygon points="-19,-11 0,0 0,22 -19,11" fill="#D4A832"/><polygon points="19,-11 0,0 0,22 19,11" fill="white" opacity="0.18"/><line x1="0" y1="0" x2="0" y2="22" stroke="#060D18" stroke-width="1.2" opacity="0.75"/></svg></div>
-          <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
-          <span class="beta-tag">BETA</span>
-        </div>
-        <div class="page-title" style="font-size:26px;font-weight:800;letter-spacing:-0.4px;margin-bottom:16px;">Learn</div>
-        <div class="level-filters" id="level-filters">
-          <div class="level-pill active" onclick="filterCourses('All', this)">All</div>
-          <div class="level-pill" onclick="filterCourses('Beginner', this)">Beginner</div>
-          <div class="level-pill" onclick="filterCourses('Intermediate', this)">Intermediate</div>
-          <div class="level-pill" onclick="filterCourses('Advanced', this)">Advanced</div>
-          <div class="level-pill" onclick="filterCourses('Expert', this)">Expert</div>
-        </div>
-        <div class="courses-grid" id="courses-grid"></div>
-      </div>
-
-      <!-- Lesson list view -->
-      <div id="learn-lesson-list" class="scroll" style="display:none;">
-        <div class="page-header">
-          <div class="back-btn" onclick="showCourseList()">←</div>
-          <div class="page-title" id="lesson-list-title">Lessons</div>
-        </div>
-        <div id="course-detail-header" style="margin-bottom:20px;"></div>
-        <div class="lessons-list" id="lessons-list"></div>
-      </div>
-
-      <!-- Lesson detail / practice view -->
-      <div id="learn-lesson-detail" class="scroll" style="display:none;">
-        <div class="page-header">
-          <div class="back-btn" id="lesson-detail-back-btn">←</div>
-          <div class="page-title" id="lesson-detail-title">Practice</div>
-        </div>
-        <div class="practice-header">
-          <div class="practice-lesson-name" id="practice-lesson-name"></div>
-          <div class="practice-course-name" id="practice-course-name"></div>
-        </div>
-        <div class="practice-cards" id="practice-cards"></div>
-      </div>
-
-    </div>
-
-    <!-- ════════════════════════════════════════ PRACTICE TAB ══ (part of learn nav slot) -->
+    <!-- ════════════════════════════════════════ PRACTICE TAB ══ -->
     <div class="tab-panel" id="panel-practice">
       <div class="scroll">
         <div class="logo-row">
@@ -1218,26 +1112,45 @@
           <span class="logo-wordmark">Q<span class="wm-gold">ube</span></span>
           <span class="beta-tag">BETA</span>
         </div>
-        <div class="page-title" style="font-size:26px;font-weight:800;letter-spacing:-0.4px;margin-bottom:20px;">Practice Quiz</div>
+        <div class="page-title" style="font-size:26px;font-weight:800;letter-spacing:-0.4px;margin-bottom:4px;">Practice</div>
+        <div style="font-size:13px;color:var(--text-sub);margin-bottom:20px;">Flashcards &amp; practice problems</div>
 
-        <div class="quiz-course-selector">
-          <div class="select-label">Select Course</div>
-          <select id="quiz-course-select" onchange="onQuizCourseChange()"></select>
+        <!-- Category filter pills -->
+        <div class="prac-category-tabs" id="prac-category-tabs">
+          <div class="prac-pill active" onclick="setPracCategory('All',this)">All</div>
+          <div class="prac-pill" onclick="setPracCategory('Algebra',this)">Algebra</div>
+          <div class="prac-pill" onclick="setPracCategory('Geometry',this)">Geometry</div>
+          <div class="prac-pill" onclick="setPracCategory('Trigonometry',this)">Trig</div>
+          <div class="prac-pill" onclick="setPracCategory('Calculus',this)">Calculus</div>
+          <div class="prac-pill" onclick="setPracCategory('Statistics',this)">Statistics</div>
         </div>
-        <div class="quiz-lesson-selector">
-          <div class="select-label">Select Lesson</div>
-          <select id="quiz-lesson-select" onchange="renderQuizProblems()"></select>
-        </div>
-        <div>
-          <div class="select-label" style="margin-bottom:8px;">Difficulty</div>
-          <div class="quiz-difficulty-row">
-            <div class="diff-filter-btn active-all" id="diff-all"   onclick="setDiffFilter('all')">All</div>
-            <div class="diff-filter-btn" id="diff-easy"  onclick="setDiffFilter('easy')">🟢 Easy</div>
-            <div class="diff-filter-btn" id="diff-medium"onclick="setDiffFilter('medium')">🟡 Medium</div>
-            <div class="diff-filter-btn" id="diff-hard"  onclick="setDiffFilter('hard')">🔴 Hard</div>
+
+        <!-- Flashcard deck -->
+        <div class="prac-section-hd">Flashcards</div>
+        <div class="flashcard-wrap" id="flashcard-wrap">
+          <div class="flashcard" id="flashcard" onclick="flipCard()">
+            <div class="flashcard-face" id="fc-front">
+              <div class="flashcard-tag" id="fc-tag">FORMULA</div>
+              <div class="flashcard-text" id="fc-front-text"></div>
+              <div class="flashcard-hint">Tap to reveal answer →</div>
+            </div>
+            <div class="flashcard-face" id="fc-back" style="display:none;">
+              <div class="flashcard-tag">ANSWER</div>
+              <div class="flashcard-text" id="fc-back-text"></div>
+              <div class="flashcard-hint">Tap to flip back ←</div>
+            </div>
+          </div>
+          <div class="flashcard-nav">
+            <button class="flashcard-nav-btn" onclick="prevPracCard()">←</button>
+            <span class="flashcard-counter" id="fc-counter">1 of 1</span>
+            <button class="flashcard-nav-btn" onclick="nextPracCard()">→</button>
           </div>
         </div>
-        <div id="quiz-problems-container"></div>
+
+        <!-- Practice problems -->
+        <div class="prac-section-hd">Practice Problems</div>
+        <div class="pq-list" id="prac-problems"></div>
+
       </div>
     </div>
 
@@ -1318,9 +1231,9 @@
         <div class="scan-circle">📷</div>
         <span class="scan-nav-label">Scan</span>
       </div>
-      <div class="nav-tab" id="nav-learn" onclick="switchTab('learn')">
-        <span class="tab-icon">📖</span>
-        <span class="tab-label">Learn</span>
+      <div class="nav-tab" id="nav-practice" onclick="switchTab('practice')">
+        <span class="tab-icon">🃏</span>
+        <span class="tab-label">Practice</span>
       </div>
       <div class="nav-tab" id="nav-profile" onclick="switchTab('profile')">
         <span class="tab-icon">👤</span>
@@ -1332,7 +1245,7 @@
 
   <script>
   // ── Tab switching ──────────────────────────────────────────────
-  const TABS = ['home','saved','scan','learn','profile','practice'];
+  const TABS = ['home','saved','scan','practice','profile'];
   let currentTab = 'home';
 
   function switchTab(tab) {
@@ -1343,169 +1256,182 @@
       if (nav)   nav.classList.toggle('active', t === tab);
     });
     currentTab = tab;
-    // scroll to top
     const panel = document.getElementById('panel-' + tab);
     if (panel) { const scroll = panel.querySelector('.scroll'); if (scroll) scroll.scrollTop = 0; }
-    if (tab === 'learn') showCourseList();
   }
 
-  // ── Level color helper ─────────────────────────────────────────
-  function levelColor(level) {
-    return { Beginner:'#06B6D4', Intermediate:'#10B981', Advanced:'#8B5CF6', Expert:'#F59E0B' }[level] || '#4F8EF7';
-  }
-
-  // ── LEARN TAB ─────────────────────────────────────────────────
-  let currentFilter = 'All';
-  let currentCourse = null;
-
-  function showCourseList() {
-    document.getElementById('learn-course-list').style.display = '';
-    document.getElementById('learn-lesson-list').style.display = 'none';
-    document.getElementById('learn-lesson-detail').style.display = 'none';
-    renderCourses(currentFilter);
-  }
-
-  function filterCourses(level, el) {
-    currentFilter = level;
-    document.querySelectorAll('.level-pill').forEach(p => p.classList.remove('active'));
-    el.classList.add('active');
-    renderCourses(level);
-  }
-
-  function renderCourses(level) {
-    const grid = document.getElementById('courses-grid');
-    const filtered = level === 'All' ? COURSES : COURSES.filter(c => c.level === level);
-    grid.innerHTML = filtered.map(c => {
-      const lc = levelColor(c.level);
-      const lcount = c.lessons.length;
-      return `<div class="course-card" onclick="openCourse('${c.id}')">
-        <div class="course-accent" style="background:${c.color}"></div>
-        <div class="course-icon-wrap" style="background:${c.color}22">${c.icon}</div>
-        <div class="course-info">
-          <div class="course-card-title">${c.title}</div>
-          <div class="course-meta">
-            <span class="course-level-badge" style="color:${lc};border-color:${lc}44;background:${lc}11">${c.level}</span>
-            <span class="course-lessons-count">${lcount} lessons</span>
-          </div>
-        </div>
-        <div class="course-chevron">›</div>
-      </div>`;
-    }).join('');
-  }
-
-  function openCourse(courseId) {
-    currentCourse = COURSES.find(c => c.id === courseId);
-    if (!currentCourse) return;
-    document.getElementById('learn-course-list').style.display = 'none';
-    document.getElementById('learn-lesson-list').style.display = '';
-    document.getElementById('learn-lesson-detail').style.display = 'none';
-    document.getElementById('lesson-list-title').textContent = currentCourse.title;
-    const lc = levelColor(currentCourse.level);
-    document.getElementById('course-detail-header').innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;">
-        <div style="width:52px;height:52px;border-radius:14px;background:${currentCourse.color}22;display:flex;align-items:center;justify-content:center;font-size:26px;">${currentCourse.icon}</div>
-        <div>
-          <div style="font-size:12px;font-weight:800;color:${lc};letter-spacing:0.5px;text-transform:uppercase;margin-bottom:2px;">${currentCourse.level}</div>
-          <div style="font-size:15px;font-weight:700;color:var(--text);">${currentCourse.lessons.length} lessons · ${currentCourse.lessons.reduce((s,l)=>s+parseInt(l.duration),0)} min total</div>
-        </div>
-      </div>`;
-    const list = document.getElementById('lessons-list');
-    list.innerHTML = currentCourse.lessons.map((l, i) => `
-      <div class="lesson-row" onclick="openLesson('${l.id}')">
-        <div class="lesson-num">${i+1}</div>
-        <div class="lesson-info">
-          <div class="lesson-title-text">${l.title}</div>
-          <div class="lesson-duration">⏱ ${l.duration} · ${l.practice.length} practice problems</div>
-        </div>
-        <div class="lesson-row-chevron">›</div>
-      </div>`).join('');
-  }
-
-  function openLesson(lessonId) {
-    const lesson = currentCourse.lessons.find(l => l.id === lessonId);
-    if (!lesson) return;
-    document.getElementById('learn-lesson-list').style.display = 'none';
-    document.getElementById('learn-lesson-detail').style.display = '';
-    document.getElementById('lesson-detail-title').textContent = 'Practice';
-    document.getElementById('lesson-detail-back-btn').onclick = () => openCourse(currentCourse.id);
-    document.getElementById('practice-lesson-name').textContent = lesson.title;
-    document.getElementById('practice-course-name').textContent = currentCourse.title + ' · ' + currentCourse.level;
-    renderPracticeCards(lesson.practice, 'practice-cards');
-  }
-
-  function renderPracticeCards(practice, containerId) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = practice.map((p, i) => {
-      const diff = p.difficulty.toLowerCase();
-      return `<div class="practice-card" id="pcard-${containerId}-${i}">
-        <div class="diff-badge ${diff}">${diff === 'easy' ? '🟢' : diff === 'medium' ? '🟡' : '🔴'} ${p.difficulty}</div>
-        <div class="practice-question">${p.question}</div>
-        <button class="reveal-btn" onclick="revealAnswer('${containerId}',${i})">Show Answer</button>
-        <div class="answer-block" id="ans-${containerId}-${i}" style="display:none;">
-          <div class="answer-label">Answer</div>
-          <div class="answer-text">${p.answer}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  function revealAnswer(containerId, idx) {
-    const ans = document.getElementById(`ans-${containerId}-${idx}`);
-    const card = document.getElementById(`pcard-${containerId}-${idx}`);
-    const btn = card.querySelector('.reveal-btn');
-    if (ans.style.display === 'none') {
-      ans.style.display = 'block';
-      btn.textContent = 'Hide Answer';
-      card.classList.add('revealed');
-    } else {
-      ans.style.display = 'none';
-      btn.textContent = 'Show Answer';
-      card.classList.remove('revealed');
+  // ── PRACTICE TAB ──────────────────────────────────────────────
+  const PRACTICE_DATA = {
+    Algebra: {
+      cards: [
+        { tag: 'FORMULA',  front: 'Quadratic Formula',       back: 'x = (-b ± √(b²-4ac)) / 2a' },
+        { tag: 'FORMULA',  front: 'Slope-Intercept Form',    back: 'y = mx + b\n(m = slope, b = y-intercept)' },
+        { tag: 'FORMULA',  front: 'Point-Slope Form',        back: 'y - y₁ = m(x - x₁)' },
+        { tag: 'IDENTITY', front: 'Difference of Squares',   back: 'a² - b² = (a + b)(a - b)' },
+        { tag: 'IDENTITY', front: 'Perfect Square Trinomial',back: 'a² + 2ab + b² = (a + b)²' },
+        { tag: 'METHOD',   front: 'FOIL Method',             back: '(a+b)(c+d) = ac + ad + bc + bd' },
+      ],
+      problems: [
+        { question: 'Solve for x:  3x − 7 = 14',              answer: 'x = 7',              difficulty: 'Easy'   },
+        { question: 'Solve:  x² − 5x + 6 = 0',               answer: 'x = 2  or  x = 3',   difficulty: 'Medium' },
+        { question: 'Solve:  2x² + 7x − 15 = 0',             answer: 'x = 3/2  or  x = −5', difficulty: 'Hard'   },
+      ]
+    },
+    Geometry: {
+      cards: [
+        { tag: 'FORMULA',  front: 'Area of a Circle',         back: 'A = πr²' },
+        { tag: 'THEOREM',  front: 'Pythagorean Theorem',      back: 'a² + b² = c²\n(c = hypotenuse)' },
+        { tag: 'FORMULA',  front: 'Area of a Triangle',       back: 'A = ½ × base × height' },
+        { tag: 'FORMULA',  front: 'Volume of a Cylinder',     back: 'V = πr²h' },
+        { tag: 'FORMULA',  front: 'Surface Area of a Sphere', back: 'A = 4πr²' },
+        { tag: 'RULE',     front: 'Sum of Interior Angles',   back: '(n − 2) × 180°\nn = number of sides' },
+      ],
+      problems: [
+        { question: 'Find the hypotenuse when a = 3 and b = 4.',           answer: 'c = 5',               difficulty: 'Easy'   },
+        { question: 'Find the area of a circle with radius 7.',            answer: 'A = 49π ≈ 153.94',   difficulty: 'Medium' },
+        { question: 'A cylinder has r = 5 and h = 12. Find its volume.',   answer: 'V = 300π ≈ 942.48',  difficulty: 'Hard'   },
+      ]
+    },
+    Trigonometry: {
+      cards: [
+        { tag: 'MNEMONIC', front: 'SOH-CAH-TOA',              back: 'sin = Opp/Hyp\ncos = Adj/Hyp\ntan = Opp/Adj' },
+        { tag: 'IDENTITY', front: 'Pythagorean Identity',     back: 'sin²θ + cos²θ = 1' },
+        { tag: 'FORMULA',  front: 'Sine Rule',                back: 'a/sin(A) = b/sin(B) = c/sin(C)' },
+        { tag: 'FORMULA',  front: 'Cosine Rule',              back: 'c² = a² + b² − 2ab·cos(C)' },
+        { tag: 'IDENTITY', front: 'Double Angle — Sine',      back: 'sin(2θ) = 2·sin(θ)·cos(θ)' },
+        { tag: 'IDENTITY', front: 'Double Angle — Cosine',    back: 'cos(2θ) = cos²θ − sin²θ' },
+      ],
+      problems: [
+        { question: 'Find the exact value of sin(30°).',                        answer: '1/2',                     difficulty: 'Easy'   },
+        { question: 'Solve sin(x) = √2/2 for 0° ≤ x ≤ 360°.',                 answer: 'x = 45° or x = 135°',    difficulty: 'Medium' },
+        { question: 'Simplify: sin²x · cos²x using double angle identities.',  answer: '¼ sin²(2x)',              difficulty: 'Hard'   },
+      ]
+    },
+    Calculus: {
+      cards: [
+        { tag: 'RULE',    front: 'Power Rule',                       back: 'd/dx[xⁿ] = n·xⁿ⁻¹' },
+        { tag: 'RULE',    front: 'Product Rule',                     back: "d/dx[u·v] = u'v + uv'" },
+        { tag: 'RULE',    front: 'Quotient Rule',                    back: "d/dx[u/v] = (u'v − uv') / v²" },
+        { tag: 'RULE',    front: 'Chain Rule',                       back: "d/dx[f(g(x))] = f'(g(x)) · g'(x)" },
+        { tag: 'THEOREM', front: 'Fundamental Theorem of Calculus',  back: '∫[a→b] f(x)dx = F(b) − F(a)' },
+        { tag: 'FORMULA', front: 'Integral Power Rule',              back: '∫xⁿ dx = xⁿ⁺¹/(n+1) + C   (n ≠ −1)' },
+      ],
+      problems: [
+        { question: 'Differentiate f(x) = 3x⁴ − 2x² + 5.',         answer: "f'(x) = 12x³ − 4x",     difficulty: 'Easy'   },
+        { question: 'Evaluate: ∫(2x + 3) dx',                       answer: 'x² + 3x + C',           difficulty: 'Medium' },
+        { question: 'Differentiate f(x) = sin(x²) using chain rule.',answer: "f'(x) = 2x·cos(x²)",   difficulty: 'Hard'   },
+      ]
+    },
+    Statistics: {
+      cards: [
+        { tag: 'DEFINITION', front: 'Mean (Average)',          back: 'μ = (Σxᵢ) / n\nSum of all values ÷ count' },
+        { tag: 'FORMULA',    front: 'Standard Deviation',      back: 'σ = √( Σ(xᵢ − μ)² / N )' },
+        { tag: 'RULE',       front: 'Empirical Rule (Normal)', back: '68% within 1σ\n95% within 2σ\n99.7% within 3σ' },
+        { tag: 'FORMULA',    front: 'Permutation',             back: 'P(n,r) = n! / (n−r)!' },
+        { tag: 'FORMULA',    front: 'Combination',             back: 'C(n,r) = n! / (r!(n−r)!)' },
+        { tag: 'DEFINITION', front: 'Probability of Event A',  back: 'P(A) = favourable outcomes / total outcomes' },
+      ],
+      problems: [
+        { question: 'Find the mean of: 4, 8, 6, 5, 3, 2, 8, 9, 2, 5.',         answer: 'Mean = 5.2',   difficulty: 'Easy'   },
+        { question: 'How many ways can you choose 2 items from 6?  C(6,2) = ?', answer: '15',           difficulty: 'Medium' },
+        { question: 'P(A)=0.4, P(B)=0.3, P(A∩B)=0.1.  Find P(A∪B).',          answer: '0.6',          difficulty: 'Hard'   },
+      ]
     }
-  }
+  };
 
-  // ── PRACTICE QUIZ TAB ─────────────────────────────────────────
-  let quizDiffFilter = 'all';
+  let pracCategory = 'All';
+  let pracCardIdx  = 0;
 
   function initPracticeTab() {
-    const sel = document.getElementById('quiz-course-select');
-    sel.innerHTML = COURSES.map(c => `<option value="${c.id}">${c.icon} ${c.title} (${c.level})</option>`).join('');
-    onQuizCourseChange();
+    renderFlashcard();
+    renderPQCards();
   }
 
-  function onQuizCourseChange() {
-    const courseId = document.getElementById('quiz-course-select').value;
-    const course = COURSES.find(c => c.id === courseId);
-    if (!course) return;
-    const lsel = document.getElementById('quiz-lesson-select');
-    lsel.innerHTML = course.lessons.map(l => `<option value="${l.id}">${l.title}</option>`).join('');
-    renderQuizProblems();
+  function setPracCategory(cat, el) {
+    pracCategory = cat;
+    pracCardIdx  = 0;
+    document.querySelectorAll('.prac-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    renderFlashcard();
+    renderPQCards();
   }
 
-  function setDiffFilter(diff) {
-    quizDiffFilter = diff;
-    ['all','easy','medium','hard'].forEach(d => {
-      const btn = document.getElementById('diff-' + d);
-      btn.className = 'diff-filter-btn' + (d === diff ? ` active-${d}` : '');
-    });
-    renderQuizProblems();
+  function getPracCards() {
+    if (pracCategory === 'All')
+      return Object.values(PRACTICE_DATA).flatMap(d => d.cards);
+    return (PRACTICE_DATA[pracCategory] || { cards: [] }).cards;
   }
 
-  function renderQuizProblems() {
-    const courseId  = document.getElementById('quiz-course-select').value;
-    const lessonId  = document.getElementById('quiz-lesson-select').value;
-    const course    = COURSES.find(c => c.id === courseId);
-    const lesson    = course && course.lessons.find(l => l.id === lessonId);
-    const container = document.getElementById('quiz-problems-container');
-    if (!lesson) { container.innerHTML = '<div class="quiz-empty"><span class="big-emoji">📚</span>Select a lesson to start.</div>'; return; }
-    const problems = quizDiffFilter === 'all'
-      ? lesson.practice
-      : lesson.practice.filter(p => p.difficulty.toLowerCase() === quizDiffFilter);
+  function getPracProblems() {
+    if (pracCategory === 'All')
+      return Object.values(PRACTICE_DATA).flatMap(d => d.problems);
+    return (PRACTICE_DATA[pracCategory] || { problems: [] }).problems;
+  }
+
+  function renderFlashcard() {
+    const cards = getPracCards();
+    if (!cards.length) return;
+    if (pracCardIdx >= cards.length) pracCardIdx = 0;
+    const card = cards[pracCardIdx];
+    document.getElementById('fc-tag').textContent        = card.tag || 'FORMULA';
+    document.getElementById('fc-front-text').textContent = card.front;
+    document.getElementById('fc-back-text').textContent  = card.back;
+    document.getElementById('fc-counter').textContent    = (pracCardIdx + 1) + ' of ' + cards.length;
+    document.getElementById('flashcard').classList.remove('revealed');
+    document.getElementById('fc-front').style.display = 'flex';
+    document.getElementById('fc-back').style.display  = 'none';
+  }
+
+  function flipCard() {
+    const card    = document.getElementById('flashcard');
+    const front   = document.getElementById('fc-front');
+    const back    = document.getElementById('fc-back');
+    const flipped = card.classList.toggle('revealed');
+    front.style.display = flipped ? 'none' : 'flex';
+    back.style.display  = flipped ? 'flex' : 'none';
+  }
+
+  function prevPracCard() {
+    const len = getPracCards().length;
+    pracCardIdx = (pracCardIdx - 1 + len) % len;
+    renderFlashcard();
+  }
+
+  function nextPracCard() {
+    pracCardIdx = (pracCardIdx + 1) % getPracCards().length;
+    renderFlashcard();
+  }
+
+  function renderPQCards() {
+    const problems  = getPracProblems();
+    const container = document.getElementById('prac-problems');
     if (!problems.length) {
-      container.innerHTML = `<div class="quiz-empty"><span class="big-emoji">🔍</span>No ${quizDiffFilter} problems for this lesson.</div>`;
+      container.innerHTML = '<div class="prac-empty"><div class="prac-empty-icon">📝</div><div>No problems in this category yet.</div></div>';
       return;
     }
-    renderPracticeCards(problems, 'quiz-problems-container');
+    container.innerHTML = problems.map((p, i) => {
+      const diff  = p.difficulty.toLowerCase();
+      const emoji = diff === 'easy' ? '🟢' : diff === 'medium' ? '🟡' : '🔴';
+      return `<div class="pq-card" id="pqc-${i}">
+        <div class="pq-badge ${diff}">${emoji} ${p.difficulty}</div>
+        <div class="pq-question">${escapeHtml(p.question)}</div>
+        <button class="pq-reveal-btn" onclick="togglePQAnswer(${i})">Show Answer</button>
+        <div class="pq-answer" id="pqa-${i}" style="display:none;">
+          <div class="pq-answer-label">Answer</div>
+          <div class="pq-answer-text">${escapeHtml(p.answer)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function togglePQAnswer(i) {
+    const ans     = document.getElementById('pqa-' + i);
+    const card    = document.getElementById('pqc-' + i);
+    const btn     = card.querySelector('.pq-reveal-btn');
+    const showing = ans.style.display !== 'none';
+    ans.style.display = showing ? 'none' : 'block';
+    btn.textContent   = showing ? 'Show Answer' : 'Hide Answer';
+    card.classList.toggle('revealed', !showing);
   }
 
   // ── Scan Feature ──────────────────────────────────────────────
@@ -1754,7 +1680,6 @@ Rules:
   }
 
   // ── Init ──────────────────────────────────────────────────────
-  renderCourses('All');
   initPracticeTab();
   initScanFeature();
 
