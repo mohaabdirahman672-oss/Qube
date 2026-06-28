@@ -1,27 +1,36 @@
+import 'react-native-url-polyfill/auto';
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { registerRootComponent } from 'expo';
-import HomeScreen from './src/screens/HomeScreen';
+import { AuthProvider } from './src/context/AuthContext';
+import RootNavigator from './src/navigation/RootNavigator';
 import { colors } from './src/theme';
+
+const NAV_THEME = {
+  dark: true,
+  colors: {
+    primary:      colors.blue,
+    background:   colors.bg,
+    card:         colors.surface,
+    text:         colors.textPrimary,
+    border:       colors.border,
+    notification: colors.gold,
+  },
+};
 
 function App() {
   return (
-    <SafeAreaProvider>
-      <View style={styles.root}>
-        <StatusBar style="light" translucent />
-        <HomeScreen />
-      </View>
-    </SafeAreaProvider>
+    <AuthProvider>
+      <SafeAreaProvider>
+        <NavigationContainer theme={NAV_THEME}>
+          <StatusBar style="light" translucent />
+          <RootNavigator />
+        </NavigationContainer>
+      </SafeAreaProvider>
+    </AuthProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-});
 
 export default registerRootComponent(App);

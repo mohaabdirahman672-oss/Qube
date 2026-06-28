@@ -10,14 +10,14 @@ import { GoogleSignin, statusCodes } from '../lib/googleSignIn';
 import * as Crypto from 'expo-crypto';
 import { auth, isFirebaseConfigured } from '../lib/firebase';
 import appleAuth from '../lib/appleAuth';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import * as authService from '../services/authService';
 
-if (isFirebaseConfigured) {
-  GoogleSignin.configure({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    scopes: ['email', 'profile'],
-  });
-}
+// Configure Google Sign-In (uses Supabase, no Firebase required)
+GoogleSignin.configure({
+  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  scopes: ['email', 'profile'],
+});
 
 function generateNonce(length = 32) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -28,31 +28,112 @@ function generateNonce(length = 32) {
   return result;
 }
 
+// Maps raw Supabase error messages to user-friendly strings
+function mapError(error) {
+  if (!error) return null;
+  const msg = (error.message || '').toLowerCase();
+  if (msg.includes('email not confirmed'))        return 'Please verify your email — check your inbox';
+  if (msg.includes('invalid login credentials'))  return 'Wrong email or password';
+  if (msg.includes('user already registered'))    return 'An account with this email already exists';
+  if (msg.includes('password should be at least'))return 'Password must be at least 8 characters';
+  if (msg.includes('too many requests'))          return 'Too many attempts — please wait a moment';
+  if (msg.includes('unable to validate email'))   return 'Enter a valid email address';
+  if (msg.includes('network') || msg.includes('fetch')) return 'No connection — check your internet and try again';
+  return 'Something went wrong — please try again';
+}
+
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // When Firebase isn't configured (no .env), skip auth and go straight to app
-  const [user, setUser]       = useState(isFirebaseConfigured ? null : { uid: 'preview' });
-  const [loading, setLoading] = useState(isFirebaseConfigured);
+  const [session, setSession] = useState(null);
+  const [user,    setUser]    = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isFirebaseConfigured) return;
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    if (!isSupabaseConfigured) {
+      // No Supabase credentials — show auth screens so user can configure
+      setLoading(false);
+      return;
+    }
+
+    // Load persisted session on startup
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
-    return unsubscribe;
+
+    // Keep session state in sync with Supabase auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // ── Email / Password ─────────────────────────────────────────────────────
+
+  async function signUpEmail(email, password) {
+    if (!isSupabaseConfigured) {
+      return { error: 'Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to your .env file.' };
+    }
+    const { data, error } = await authService.signUpWithEmail(email, password);
+    if (error) return { error: mapError(error) };
+    return { data };
+  }
+
+  async function signInEmail(email, password) {
+    if (!isSupabaseConfigured) {
+      return { error: 'Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to your .env file.' };
+    }
+    const { data, error } = await authService.signInWithEmail(email, password);
+    if (error) return { error: mapError(error) };
+    return { data };
+  }
+
+  async function sendPasswordReset(email) {
+    if (!isSupabaseConfigured) {
+      return { error: 'Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to your .env file.' };
+    }
+    const { error } = await authService.sendPasswordReset(email);
+    if (error) return { error: mapError(error) };
+    return {};
+  }
+
+  async function updateDisplayName(name) {
+    if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
+    const { data, error } = await supabase.auth.updateUser({ data: { display_name: name.trim() } });
+    if (error) return { error: mapError(error) };
+    return { data };
+  }
+
+  async function signOut() {
+    if (isSupabaseConfigured) {
+      await authService.signOutUser();
+    }
+    // Also clear any Google session if Firebase is active (future Google sign-in)
+    if (isFirebaseConfigured) {
+      try { await GoogleSignin.signOut(); } catch {}
+    }
+  }
+
+  // ── Google Sign-In (Supabase via native Google SDK) ─────────────────────
+
   async function signInWithGoogle() {
-    if (!isFirebaseConfigured) throw new Error('Firebase is not configured');
+    if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const userInfo = await GoogleSignin.signIn();
-      const idToken = userInfo?.data?.idToken ?? userInfo?.idToken;
-      if (!idToken) throw new Error('No ID token received from Google');
-      const credential = GoogleAuthProvider.credential(idToken);
-      return signInWithCredential(auth, credential);
+      await GoogleSignin.signIn();
+      const { idToken } = await GoogleSignin.getTokens();
+      if (!idToken) return { error: 'No ID token received from Google.' };
+
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token:    idToken,
+      });
+      if (error) return { error: mapError(error) };
+      return { data };
     } catch (error) {
       if (
         error.code === statusCodes.SIGN_IN_CANCELLED ||
@@ -60,12 +141,14 @@ export function AuthProvider({ children }) {
       ) {
         return null;
       }
-      throw error;
+      return { error: 'Google sign in failed. Please try again.' };
     }
   }
 
+  // ── Apple Sign-In (Firebase — kept for future wiring) ────────────────────
+
   async function signInWithApple() {
-    if (!isFirebaseConfigured) throw new Error('Firebase is not configured');
+    if (!isFirebaseConfigured) return { error: 'Apple Sign-In is not configured yet.' };
     if (!appleAuth?.isSupported) {
       throw new Error('Apple Sign In is not supported on this device');
     }
@@ -95,18 +178,19 @@ export function AuthProvider({ children }) {
     return signInWithCredential(auth, credential);
   }
 
-  async function signOut() {
-    if (!isFirebaseConfigured) return;
-    try {
-      await GoogleSignin.signOut();
-    } catch {
-      // ignore
-    }
-    return firebaseSignOut(auth);
-  }
-
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, signInWithApple, signOut }}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      loading,
+      signUpEmail,
+      signInEmail,
+      signOut,
+      sendPasswordReset,
+      updateDisplayName,
+      signInWithGoogle,
+      signInWithApple,
+    }}>
       {children}
     </AuthContext.Provider>
   );

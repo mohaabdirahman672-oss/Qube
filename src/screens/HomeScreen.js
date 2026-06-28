@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,17 +6,13 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
-  Dimensions,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import FloatingSymbols from '../components/FloatingSymbols';
-import BottomNav from '../components/BottomNav';
 import { colors, spacing, radius, typography } from '../theme';
-
-const { width } = Dimensions.get('window');
 
 // ─────────────────────────────────────────────
 //  DATA
@@ -90,7 +86,7 @@ function StatPill({ value, label, icon, delay }) {
   );
 }
 
-function ScanCard({ glowAnim, glowOuter, glowInner, cardAnim, cardScale }) {
+function ScanCard({ glowAnim, glowOuter, glowInner, cardAnim, cardScale, onPress }) {
   return (
     <Animated.View
       style={[
@@ -102,7 +98,7 @@ function ScanCard({ glowAnim, glowOuter, glowInner, cardAnim, cardScale }) {
       <Animated.View style={[styles.glowRingOuter, { opacity: glowOuter }]} />
       <Animated.View style={[styles.glowRingInner, { opacity: glowInner }]} />
 
-      <TouchableOpacity activeOpacity={0.88} style={styles.scanCardTouch}>
+      <TouchableOpacity activeOpacity={0.88} style={styles.scanCardTouch} onPress={onPress}>
         <LinearGradient
           colors={['#0E1D3F', '#091428']}
           style={styles.scanCard}
@@ -147,7 +143,7 @@ function ScanCard({ glowAnim, glowOuter, glowInner, cardAnim, cardScale }) {
   );
 }
 
-function FeatureCard({ card, animVal, index }) {
+function FeatureCard({ card, animVal, index, onPress }) {
   const slideAnim = useRef(new Animated.Value(32)).current;
   const pressAnim = useRef(new Animated.Value(1)).current;
 
@@ -177,6 +173,7 @@ function FeatureCard({ card, animVal, index }) {
         activeOpacity={1}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        onPress={onPress}
       >
         <View style={[styles.featureCard, { borderColor: card.glowColor + '30' }]}>
           {/* Subtle glow wash on left edge */}
@@ -215,8 +212,10 @@ function FeatureCard({ card, animVal, index }) {
 //  MAIN SCREEN
 // ─────────────────────────────────────────────
 
-export default function HomeScreen() {
-  const [activeTab, setActiveTab] = useState('home');
+// Map feature card keys to navigator route names
+const CARD_ROUTES = { ai: 'scan', practice: 'practice', quiz: 'practice' };
+
+export default function HomeScreen({ navigation }) {
 
   // Animation refs
   const logoScale   = useRef(new Animated.Value(0.3)).current;
@@ -348,9 +347,7 @@ export default function HomeScreen() {
               },
             ]}
           >
-            <Text style={styles.greetHello}>
-              {firstName ? `Welcome back, ${firstName}` : 'Welcome to Qube'}
-            </Text>
+            <Text style={styles.greetHello}>Welcome to Qube</Text>
             <Text style={styles.greetTagline}>Math. Every Dimension.</Text>
           </Animated.View>
 
@@ -368,12 +365,13 @@ export default function HomeScreen() {
             glowInner={glowRingInner}
             cardAnim={scanOpacity}
             cardScale={scanScale}
+            onPress={() => navigation.navigate('scan')}
           />
 
           {/* ── Feature Cards ────────────────── */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Features</Text>
-            <TouchableOpacity activeOpacity={0.7}>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => navigation.navigate('practice')}>
               <Text style={styles.sectionLink}>See all →</Text>
             </TouchableOpacity>
           </View>
@@ -384,6 +382,7 @@ export default function HomeScreen() {
               card={card}
               animVal={cardOpacities[i]}
               index={i}
+              onPress={() => navigation.navigate(CARD_ROUTES[card.key])}
             />
           ))}
 
@@ -408,8 +407,6 @@ export default function HomeScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Fixed bottom navigation */}
-      <BottomNav activeTab={activeTab} onTabPress={setActiveTab} />
     </View>
   );
 }

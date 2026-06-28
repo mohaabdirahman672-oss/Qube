@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -66,8 +65,22 @@ function TabItem({ tab, isActive, onPress }) {
   );
 }
 
-export default function BottomNav({ activeTab = 'home', onTabPress }) {
+// Accepts either React Navigation tabBar props (state, navigation)
+// or legacy standalone props (activeTab, onTabPress)
+export default function BottomNav({ state, navigation, activeTab: activeProp, onTabPress }) {
   const insets = useSafeAreaInsets();
+
+  const activeTab = state
+    ? (state.routes[state.index]?.name ?? 'home')
+    : (activeProp ?? 'home');
+
+  const handleTabPress = (key) => {
+    if (navigation) {
+      navigation.navigate(key);
+    } else {
+      onTabPress?.(key);
+    }
+  };
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom || 12 }]}>
@@ -78,7 +91,7 @@ export default function BottomNav({ activeTab = 'home', onTabPress }) {
           key={tab.key}
           tab={tab}
           isActive={activeTab === tab.key}
-          onPress={onTabPress}
+          onPress={handleTabPress}
         />
       ))}
     </View>
