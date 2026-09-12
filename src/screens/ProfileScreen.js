@@ -20,10 +20,12 @@ const STATS = [
   { icon: 'star-outline',       label: 'AI Accuracy',       value: '98%',  color: colors.green  },
 ];
 
+const PRIVACY_URL = 'https://spot-hurricane-661.notion.site/Qube-Privacy-Policy-Last-updated-August-2026-3b838d7712fc803a8025f809d0fca230';
+
 const MENU = [
-  { icon: 'information-circle-outline', label: 'About Qube',       sub: 'Version 1.0.0 · Beta' },
-  { icon: 'shield-checkmark-outline',   label: 'Privacy Policy',   sub: 'How we handle your data' },
-  { icon: 'document-text-outline',      label: 'Terms of Service', sub: 'Usage terms and conditions' },
+  { icon: 'information-circle-outline', label: 'About Qube',       sub: 'Version 1.0.0 · Beta',          url: null },
+  { icon: 'shield-checkmark-outline',   label: 'Privacy Policy',   sub: 'How we handle your data',        url: PRIVACY_URL },
+  { icon: 'document-text-outline',      label: 'Terms of Service', sub: 'Usage terms and conditions',     url: PRIVACY_URL },
 ];
 
 export default function ProfileScreen({ navigation }) {
@@ -381,7 +383,12 @@ export default function ProfileScreen({ navigation }) {
           {/* ── Info ─────────────────────────────────────────────────────── */}
           <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>INFO</Text>
           {MENU.map(item => (
-            <View key={item.label} style={styles.menuRow}>
+            <TouchableOpacity
+              key={item.label}
+              style={styles.menuRow}
+              onPress={() => item.url && Linking.openURL(item.url)}
+              activeOpacity={item.url ? 0.7 : 1}
+            >
               <View style={[styles.menuIcon, { backgroundColor: colors.surfaceHigh, borderColor: colors.border }]}>
                 <Ionicons name={item.icon} size={18} color={colors.textSub} />
               </View>
@@ -390,7 +397,7 @@ export default function ProfileScreen({ navigation }) {
                 <Text style={styles.menuSub}>{item.sub}</Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-            </View>
+            </TouchableOpacity>
           ))}
 
           {/* ── Create Account CTA for guests (bottom) ─────────────────── */}

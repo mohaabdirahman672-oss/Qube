@@ -1,14 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
-import {
-  onAuthStateChanged,
-  signOut as firebaseSignOut,
-  GoogleAuthProvider,
-  OAuthProvider,
-  signInWithCredential,
-} from 'firebase/auth';
 import { GoogleSignin, statusCodes } from '../lib/googleSignIn';
 import * as Crypto from 'expo-crypto';
-import { auth, isFirebaseConfigured } from '../lib/firebase';
 import appleAuth from '../lib/appleAuth';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import * as authService from '../services/authService';
@@ -112,10 +104,7 @@ export function AuthProvider({ children }) {
     if (isSupabaseConfigured) {
       await authService.signOutUser();
     }
-    // Also clear any Google session if Firebase is active (future Google sign-in)
-    if (isFirebaseConfigured) {
-      try { await GoogleSignin.signOut(); } catch {}
-    }
+    try { await GoogleSignin.signOut(); } catch {}
   }
 
   // ── Google Sign-In (Supabase via native Google SDK) ─────────────────────
@@ -145,37 +134,40 @@ export function AuthProvider({ children }) {
     }
   }
 
-  // ── Apple Sign-In (Firebase — kept for future wiring) ────────────────────
+  // ── Apple Sign-In (Supabase via native Apple SDK) ────────────────────────
 
   async function signInWithApple() {
-    if (!isFirebaseConfigured) return { error: 'Apple Sign-In is not configured yet.' };
-    if (!appleAuth?.isSupported) {
-      throw new Error('Apple Sign In is not supported on this device');
+    if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
+    if (!appleAuth?.isSupported) return { error: 'Apple Sign-In is not supported on this device.' };
+
+    try {
+      const rawNonce    = generateNonce(32);
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce
+      );
+
+      const appleAuthRequest = await appleAuth.performRequest({
+        requestedOperation: appleAuth.Operation.LOGIN,
+        requestedScopes:    [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
+        nonce: hashedNonce,
+      });
+
+      if (!appleAuthRequest.identityToken) {
+        return { error: 'Apple Sign In failed — no identity token received.' };
+      }
+
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token:    appleAuthRequest.identityToken,
+        nonce:    rawNonce,
+      });
+      if (error) return { error: mapError(error) };
+      return { data };
+    } catch (err) {
+      if (err?.code === '1001' || err?.code === 1001) return null;
+      return { error: 'Apple sign in failed. Please try again.' };
     }
-
-    const rawNonce    = generateNonce(32);
-    const hashedNonce = await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      rawNonce
-    );
-
-    const appleAuthRequest = await appleAuth.performRequest({
-      requestedOperation: appleAuth.Operation.LOGIN,
-      requestedScopes:    [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
-      nonce: hashedNonce,
-    });
-
-    if (!appleAuthRequest.identityToken) {
-      throw new Error('Apple Sign In failed — no identity token returned');
-    }
-
-    const provider   = new OAuthProvider('apple.com');
-    const credential = provider.credential({
-      idToken:  appleAuthRequest.identityToken,
-      rawNonce,
-    });
-
-    return signInWithCredential(auth, credential);
   }
 
   return (

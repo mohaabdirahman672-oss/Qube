@@ -12,7 +12,12 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.qube.mathapp"
+      "bundleIdentifier": "com.qube.mathapp",
+      "usesAppleSignIn": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,19 +25,31 @@
         "backgroundColor": "#06091A"
       },
       "package": "com.qube.mathapp",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.READ_EXTERNAL_STORAGE"
       ]
     },
     "plugins": [
-      "@react-native-google-signin/google-signin",
+      ["@react-native-google-signin/google-signin", {
+        "iosUrlScheme": "com.googleusercontent.apps.59533189278-4qcpoo5k78h6vjo20le13uo481rfud8b"
+      }],
+      "@invertase/react-native-apple-authentication",
       [
         "expo-image-picker",
         {
           "photosPermission": "Qube reads photos from your library so you can upload math problems to solve.",
           "cameraPermission": "Qube uses your camera to photograph math problems and solve them instantly."
+        }
+      ],
+      "@sentry/react-native",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.1.0"
+          }
         }
       ]
     ],

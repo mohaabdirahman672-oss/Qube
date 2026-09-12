@@ -8,7 +8,10 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  Linking,
 } from 'react-native';
+
+const PRIVACY_URL = 'https://spot-hurricane-661.notion.site/Qube-Privacy-Policy-Last-updated-August-2026-3b838d7712fc803a8025f809d0fca230';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -233,9 +236,9 @@ export default function LoginScreen({ navigation }) {
               {/* Legal */}
               <Text style={styles.legal}>
                 By continuing, you agree to our{' '}
-                <Text style={styles.legalLink}>Terms of Service</Text>
+                <Text style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Terms of Service</Text>
                 {' '}and{' '}
-                <Text style={styles.legalLink}>Privacy Policy</Text>
+                <Text style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_URL)}>Privacy Policy</Text>
               </Text>
             </View>
           </ScrollView>
