@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
 
 export function signUpWithEmail(email, password) {
-  return supabase.auth.signUp({ email, password });
+  return supabase.auth.signUp({ email, password, options: { emailRedirectTo: 'qube://' } });
 }
 
 export function signInWithEmail(email, password) {
@@ -13,7 +13,11 @@ export function signOutUser() {
 }
 
 export function sendPasswordReset(email) {
-  return supabase.auth.resetPasswordForEmail(email);
+  return supabase.auth.resetPasswordForEmail(email, { redirectTo: 'qube://reset-password' });
+}
+
+export function updatePassword(password) {
+  return supabase.auth.updateUser({ password });
 }
 
 export function getSession() {

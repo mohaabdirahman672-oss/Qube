@@ -5,12 +5,13 @@ import AppNavigator         from './AppNavigator';
 import LoginScreen          from '../screens/auth/LoginScreen';
 import SignUpScreen         from '../screens/auth/SignUpScreen';
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import ResetPasswordScreen  from '../screens/auth/ResetPasswordScreen';
 import SplashScreen         from '../screens/SplashScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const { session, loading } = useAuth();
+  const { session, loading, passwordRecovery } = useAuth();
   const [showSplash, setShowSplash] = useState(true);
 
   // Show animated splash on first launch; auth resolves well within the ~2.5s window
@@ -19,6 +20,16 @@ export default function RootNavigator() {
   }
 
   if (loading) return null;
+
+  // A password-reset link opened the app — block everything else until the
+  // user sets a new password, regardless of the (recovery) session's existence.
+  if (passwordRecovery) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+      </Stack.Navigator>
+    );
+  }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

@@ -1,9 +1,11 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { Linking } from 'react-native';
 import { GoogleSignin, statusCodes } from '../lib/googleSignIn';
 import * as Crypto from 'expo-crypto';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import * as authService from '../services/authService';
+import { parseAuthDeepLink } from '../lib/authDeepLink';
 
 // Configure Google Sign-In (uses Supabase, no Firebase required)
 GoogleSignin.configure({
@@ -40,6 +42,7 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user,    setUser]    = useState(null);
   const [loading, setLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -56,12 +59,29 @@ export function AuthProvider({ children }) {
     });
 
     // Keep session state in sync with Supabase auth events
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setSession(session);
       setUser(session?.user ?? null);
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Password reset / email confirmation links land here (see app.json's "scheme": "qube").
+  // Supabase's JS client only auto-detects sessions in URLs on web, so on native the
+  // access/refresh tokens are extracted from the incoming link by hand.
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    function handleUrl({ url }) {
+      const tokens = parseAuthDeepLink(url);
+      if (tokens) supabase.auth.setSession(tokens);
+    }
+
+    Linking.getInitialURL().then(url => url && handleUrl({ url }));
+    const subscription = Linking.addEventListener('url', handleUrl);
+    return () => subscription.remove();
   }, []);
 
   // ── Email / Password ─────────────────────────────────────────────────────
@@ -100,11 +120,20 @@ export function AuthProvider({ children }) {
     return { data };
   }
 
+  async function updatePassword(password) {
+    if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
+    const { data, error } = await authService.updatePassword(password);
+    if (error) return { error: mapError(error) };
+    setPasswordRecovery(false);
+    return { data };
+  }
+
   async function signOut() {
     if (isSupabaseConfigured) {
       await authService.signOutUser();
     }
     try { await GoogleSignin.signOut(); } catch {}
+    setPasswordRecovery(false);
   }
 
   // ── Google Sign-In (Supabase via native Google SDK) ─────────────────────
@@ -179,11 +208,13 @@ export function AuthProvider({ children }) {
       user,
       session,
       loading,
+      passwordRecovery,
       signUpEmail,
       signInEmail,
       signOut,
       sendPasswordReset,
       updateDisplayName,
+      updatePassword,
       signInWithGoogle,
       signInWithApple,
     }}>
