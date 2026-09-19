@@ -82,7 +82,9 @@ Its own phase, run after the security/auth blockers are done and before you hand
 
 ---
 
-## Target: launch within October 2026
+## Target: launch within October 2026 (replanned Sep 19)
+
+**Update 2026-09-19:** the week of Sep 13-18 was lost to illness — only the Sep 12 auth-migration commit landed, Phase 1 (OpenAI proxy) never started. Rather than resetting the whole calendar back a full week, the Phase 1 work is compressed into 5 days (Sep 19-23) instead of stretching across a full week, so the rest of the plan only slips ~4-5 days. New target: **live by Oct 28-31**, with **Nov 4** as hard outer buffer. Day-by-day detail lives in `docs/plans/launch-daily-checklist.md` — that file is the current source of truth for dates; the table below is the original Sep 12 plan, kept for history.
 
 Today is 2026-09-12, so there's ~7 weeks of runway to Oct 31 — enough for the **solid** path plus a real beta window and buffer for at least one Apple review round-trip (very common on a first submission). Suggested calendar:
 
