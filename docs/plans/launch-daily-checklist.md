@@ -18,7 +18,8 @@ Check items off as you go. If a day overflows, use the next weekend day as catch
 
 The security-critical item (#1: client-exposed OpenAI key) never got started. This is never cut — compressing it into 5 days starting today rather than pushing it further out.
 
-- [ ] **Sat Sep 19** — Quick fix: update `docs/known-issues.md` — it still says Google/Apple sign-in is inactive, which is false (also carries over the Sep 13 task). Then scaffold a Supabase Edge Function (`supabase functions new solve`); move `SYSTEM_PROMPT` and the OpenAI `fetch` call from `src/services/solveApi.js` into it, using a server-only env var (no `EXPO_PUBLIC_` prefix).
+- [x] **Sat Sep 19** — Quick fix: updated `docs/known-issues.md` — Google/Apple sign-in and Supabase env vars are now correctly marked resolved (KI-R7), OpenAI key exposure tracked as KI-05. Scaffolded the Supabase Edge Function (`supabase functions new solve`) and moved `SYSTEM_PROMPT` + the OpenAI `fetch` call into `supabase/functions/solve/index.ts`, reading a server-only `OPENAI_API_KEY` env var. Set `verify_jwt = true` so only a signed-in session can call it. Commit `4a0fc15`.
+  - Not yet done: function isn't deployed, `solveApi.js` still calls OpenAI directly — that's tomorrow.
   - *(Bonus, already done today: appleAuth.ios.js/appleAuth.js split fixed (#4) + Expo/React/RN dependency bump — commit `78c30cd`.)*
 - [ ] **Sun Sep 20** — Deploy the Edge Function. Update `solveApi.js` to call it instead of OpenAI directly, for both the text path and the image (base64) path.
 - [ ] **Mon Sep 21** — Add basic per-user rate limiting to the Edge Function. Remove `EXPO_PUBLIC_OPENAI_API_KEY` from `.env`, `.env.example`, and any app config.
