@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { GoogleSignin, statusCodes } from '../lib/googleSignIn';
 import * as Crypto from 'expo-crypto';
-import appleAuth from '../lib/appleAuth';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import * as authService from '../services/authService';
 
@@ -138,7 +138,9 @@ export function AuthProvider({ children }) {
 
   async function signInWithApple() {
     if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
-    if (!appleAuth?.isSupported) return { error: 'Apple Sign-In is not supported on this device.' };
+
+    const isAvailable = await AppleAuthentication.isAvailableAsync();
+    if (!isAvailable) return { error: 'Apple Sign-In is not supported on this device.' };
 
     try {
       const rawNonce    = generateNonce(32);
@@ -147,25 +149,27 @@ export function AuthProvider({ children }) {
         rawNonce
       );
 
-      const appleAuthRequest = await appleAuth.performRequest({
-        requestedOperation: appleAuth.Operation.LOGIN,
-        requestedScopes:    [appleAuth.Scope.FULL_NAME, appleAuth.Scope.EMAIL],
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
         nonce: hashedNonce,
       });
 
-      if (!appleAuthRequest.identityToken) {
+      if (!credential.identityToken) {
         return { error: 'Apple Sign In failed — no identity token received.' };
       }
 
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
-        token:    appleAuthRequest.identityToken,
+        token:    credential.identityToken,
         nonce:    rawNonce,
       });
       if (error) return { error: mapError(error) };
       return { data };
     } catch (err) {
-      if (err?.code === '1001' || err?.code === 1001) return null;
+      if (err?.code === 'ERR_REQUEST_CANCELED') return null;
       return { error: 'Apple sign in failed. Please try again.' };
     }
   }

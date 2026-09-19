@@ -16,7 +16,9 @@
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Qube uses your camera to photograph math problems and solve them instantly.",
+        "NSPhotoLibraryUsageDescription": "Qube reads photos from your library so you can upload math problems to solve."
       }
     },
     "android": {
@@ -32,10 +34,13 @@
       ]
     },
     "plugins": [
-      ["@react-native-google-signin/google-signin", {
-        "iosUrlScheme": "com.googleusercontent.apps.59533189278-4qcpoo5k78h6vjo20le13uo481rfud8b"
-      }],
-      "@invertase/react-native-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.59533189278-4qcpoo5k78h6vjo20le13uo481rfud8b"
+        }
+      ],
+      "expo-apple-authentication",
       [
         "expo-image-picker",
         {
@@ -49,14 +54,15 @@
         {
           "android": {
             "kotlinVersion": "2.1.0"
+          },
+          "ios": {
+            "useModularHeaders": true
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
-    "infoPlist": {
-      "NSCameraUsageDescription": "Qube uses your camera to photograph math problems and solve them instantly.",
-      "NSPhotoLibraryUsageDescription": "Qube reads photos from your library so you can upload math problems to solve."
-    },
+
     "extra": {
       "eas": {
         "projectId": "e45a9693-f636-4a31-b786-93d86db2ee86"
