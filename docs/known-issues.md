@@ -8,7 +8,6 @@
 
 | ID | Issue | File | Severity | Status | Notes |
 |---|---|---|---|---|---|
-| KI-01 | No Sign Out button | `src/screens/ProfileScreen.js` | High | Open | Users have no way to sign out. Add a Sign Out button that calls `signOut()` from `useAuth()`. |
 | KI-07 | Deep link redirect URLs not registered on the live Supabase project | Supabase Dashboard | High | **Blocks KI-R12 from working** | Code is done (KI-R12), but `qube://reset-password` and `qube://` must be added by hand at Authentication > URL Configuration > Redirect URLs in the Supabase Dashboard for the project (`fvwainyumiunpdjhapto`). Not done via CLI/`supabase config push` on purpose — that command would also silently overwrite live Apple/Google sign-in, MFA, and SMS settings that differ from the local `config.toml` defaults. |
 
 ---
@@ -25,6 +24,7 @@
 | KI-R11 | No EAS build had ever succeeded before today — KI-R9, KI-R10, and KI-06 were all discovered via this process. | 3rd `eas build --profile preview --platform ios` attempt succeeded end-to-end with all three fixes applied. First working build artifact this project has ever produced. Installable via https://expo.dev/accounts/its.muhammad/projects/qube/builds/3cf10f93-1371-45cf-95ea-ebd9bfa070d2 | 2026-09-22 |
 | KI-R12 | Password reset and email confirmation links opened a browser, not the app (formerly KI-02/KI-03). There was also no screen for a user to actually enter a new password after tapping the reset link. | Added `qube://` deep link handling: `resetPasswordForEmail`/`signUp` now pass `redirectTo`/`emailRedirectTo`; `AuthContext` listens for the incoming URL (`Linking`), extracts tokens by hand (`src/lib/authDeepLink.js` — Supabase's JS client only auto-detects sessions in URLs on web) and calls `setSession`; new `ResetPasswordScreen.js` + a `passwordRecovery` flag in `RootNavigator` intercepts navigation until a new password is set. **Not fully live yet — see KI-07.** | 2026-09-22 |
 | KI-R1 | No auth gate — unauthenticated users went straight to main app | Created `RootNavigator.js` with session-based auth gate | 2026-06-04 |
+| KI-R13 | No Sign Out button (stale — `ProfileScreen.js` already had one calling `signOut()` from `useAuth()`; this entry was just never reconciled after it was built) | N/A — already resolved, doc was out of date | Unknown (found stale 2026-09-22) |
 | KI-R2 | No email/password auth | Implemented Supabase email/password via `AuthContext`, `authService`, auth screens | 2026-06-04 |
 | KI-R3 | `firstName` crash in HomeScreen | Variable referenced but never declared — replaced with static welcome string | Earlier |
 | KI-R4 | `BottomNav` content overlap | Added `height: 110` spacer at bottom of ScrollViews to prevent content hiding under tab bar | Earlier |

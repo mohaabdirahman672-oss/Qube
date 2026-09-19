@@ -37,7 +37,7 @@ The security-critical item (#1: client-exposed OpenAI key) never got started. Th
 - [x] **Fri Sep 25** — Dropped the unused `courses_data.js` (137KB, done early) — grepped both `src/` and `preview.html`, confirmed the `COURSES` global it defines is never referenced anywhere. Removed the file and its `<script>` tag. Commit `f063caa`.
 - [ ] ~~Sat Sep 26 / Sun Sep 27 — Dark-theme/spacing consistency pass (#7)~~ — **cut pre-launch, deferred to post-launch iteration.**
 - [x] **Sat Sep 26** — Swept for stray `console.log`s, commented-out code, dead functions, and unused exports (#8, done early) — checked `ProfileScreen.js` and `AuthContext.js` first, then all of `src/`. Found nothing: zero console.logs, zero commented-out code, zero TODO/FIXME/debugger statements, zero unused exports anywhere. Already clean going in — no changes needed.
-- [ ] **Sun Sep 27** — Finish reconciling `docs/known-issues.md` (#9). Commit "cleanup complete." **Phase 2 done.**
+- [x] **Sun Sep 27** — Reconciled `docs/known-issues.md` (#9, done early): found and fixed another stale entry beyond the Google/Apple one from KI-R7 — KI-01 ("no Sign Out button") was already resolved in code (`ProfileScreen.js` has one) but never marked so, now KI-R13. **Phase 2 done** (all items #4-9 complete; #7 was cut on 2026-09-20).
 
 ## Week 3 — Beta-readiness (Phase 3, part 1)
 
@@ -47,11 +47,11 @@ The security-critical item (#1: client-exposed OpenAI key) never got started. Th
 - [ ] **Thu Oct 1** — Full manual functional pass on a real device: Home, Saved, Solve/Scan (#12, part 1).
 - [ ] **Fri Oct 2** — Full manual functional pass: Practice, Profile, and every auth flow end-to-end (#12, part 2).
 - [ ] **Sat Oct 3** — Bump `version`/build number, run `eas build --profile preview`, confirm a clean build (#13).
-- [ ] **Sun Oct 4** — Deep link setup for password reset / email confirmation: Supabase redirect URL config + `expo-linking` scheme (#14, part 1).
+- [x] **Sun Oct 4** — ~~Deep link setup for password reset / email confirmation~~ (#14, part 1 — done early on 2026-09-22, see KI-R12/KI-07 in `known-issues.md`). App-side code is complete (URL handling, `ResetPasswordScreen`, `passwordRecovery` navigation gate); the one remaining piece is a manual Supabase Dashboard step (KI-07) plus real-device verification, both rolled into part 2 below.
 
 ## Week 4 — Finish beta prep, open internal then external TestFlight
 
-- [ ] **Mon Oct 5** — Finish deep link handling; test reset/confirm-email flows end-to-end on device (#14, part 2). **Phase 3 done.**
+- [ ] **Mon Oct 5** — (#14, part 2) Add `qube://reset-password` and `qube://` to the Supabase Dashboard's Auth redirect URL allow-list (KI-07 — one-time manual step, ~2 min). Then test reset/confirm-email flows end-to-end on a real device. **Phase 3 done.**
 - [ ] **Tue Oct 6** — Prepare a reviewer demo account and write App Review notes on how to reach the scan feature (#19) — do this now, not the day you submit.
 - [ ] **Wed Oct 7** — Submit an internal TestFlight build (yourself + a couple trusted testers). Confirm it installs and runs on a real device.
 - [ ] **Thu Oct 8** — Smoke test the actual TestFlight build (not the dev build) — this catches build-specific issues dev builds hide.
