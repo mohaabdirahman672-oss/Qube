@@ -22,7 +22,7 @@
 | KI-R7 | Supabase env vars not configured | `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are present in `.env` and auth works end-to-end | 2026-09-19 |
 | KI-R8 | OpenAI API key bundled client-side, extractable from the shipped binary | Moved the OpenAI call into `supabase/functions/solve`, reading a server-only secret; added per-user rate limiting (20/hour); removed the key from `.env` entirely. Verified live. | 2026-09-19/21 |
 | KI-R9 | EAS environment variables broken across all 3 environments (production/preview/development): `EXPO_PUBLIC__SUPABASE_ANON_KEY` and `EXPO_PUBLIC__OPENAI_API_KEY` had a double-underscore typo (didn't match what the app code reads), `EXPO_PUBLIC_GOOGLE_CLIENT_ID` didn't match the code's `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, and `EXPO_PUBLIC_SENTRY_DSN` was missing entirely. Any real EAS build made before this fix would have shipped with broken Supabase auth and no crash reporting. | Deleted the typo'd/wrong-named/obsolete vars, set the 4 correctly-named ones (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `GOOGLE_WEB_CLIENT_ID`, `SENTRY_DSN`) across all 3 environments via `eas env:set`. | 2026-09-22 |
-| KI-R10 | `app.json`'s `expo-build-properties` had `ios.useModularHeaders: true` — not a real option in `expo-build-properties@1.0.10` (verified against its actual type definitions), so it silently did nothing. First real `eas build --profile preview` failed at Install Pods: `AppCheckCore` depends on `GoogleUtilities`/`RecaptchaInterop`, which don't define modules, breaking static-library integration. | Replaced with `ios.extraPods` declaring `modular_headers: true` for `GoogleUtilities` and `RecaptchaInterop` — the documented per-pod alternative CocoaPods' own error message pointed to. Retry build in progress. | 2026-09-22 |
+| KI-R10 | `app.json`'s `expo-build-properties` had `ios.useModularHeaders: true` — not a real option in `expo-build-properties@1.0.10` (verified against its actual type definitions), so it silently did nothing. First real `eas build --profile preview` failed at Install Pods: `AppCheckCore` depends on `GoogleUtilities`/`RecaptchaInterop`, which don't define modules, breaking static-library integration. | Replaced with `ios.extraPods` declaring `modular_headers: true` for `GoogleUtilities` and `RecaptchaInterop` — the documented per-pod alternative CocoaPods' own error message pointed to. Confirmed fixed: 2nd build attempt got past Install Pods entirely. | 2026-09-22 |
 | KI-R1 | No auth gate — unauthenticated users went straight to main app | Created `RootNavigator.js` with session-based auth gate | 2026-06-04 |
 | KI-R2 | No email/password auth | Implemented Supabase email/password via `AuthContext`, `authService`, auth screens | 2026-06-04 |
 | KI-R3 | `firstName` crash in HomeScreen | Variable referenced but never declared — replaced with static welcome string | Earlier |
@@ -30,6 +30,12 @@
 | KI-R5 | Flashcard face height collapsed | Added `minHeight: 180` to `cardWrap` — both absolute-positioned faces need a container height | Earlier |
 
 ---
+
+## Active Issues (post-build-fix, non-blocking)
+
+| ID | Issue | File | Severity | Status | Notes |
+|---|---|---|---|---|---|
+| KI-06 | Sentry source-map upload never configured — no `SENTRY_AUTH_TOKEN`, org, or project set anywhere. 2nd `eas build` attempt failed the Xcode "Upload Debug Symbols to Sentry" phase because of this. | `sentry.properties` (auto-generated, all placeholders) | Low | Mitigated | Set `SENTRY_DISABLE_AUTO_UPLOAD=true` as an EAS env var (all 3 environments) to unblock builds. Sentry crash reporting itself still works — crashes are still captured — but stack traces will be unsymbolicated (minified) until a real Sentry auth token + org/project are configured. Not a launch blocker; worth doing post-launch for readable crash reports. |
 
 ## Limitations / Constraints
 
