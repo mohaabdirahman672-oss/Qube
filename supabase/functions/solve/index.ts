@@ -4,6 +4,44 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / user
+
+function decodeJwt(authHeader: string | null): { sub: string; role: string } | null {
+  const token = authHeader?.replace(/^Bearer\s+/i, "");
+  const payload = token?.split(".")[1];
+  if (!payload) return null;
+  try {
+    const padded = payload.replace(/-/g, "+").replace(/_/g, "/").padEnd(payload.length + ((4 - (payload.length % 4)) % 4), "=");
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+async function checkRateLimit(userId: string): Promise<boolean> {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_and_increment_rate_limit`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_SERVICE_ROLE_KEY!,
+      "Authorization": "Bearer " + SUPABASE_SERVICE_ROLE_KEY,
+    },
+    body: JSON.stringify({
+      p_user_id: userId,
+      p_limit: RATE_LIMIT_MAX,
+      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+    }),
+  });
+  if (!response.ok) {
+    console.error("Rate limit check failed:", await response.text().catch(() => ""));
+    return true; // fail open — a broken rate-limit check shouldn't take down the feature
+  }
+  return await response.json();
+}
 
 const SYSTEM_PROMPT = `You are Qube, an expert math tutor. Solve math problems step by step.
 
@@ -72,6 +110,22 @@ Deno.serve(async (req) => {
 
   try {
     if (!OPENAI_API_KEY) throw new Error("Server misconfigured: OPENAI_API_KEY not set.");
+
+    const claims = decodeJwt(req.headers.get("Authorization"));
+    if (!claims || claims.role !== "authenticated") {
+      return new Response(JSON.stringify({ error: "Sign in required." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const allowed = await checkRateLimit(claims.sub);
+    if (!allowed) {
+      return new Response(JSON.stringify({ error: "You've hit the hourly limit for solving problems. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { text, imageBase64, imageMimeType } = await req.json();
     let messages;
