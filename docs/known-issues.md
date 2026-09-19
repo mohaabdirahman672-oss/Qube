@@ -19,6 +19,7 @@
 
 | ID | Issue | Resolution | Date |
 |---|---|---|---|
+| KI-R6 | `appleAuth.ios.js` shadowed `appleAuth.js` on iOS (Metro resolution), so Apple sign-in error handling never ran on device | Replaced the custom `appleAuth` wrapper with `expo-apple-authentication` directly in `AuthContext.js`; deleted both split files; fixed cancel-path error code to `ERR_REQUEST_CANCELED` | 2026-09-19 |
 | KI-R1 | No auth gate — unauthenticated users went straight to main app | Created `RootNavigator.js` with session-based auth gate | 2026-06-04 |
 | KI-R2 | No email/password auth | Implemented Supabase email/password via `AuthContext`, `authService`, auth screens | 2026-06-04 |
 | KI-R3 | `firstName` crash in HomeScreen | Variable referenced but never declared — replaced with static welcome string | Earlier |

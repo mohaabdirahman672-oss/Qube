@@ -20,7 +20,7 @@ Check items off as you go. If a day overflows, use the next weekend day as catch
 
 ## Week 2 — Cleanup (Phase 2)
 
-- [ ] **Sat Sep 19** — Fix the `appleAuth.ios.js` / `appleAuth.js` split (#4) — Metro picks `.ios.js` on iOS, so the new conditional logic never runs there today. Reconcile into one consistent implementation.
+- [x] **Sat Sep 19** — Fix the `appleAuth.ios.js` / `appleAuth.js` split (#4) — Metro picks `.ios.js` on iOS, so the new conditional logic never runs there today. Reconcile into one consistent implementation. Done: replaced the custom wrapper with `expo-apple-authentication` directly in `AuthContext.js`, deleted both split files, fixed the cancel-path error code (`ERR_REQUEST_CANCELED`). Bundled with an Expo SDK 54.0.37 / React 19 / RN 0.81 bump that was already staged alongside it. Commit `78c30cd`.
 - [ ] **Sun Sep 20** — Sweep for other Firebase-era leftovers (#5): orphaned imports, `isFirebaseConfigured` references, stale `.env.example` Firebase entries.
 - [ ] **Mon Sep 21** — Drop the unused `courses_data.js` (137KB) and its `<script>` tag in `preview.html` (#6).
 - [ ] **Tue Sep 22** — Dark-theme/spacing consistency pass: Home + Saved screens (#7, part 1).
