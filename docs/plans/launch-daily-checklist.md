@@ -31,7 +31,7 @@ The security-critical item (#1: client-exposed OpenAI key) never got started. Th
 **2026-09-20 decision: cutting #7 (dark-theme/spacing consistency pass) pre-launch.** Current UI is good enough to ship — polish it iteratively post-launch instead of blocking the timeline on it. This was already the first thing the plan's own "if you fall behind" section said to cut, so applying it proactively.
 
 - [x] **Sat Sep 19** — ~~Fix the `appleAuth.ios.js` / `appleAuth.js` split (#4)~~ — done early, see Catch-Up Sprint above. Commit `78c30cd`.
-- [ ] **Thu Sep 24** — Sweep for other Firebase-era leftovers (#5): orphaned imports, `isFirebaseConfigured` references, stale `.env.example` Firebase entries.
+- [x] **Thu Sep 24** — Swept Firebase-era leftovers (#5, done early while waiting on EAS build retries): deleted the orphaned `GoogleService-Info.plist`/`google-services.json` (a different, pre-migration Firebase project — client ID didn't even match current config), removed the dead `googleServicesFile` keys from `app.json`, rewrote `.env.example`. No `isFirebaseConfigured` references remained (already clean from the Sep 12/19 migration). Commit `80ff6b3`.
 - [ ] **Fri Sep 25** — Drop the unused `courses_data.js` (137KB) and its `<script>` tag in `preview.html` (#6).
 - [ ] ~~Sat Sep 26 / Sun Sep 27 — Dark-theme/spacing consistency pass (#7)~~ — **cut pre-launch, deferred to post-launch iteration.**
 - [ ] **Sat Sep 26** — Remove stray `console.log`s, commented-out code, and dead functions — check `ProfileScreen.js` and `AuthContext.js` first since both had the largest recent diffs (#8).
