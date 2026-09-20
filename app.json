@@ -55,15 +55,21 @@
           },
           "ios": {
             "extraPods": [
-              { "name": "GoogleUtilities", "modular_headers": true },
-              { "name": "RecaptchaInterop", "modular_headers": true }
+              {
+                "name": "GoogleUtilities",
+                "modular_headers": true
+              },
+              {
+                "name": "RecaptchaInterop",
+                "modular_headers": true
+              }
             ]
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-asset"
     ],
-
     "extra": {
       "eas": {
         "projectId": "e45a9693-f636-4a31-b786-93d86db2ee86"
