@@ -139,14 +139,15 @@ Every teammate must leave a **completion summary** that includes:
 
 ## Previewing the App
 
-**Always use `preview.html` to preview in a browser. Never use `expo start --web`.**
+For a quick, no-server visual check, use `preview.html`:
 
 ```
 npm run preview        # opens preview.html directly in the browser
 ```
 
-`expo start --web` produces a white screen due to a babel-preset-expo version mismatch and should not be used.
-`preview.html` is a complete standalone HTML prototype — splash screen, all 5 tabs, all courses, full navigation — no server needed.
+`preview.html` is a complete standalone HTML prototype — splash screen, all 5 tabs, all courses, full navigation — no server needed. It does not reflect the real app's code, though, so use it only for quick visual/design checks.
+
+To actually run the real app in a browser, `expo start --web` now works (fixed 2026-09-23 — see `docs/known-issues.md` KI-R15). It previously white-screened due to a babel-preset-expo version mismatch, and separately failed to even start because of a stray `.ts` file outside `src/`; both are resolved. Prefer `expo start --web` when you need to verify actual app behavior, not just layout.
 
 ---
 
