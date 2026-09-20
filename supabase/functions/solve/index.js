@@ -1,7 +1,11 @@
 // Proxies the math-solve request to OpenAI so the API key never ships in the client bundle.
 // verify_jwt = true (see ../../config.toml) means Supabase rejects unauthenticated callers
 // before this code runs — only a signed-in app user's session can reach here.
-import "@supabase/functions-js/edge-runtime.d.ts";
+//
+// Plain JS, not TypeScript: this project has no TypeScript anywhere else, and Expo's
+// `expo start` CLI scans the whole repo (not just the app source) for .ts/.tsx files to
+// decide whether to require typescript/@types/react — the one .ts file that used to live
+// here was enough to trip that check and block `expo start --web` entirely.
 
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -10,7 +14,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / user
 
-function decodeJwt(authHeader: string | null): { sub: string; role: string } | null {
+function decodeJwt(authHeader) {
   const token = authHeader?.replace(/^Bearer\s+/i, "");
   const payload = token?.split(".")[1];
   if (!payload) return null;
@@ -22,12 +26,12 @@ function decodeJwt(authHeader: string | null): { sub: string; role: string } | n
   }
 }
 
-async function checkRateLimit(userId: string): Promise<boolean> {
+async function checkRateLimit(userId) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_and_increment_rate_limit`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "apikey": SUPABASE_SERVICE_ROLE_KEY!,
+      "apikey": SUPABASE_SERVICE_ROLE_KEY,
       "Authorization": "Bearer " + SUPABASE_SERVICE_ROLE_KEY,
     },
     body: JSON.stringify({
@@ -77,7 +81,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function callOpenAI(messages: unknown, isRetry = false): Promise<any> {
+async function callOpenAI(messages, isRetry = false) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
   try {
@@ -99,7 +103,7 @@ async function callOpenAI(messages: unknown, isRetry = false): Promise<any> {
     return await response.json();
   } catch (e) {
     clearTimeout(timeout);
-    if ((e as Error).name === "AbortError") throw new Error("Request timed out. Please try again.");
+    if (e.name === "AbortError") throw new Error("Request timed out. Please try again.");
     if (!isRetry) return callOpenAI(messages, true);
     throw e;
   }
@@ -163,7 +167,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    return new Response(JSON.stringify({ error: (e as Error).message || "Unknown error" }), {
+    return new Response(JSON.stringify({ error: e.message || "Unknown error" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
