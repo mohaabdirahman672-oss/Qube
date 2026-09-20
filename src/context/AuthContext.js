@@ -7,8 +7,12 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import * as authService from '../services/authService';
 import { parseAuthDeepLink } from '../lib/authDeepLink';
 
-// Configure Google Sign-In (uses Supabase, no Firebase required)
+// Configure Google Sign-In (uses Supabase, no Firebase required).
+// iosClientId is required explicitly — the native module otherwise falls back to
+// reading GoogleService-Info.plist, which no longer exists (Firebase-era leftover,
+// removed 2026-09-22) and pointed at the wrong Google Cloud project anyway.
 GoogleSignin.configure({
+  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
   webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
   scopes: ['email', 'profile'],
 });
