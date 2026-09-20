@@ -9,6 +9,7 @@
 | ID | Issue | File | Severity | Status | Notes |
 |---|---|---|---|---|---|
 | KI-07 | Deep link redirect URLs not registered on the live Supabase project | Supabase Dashboard | High | **Blocks KI-R12 from working** | Code is done (KI-R12), but `qube://reset-password` and `qube://` must be added by hand at Authentication > URL Configuration > Redirect URLs in the Supabase Dashboard for the project (`fvwainyumiunpdjhapto`). Not done via CLI/`supabase config push` on purpose — that command would also silently overwrite live Apple/Google sign-in, MFA, and SMS settings that differ from the local `config.toml` defaults. |
+| KI-08 | Ticket: re-test `expo start --web` | `babel-preset-expo` config | Low | Open — investigating in parallel with mobile device testing (2026-09-23) | Originally broken (white screen) due to a babel-preset-expo v54/v55 mismatch, worked around by using `preview.html` instead (see Limitations below). That exact mismatch was fixed as a side effect of the Sep 19 dependency bump (`babel-preset-expo` pinned to `~54.0.10` to match `expo@~54.0.37`), so the root cause may no longer apply. Needs an actual re-test to confirm one way or the other before changing the CLAUDE.md guidance. |
 
 ---
 
