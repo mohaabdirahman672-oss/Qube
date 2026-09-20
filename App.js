@@ -11,7 +11,6 @@ import { colors } from './src/theme';
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
-  enableInExpoDevelopment: false,
   debug: false,
   tracesSampleRate: 0.2,
 });
