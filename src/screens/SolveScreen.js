@@ -20,9 +20,11 @@ const DIFF_COLOR = { Easy: colors.green, Medium: colors.gold, Hard: '#EF4444', A
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 async function pickImage(useCamera) {
+  console.log('[SolveScreen] requesting permission', { useCamera });
   const perm = useCamera
     ? await ImagePicker.requestCameraPermissionsAsync()
     : await ImagePicker.requestMediaLibraryPermissionsAsync();
+  console.log('[SolveScreen] permission result', perm.status);
 
   if (perm.status !== 'granted') {
     Alert.alert(
@@ -32,9 +34,11 @@ async function pickImage(useCamera) {
     return null;
   }
 
+  console.log('[SolveScreen] launching', useCamera ? 'camera' : 'library');
   const result = useCamera
     ? await ImagePicker.launchCameraAsync({ base64: true, quality: 0.8, mediaTypes: ['images'] })
     : await ImagePicker.launchImageLibraryAsync({ base64: true, quality: 0.8, mediaTypes: ['images'] });
+  console.log('[SolveScreen] picker result', { canceled: result.canceled, hasAsset: !!result.assets?.[0], hasBase64: !!result.assets?.[0]?.base64 });
 
   if (result.canceled || !result.assets?.[0]) return null;
   return result.assets[0];
@@ -74,7 +78,9 @@ export default function SolveScreen({ navigation }) {
   // ── image selection ──────────────────────────────────────────────────────
 
   async function handlePickImage(useCamera) {
+    console.log('[SolveScreen] handlePickImage start', { useCamera });
     const asset = await pickImage(useCamera);
+    console.log('[SolveScreen] handlePickImage got asset?', !!asset);
     if (!asset) return;
     setImageUri(asset.uri);
     setImageBase64(asset.base64);
@@ -103,8 +109,10 @@ export default function SolveScreen({ navigation }) {
       return;
     }
 
+    console.log('[SolveScreen] solve() calling solveMathProblem', { mode, hasImage: !!input.imageBase64 });
     try {
       const res = await solveMathProblem(input);
+      console.log('[SolveScreen] solve() got result', { hasMath: res?.hasMath });
       setLoading(false);
       if (!res.hasMath) {
         setError(res.message || 'No math problem detected. Try a clearer photo or switch to Type mode.');
@@ -115,6 +123,7 @@ export default function SolveScreen({ navigation }) {
         scrollRef.current?.scrollTo({ y: solutionOffset.current - 16, animated: true });
       }, 100);
     } catch (e) {
+      console.log('[SolveScreen] solve() caught error', e?.message);
       setLoading(false);
       setError(e.message || 'Something went wrong. Please try again.');
     }

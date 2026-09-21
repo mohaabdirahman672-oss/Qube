@@ -144,19 +144,27 @@ export function AuthProvider({ children }) {
 
   async function signInWithGoogle() {
     if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
+    console.log('[Auth] Google sign-in: starting');
     try {
+      console.log('[Auth] Google sign-in: checking play services');
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      await GoogleSignin.signIn();
+      console.log('[Auth] Google sign-in: calling GoogleSignin.signIn()');
+      const signInResult = await GoogleSignin.signIn();
+      console.log('[Auth] Google sign-in: native sign-in resolved', JSON.stringify(signInResult)?.slice(0, 300));
       const { idToken } = await GoogleSignin.getTokens();
+      console.log('[Auth] Google sign-in: got tokens, idToken present?', !!idToken);
       if (!idToken) return { error: 'No ID token received from Google.' };
 
+      console.log('[Auth] Google sign-in: calling supabase.auth.signInWithIdToken');
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token:    idToken,
       });
+      console.log('[Auth] Google sign-in: signInWithIdToken resolved', { hasSession: !!data?.session, error: error?.message });
       if (error) return { error: mapError(error) };
       return { data };
     } catch (error) {
+      console.log('[Auth] Google sign-in: caught error', error?.code, error?.message);
       if (
         error.code === statusCodes.SIGN_IN_CANCELLED ||
         error.code === statusCodes.IN_PROGRESS
@@ -171,8 +179,10 @@ export function AuthProvider({ children }) {
 
   async function signInWithApple() {
     if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
+    console.log('[Auth] Apple sign-in: starting');
 
     const isAvailable = await AppleAuthentication.isAvailableAsync();
+    console.log('[Auth] Apple sign-in: isAvailable?', isAvailable);
     if (!isAvailable) return { error: 'Apple Sign-In is not supported on this device.' };
 
     try {
@@ -182,6 +192,7 @@ export function AuthProvider({ children }) {
         rawNonce
       );
 
+      console.log('[Auth] Apple sign-in: calling AppleAuthentication.signInAsync');
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -189,19 +200,23 @@ export function AuthProvider({ children }) {
         ],
         nonce: hashedNonce,
       });
+      console.log('[Auth] Apple sign-in: native sign-in resolved, identityToken present?', !!credential.identityToken);
 
       if (!credential.identityToken) {
         return { error: 'Apple Sign In failed — no identity token received.' };
       }
 
+      console.log('[Auth] Apple sign-in: calling supabase.auth.signInWithIdToken');
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token:    credential.identityToken,
         nonce:    rawNonce,
       });
+      console.log('[Auth] Apple sign-in: signInWithIdToken resolved', { hasSession: !!data?.session, error: error?.message });
       if (error) return { error: mapError(error) };
       return { data };
     } catch (err) {
+      console.log('[Auth] Apple sign-in: caught error', err?.code, err?.message);
       if (err?.code === 'ERR_REQUEST_CANCELED') return null;
       return { error: 'Apple sign in failed. Please try again.' };
     }

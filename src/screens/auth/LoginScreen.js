@@ -60,7 +60,11 @@ export default function LoginScreen({ navigation }) {
     setError(null);
     setGoogleLoading(true);
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      // signInWithGoogle resolves with { error } on failure — it doesn't throw — so that
+      // has to be checked explicitly, or a failed sign-in silently does nothing visible.
+      if (result?.error) setError(result.error);
+      // On success: onAuthStateChange in AuthContext fires → RootNavigator auto-navigates
     } catch {
       setError('Google sign in failed. Please try again.');
     } finally {
@@ -72,7 +76,8 @@ export default function LoginScreen({ navigation }) {
     setError(null);
     setAppleLoading(true);
     try {
-      await signInWithApple();
+      const result = await signInWithApple();
+      if (result?.error) setError(result.error);
     } catch (err) {
       if (err?.code !== '1001' && err?.code !== 1001) {
         setError('Apple sign in failed. Please try again.');
