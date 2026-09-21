@@ -26,6 +26,43 @@ function generateNonce(length = 32) {
   return result;
 }
 
+// Self-contained base64url decode — no `atob`/Buffer global assumed available in Hermes.
+const BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+function base64UrlDecode(input) {
+  const base64 = input.replace(/-/g, '+').replace(/_/g, '/');
+  let output = '';
+  let buffer = 0;
+  let bits = 0;
+  for (const char of base64) {
+    const value = BASE64_CHARS.indexOf(char);
+    if (value === -1) continue;
+    buffer = (buffer << 6) | value;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      output += String.fromCharCode((buffer >> bits) & 0xff);
+    }
+  }
+  return decodeURIComponent(
+    output.split('').map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0')).join('')
+  );
+}
+
+// The free tier of @react-native-google-signin/google-signin has no way to pass a
+// custom nonce to configure()/signIn() (that's a paid feature), but Google's ID token
+// embeds one anyway — Supabase's signInWithIdToken requires the passed nonce to match
+// the token's own `nonce` claim exactly (or both be absent), so it's extracted here and
+// echoed straight back rather than generated ourselves.
+function extractNonceFromIdToken(idToken) {
+  try {
+    const payloadSegment = idToken.split('.')[1];
+    const payload = JSON.parse(base64UrlDecode(payloadSegment));
+    return payload.nonce ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Maps raw Supabase error messages to user-friendly strings
 function mapError(error) {
   if (!error) return null;
@@ -155,10 +192,16 @@ export function AuthProvider({ children }) {
       console.log('[Auth] Google sign-in: got tokens, idToken present?', !!idToken);
       if (!idToken) return { error: 'No ID token received from Google.' };
 
+      // Google's token has its own embedded nonce (this library's free tier can't set a
+      // custom one) — Supabase requires it be passed back verbatim or it rejects the token.
+      const nonce = extractNonceFromIdToken(idToken);
+      console.log('[Auth] Google sign-in: extracted nonce from id token?', !!nonce);
+
       console.log('[Auth] Google sign-in: calling supabase.auth.signInWithIdToken');
       const { data, error } = await supabase.auth.signInWithIdToken({
         provider: 'google',
         token:    idToken,
+        nonce:    nonce ?? undefined,
       });
       console.log('[Auth] Google sign-in: signInWithIdToken resolved', { hasSession: !!data?.session, error: error?.message });
       if (error) return { error: mapError(error) };

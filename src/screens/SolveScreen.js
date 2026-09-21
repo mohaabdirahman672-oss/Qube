@@ -78,6 +78,7 @@ export default function SolveScreen({ navigation }) {
   // ── image selection ──────────────────────────────────────────────────────
 
   async function handlePickImage(useCamera) {
+    if (loading) return;
     console.log('[SolveScreen] handlePickImage start', { useCamera });
     const asset = await pickImage(useCamera);
     console.log('[SolveScreen] handlePickImage got asset?', !!asset);
@@ -94,6 +95,7 @@ export default function SolveScreen({ navigation }) {
   // ── solve ─────────────────────────────────────────────────────────────────
 
   async function solve(overrides) {
+    if (loading) return;
     setError(null);
     setResult(null);
     setSaved(false);
@@ -221,8 +223,9 @@ export default function SolveScreen({ navigation }) {
             {/* ── Camera mode ── */}
             {mode === 'camera' && (
               <TouchableOpacity
-                style={styles.imageTouchZone}
+                style={[styles.imageTouchZone, loading && styles.solveBtnDisabled]}
                 onPress={() => handlePickImage(true)}
+                disabled={loading}
                 activeOpacity={0.8}
               >
                 <View style={styles.imageZoneIcon}>
@@ -248,8 +251,9 @@ export default function SolveScreen({ navigation }) {
                   </View>
                 ) : (
                   <TouchableOpacity
-                    style={styles.imageTouchZone}
+                    style={[styles.imageTouchZone, loading && styles.solveBtnDisabled]}
                     onPress={() => handlePickImage(false)}
+                    disabled={loading}
                     activeOpacity={0.8}
                   >
                     <View style={styles.imageZoneIcon}>
