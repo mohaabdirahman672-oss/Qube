@@ -1,81 +1,78 @@
 # Qube — Daily Launch Checklist
 
 **Start:** Sat, Sep 12, 2026
-**Replanned:** Sat, Sep 19, 2026 — lost the week of Sep 13-18 to illness (nothing shipped except the Sep 12 auth-migration commit). Compressing the missed Phase 1 work into the next 5 days instead of resetting the whole calendar back a full week.
-**Target:** Live on the App Store by **Oct 26-29, 2026**, with **Nov 2** as hard outer buffer. *(2 days earlier than the Sep 19 replan — cutting the UI consistency pass, #7, pre-launch.)*
+**Replanned once:** Sat, Sep 19, 2026 — lost the week of Sep 13-18 to illness.
+**Replanned again:** Mon, Sep 21, 2026 — see "Why this got rewritten" below. This version replaces all prior day-by-day dates; treat the Sep 19 version as history only.
+**Target:** Live on the App Store by **Oct 19-22, 2026**, with **Oct 26** as hard outer buffer.
 Item numbers `(#N)` reference `docs/plans/beta-launch-countdown.md`.
-
-Check items off as you go. If a day overflows, use the next weekend day as catch-up rather than letting it push the whole week — the schedule already has a few light/buffer days built in for exactly that.
 
 ---
 
-## Week 1 — Land current work (Phase 0) — mostly lost to illness
+## Why this got rewritten (read once, then ignore)
 
-- [x] **Sat Sep 12** — Commit the in-flight Firebase→Supabase auth migration. *(Commit `b93e5c7`. Smoke test status unverified.)*
-- [ ] ~~Sun Sep 13 → Fri Sep 18~~ — **Lost week.** Nothing shipped. Rolled into the Catch-Up Sprint below.
+The Sep 19 version's day labels stopped matching reality almost immediately: the whole Catch-Up Sprint + Phase 2 cleanup (originally spread across Sep 19-27) actually landed in **one day**, Sep 19 — verified against commit timestamps, not against the old checklist's checkmarks. That head start then got absorbed by two things the old plan never budgeted for at all:
 
-## Catch-Up Sprint — kill the OpenAI key exposure (Phase 1, compressed)
+1. **The launch-crash saga (Sep 20-21).** The first real EAS build crashed on every launch on a real device. Root-causing it took a full day-plus of device-level debugging (USB crash logs, live Metro tunneling) before finding the actual bug (a missing `fonts` object on the navigation theme) — see `docs/known-issues.md` KI-R14 through KI-R19. Google/Apple sign-in was also broken and got fixed in the same window.
+2. **The freemium pivot (Sep 21).** Mid-plan scope change: removed the hard login gate on solving, added a 5-free-solves guest tier with local tracking + a soft paywall, and a one-time welcome prompt. Not in any prior version of this plan.
 
-The security-critical item (#1: client-exposed OpenAI key) never got started. This is never cut — compressing it into 5 days starting today rather than pushing it further out.
+Net effect: the early finish and the unplanned work roughly cancel out. This version starts the countdown fresh **from today, Sep 21**, carrying forward only what's actually done, verified against code and `docs/known-issues.md` — not against old checkboxes.
 
-- [x] **Sat Sep 19** — Quick fix: updated `docs/known-issues.md` — Google/Apple sign-in and Supabase env vars are now correctly marked resolved (KI-R7), OpenAI key exposure tracked as KI-05. Scaffolded the Supabase Edge Function (`supabase functions new solve`) and moved `SYSTEM_PROMPT` + the OpenAI `fetch` call into `supabase/functions/solve/index.ts`, reading a server-only `OPENAI_API_KEY` env var. Set `verify_jwt = true` so only a signed-in session can call it. Commit `4a0fc15`.
-  - Not yet done: function isn't deployed, `solveApi.js` still calls OpenAI directly — that's tomorrow.
-  - *(Bonus, already done today: appleAuth.ios.js/appleAuth.js split fixed (#4) + Expo/React/RN dependency bump — commit `78c30cd`.)*
-- [x] **Sun Sep 20** — Deployed the Edge Function (`supabase functions deploy solve --use-api`, no Docker needed) and set `OPENAI_API_KEY` as a project secret. Updated `solveApi.js` to call `supabase.functions.invoke('solve', ...)` instead of OpenAI directly. Verified live: text problem, non-math input (`hasMath:false`), and unauthenticated requests correctly rejected with 401. Commit `eb71e15`. *(Image path uses the same function/env vars as text — not separately smoke-tested with a real photo yet.)*
-- [x] **Mon Sep 21** — Added a Postgres-backed per-user rate limiter (20 req/hour, `supabase/migrations/20260921000000_solve_rate_limit.sql`) enforced in the Edge Function before it calls OpenAI; non-authenticated callers get 401, over-limit gets 429. Verified end-to-end with a real test user against the live project (RPC logic directly, then the full 429 path with a temporarily lowered limit). Removed `EXPO_PUBLIC_OPENAI_API_KEY` from `.env` — it was never in `.env.example` or app config to begin with. Commit `cff6d3f`.
-- [x] **Tue Sep 22** — Moved `EXPO_PUBLIC_*` vars into EAS environment variables (`eas env:set` — the modern replacement for the deprecated `eas secret:create`). Found and fixed a real bug in the process: all 3 EAS environments (production/preview/development) had a double-underscore typo on the Supabase anon key and old OpenAI key (`EXPO_PUBLIC__SUPABASE_ANON_KEY`), a wrongly-named Google client ID, and a missing Sentry DSN — meaning any real EAS build made before today would have shipped with broken auth and no crash reporting. Fixed across all 3 environments; logged as KI-R9. Kicked off `eas build --profile preview --platform ios` to confirm it actually works end-to-end.
-- [ ] **Wed Sep 23** — End-to-end test the scan feature against the new proxy on a real dev build: camera, upload, type-in, error states, and the rate limit actually triggering. **Phase 1 done.**
-  - Prerequisite done: a real installable build now exists (`eas build --profile preview --platform ios`, first one that's ever succeeded — see KI-R9/R10/R11/KI-06). Install link: https://expo.dev/accounts/its.muhammad/projects/qube/builds/3cf10f93-1371-45cf-95ea-ebd9bfa070d2
-  - Still needs you: this step requires an actual iPhone with the camera — install the build above and run through the scan flow for real.
+---
 
-## Week 2 — Cleanup (Phase 2)
+## Actually done (Phases 0-2, verified against git history)
 
-**2026-09-20 decision: cutting #7 (dark-theme/spacing consistency pass) pre-launch.** Current UI is good enough to ship — polish it iteratively post-launch instead of blocking the timeline on it. This was already the first thing the plan's own "if you fall behind" section said to cut, so applying it proactively.
+- [x] Firebase → Supabase-native auth migration (Sep 12)
+- [x] OpenAI key moved server-side (`supabase/functions/solve`), per-user rate limiting, EAS secrets fixed (Sep 19)
+- [x] `appleAuth.ios.js`/`.js` split fixed, Firebase-era file cleanup, dead `courses_data.js` removed, console.log/dead-code sweep, `known-issues.md` reconciled (Sep 19) — **Phase 2 done**, item #7 (visual consistency pass) deliberately cut pre-launch (decision 2026-09-20)
+- [x] First working EAS build (`eas build --profile preview --platform ios`)
+- [x] **Launch-crash bug found and fixed** (KI-R17) — confirmed working on real device, all 5 tabs open
+- [x] **Google/Apple sign-in fixed** (KI-R19) — confirmed `hasSession: true` live on device for both
+- [x] **Freemium model** — guest solving (5 free, `FREE_SOLVE_LIMIT` in `src/lib/freeSolves.js`), paywall, welcome prompt, anon-caller support in the solve Edge Function, deployed — **pending your on-device verification** (see message above this one)
+- [x] **Privacy policy drafted and published** — `https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp` (see note under Sep 22 below — this link is private until you change its sharing setting)
 
-- [x] **Sat Sep 19** — ~~Fix the `appleAuth.ios.js` / `appleAuth.js` split (#4)~~ — done early, see Catch-Up Sprint above. Commit `78c30cd`.
-- [x] **Thu Sep 24** — Swept Firebase-era leftovers (#5, done early while waiting on EAS build retries): deleted the orphaned `GoogleService-Info.plist`/`google-services.json` (a different, pre-migration Firebase project — client ID didn't even match current config), removed the dead `googleServicesFile` keys from `app.json`, rewrote `.env.example`. No `isFirebaseConfigured` references remained (already clean from the Sep 12/19 migration). Commit `80ff6b3`.
-- [x] **Fri Sep 25** — Dropped the unused `courses_data.js` (137KB, done early) — grepped both `src/` and `preview.html`, confirmed the `COURSES` global it defines is never referenced anywhere. Removed the file and its `<script>` tag. Commit `f063caa`.
-- [ ] ~~Sat Sep 26 / Sun Sep 27 — Dark-theme/spacing consistency pass (#7)~~ — **cut pre-launch, deferred to post-launch iteration.**
-- [x] **Sat Sep 26** — Swept for stray `console.log`s, commented-out code, dead functions, and unused exports (#8, done early) — checked `ProfileScreen.js` and `AuthContext.js` first, then all of `src/`. Found nothing: zero console.logs, zero commented-out code, zero TODO/FIXME/debugger statements, zero unused exports anywhere. Already clean going in — no changes needed.
-- [x] **Sun Sep 27** — Reconciled `docs/known-issues.md` (#9, done early): found and fixed another stale entry beyond the Google/Apple one from KI-R7 — KI-01 ("no Sign Out button") was already resolved in code (`ProfileScreen.js` has one) but never marked so, now KI-R13. **Phase 2 done** (all items #4-9 complete; #7 was cut on 2026-09-20).
+Only one open item remains in the Active Issues table: **KI-07** — a 2-minute manual Supabase Dashboard step (add `qube://reset-password` and `qube://` to the redirect URL allow-list).
 
-## Week 3 — Beta-readiness (Phase 3, part 1)
+---
 
-- [ ] **Mon Sep 28** — Draft the privacy policy (data collected: email, photos, OpenAI processing, Sentry usage data) (#10).
-- [ ] **Tue Sep 29** — Publish the privacy policy to a real URL (e.g. a simple GitHub Pages page); add the link to `app.json` / App Store Connect.
-- [ ] **Wed Sep 30** — Fill out the App Store Connect privacy "nutrition label" (#11).
-- [ ] **Thu Oct 1** — Full manual functional pass on a real device: Home, Saved, Solve/Scan (#12, part 1).
-- [ ] **Fri Oct 2** — Full manual functional pass: Practice, Profile, and every auth flow end-to-end (#12, part 2).
-- [ ] **Sat Oct 3** — Bump `version`/build number, run `eas build --profile preview`, confirm a clean build (#13).
-- [x] **Sun Oct 4** — ~~Deep link setup for password reset / email confirmation~~ (#14, part 1 — done early on 2026-09-22, see KI-R12/KI-07 in `known-issues.md`). App-side code is complete (URL handling, `ResetPasswordScreen`, `passwordRecovery` navigation gate); the one remaining piece is a manual Supabase Dashboard step (KI-07) plus real-device verification, both rolled into part 2 below.
+## Week A — Finish Phase 3 (beta-readiness)
 
-## Week 4 — Finish beta prep, open internal then external TestFlight
+- [x] **Mon Sep 21 (today)** — Privacy policy drafted and published; freemium model implemented, deployed, and committed.
+- [ ] **Tue Sep 22** —
+  - Open the privacy policy link above → **Share → "Anyone with the link can view"** (it's private by default; App Store Connect and Apple's reviewer both need it to load without a claude.ai login). Keep the URL handy for #11 below and for the App Store Connect "Privacy Policy URL" field.
+  - On-device: verify the freemium flows (welcome prompt once, guest solve counter, paywall at 5, sign-in unlocks it) — checklist is in my last message.
+  - KI-07: add the two redirect URLs in the Supabase Dashboard (2 min), then test password reset / email confirm end-to-end on-device.
+  - **Decide KI-09 now, not later**: the privacy policy states Qube uses crash/diagnostic reporting. Either reinstall `@sentry/react-native` before submission (so the policy is accurate) or strip that clause from the policy if you're shipping without it. Recommend reinstalling — it's a bounded, well-understood task (see KI-09) and you'll want crash visibility once real users hit the store.
+- [ ] **Wed Sep 23** — Fill out the App Store Connect privacy "nutrition label" (#11), using the published policy as the source of truth for what's declared (email, photos — transient, not stored — device ID, and crash data if KI-09 lands as reinstalled).
+- [ ] **Thu Sep 24** — Full manual functional pass, part 1: Home (incl. new welcome prompt), Saved, Solve/Scan (incl. new guest counter + paywall) (#12).
+- [ ] **Fri Sep 25** — Full manual functional pass, part 2: Practice, Profile, every auth flow end-to-end including the freemium sign-in reset behavior (#12).
+- [ ] **Sat Sep 26** — Bump `version`/build number, run `eas build --profile preview`, confirm a clean build (#13).
+- [ ] **Sun Sep 27** — Buffer / catch-up day for anything Week A surfaced. **Phase 3 done** if everything above is checked.
 
-- [ ] **Mon Oct 5** — (#14, part 2) Add `qube://reset-password` and `qube://` to the Supabase Dashboard's Auth redirect URL allow-list (KI-07 — one-time manual step, ~2 min). Then test reset/confirm-email flows end-to-end on a real device. **Phase 3 done.**
-- [ ] **Tue Oct 6** — Prepare a reviewer demo account and write App Review notes on how to reach the scan feature (#19) — do this now, not the day you submit.
-- [ ] **Wed Oct 7** — Submit an internal TestFlight build (yourself + a couple trusted testers). Confirm it installs and runs on a real device.
-- [ ] **Thu Oct 8** — Smoke test the actual TestFlight build (not the dev build) — this catches build-specific issues dev builds hide.
-- [ ] **Fri Oct 9** — Fix anything the internal round surfaced.
-- [ ] **Sat Oct 10** — Invite external TestFlight testers. Send them clear notes on what to test and how to report bugs.
-- [ ] **Sun Oct 11** — Start Phase 4 store prep in parallel: plan out the screenshot list (#15).
+## Week B — Internal TestFlight, then open external
 
-## Week 5 — External beta running + store prep in parallel
+- [ ] **Mon Sep 28** — Prepare a reviewer demo account + App Review notes (#19). Note: with the login gate removed, Apple's reviewer can now reach the scan feature *without* your demo account at all — that alone removes the single most common rejection reason for this app category (Guideline 2.1). Still worth having a demo account ready for the Saved/Profile flows.
+- [ ] **Tue Sep 29** — Submit an internal TestFlight build (yourself + a couple trusted testers).
+- [ ] **Wed Sep 30** — Smoke test the actual TestFlight build (not the dev build) — catches build-specific issues dev builds hide.
+- [ ] **Thu Oct 1** — Fix anything the internal round surfaced.
+- [ ] **Fri Oct 2** — Invite external TestFlight testers with clear notes on what to test and how to report bugs.
+- [ ] **Sat Oct 3** — Start Phase 4 store prep in parallel: plan the screenshot list (#15).
+- [ ] **Sun Oct 4** — Buffer.
 
-- [ ] **Mon Oct 12 → Fri Oct 16** — Daily: check Sentry + tester feedback, triage anything new, ship a fixed build if something's broken badly enough to block testing. (Five short check-ins, not five full workdays.)
-- [ ] **Somewhere this week** — Capture final App Store screenshots (#15).
-- [ ] **Somewhere this week** — Write store listing copy: description, subtitle, keywords, support URL (#16).
-- [ ] **Somewhere this week** — Set the age rating and finalize App Review notes (#17, alongside #19 from Week 4).
-- [ ] **Sat Oct 17 / Sun Oct 18** — Close out the beta window. Final feedback triage pass (#18) — decide what's a launch blocker vs. a post-launch fix.
+## Week C — External beta running + store prep in parallel
 
-## Week 6 — Submit + review buffer
+- [ ] **Mon Oct 5 → Fri Oct 9** — Daily: check Sentry (once reinstalled) + tester feedback, triage, ship a fixed build only if something blocks testing.
+- [ ] **Somewhere this week** — Capture final App Store screenshots (#15); write store listing copy — description, subtitle, keywords, support URL (#16); set age rating and finalize App Review notes (#17).
+- [ ] **Sat Oct 10 / Sun Oct 11** — Close out the beta window. Final feedback triage (#18) — decide launch-blocker vs. post-launch fix.
 
-- [ ] **Mon Oct 19 / Tue Oct 20** — Ship final fixes from beta triage. Cut the release build.
-- [ ] **Wed Oct 21** — Submit to the App Store. Double check the demo account (#19) and privacy policy link (#10) are attached to the submission — these are the two most common first-submission rejection reasons.
-- [ ] **Thu Oct 22 → Sun Oct 25** — Apple review window. Check daily; if Apple asks a question or rejects, respond same-day rather than batching it — a slow response here is what turns a 2-day review into a 2-week one.
+## Week D — Submit + review buffer
 
-## Week 7 — Buffer
+- [ ] **Mon Oct 12 / Tue Oct 13** — Ship final fixes from beta triage. Cut the release build.
+- [ ] **Wed Oct 14** — Submit to the App Store. Double-check the demo account (#19) and the privacy policy URL (#10) are attached — the two most common first-submission rejection reasons.
+- [ ] **Thu Oct 15 → Sun Oct 18** — Apple review window. Respond same-day to any question or rejection — a slow response turns a 2-day review into a 2-week one.
 
-- [ ] **Mon Oct 26 → Thu Oct 29** — Resubmission buffer if Apple kicked anything back. Target: **live by Oct 26-29**, with **Nov 2** as the hard outer edge if a rejection cycle eats the buffer.
+## Week E — Buffer
+
+- [ ] **Mon Oct 19 → Thu Oct 22** — Resubmission buffer if Apple kicked anything back. **Target: live by Oct 19-22**, with **Oct 26** as the hard outer edge.
 
 ---
 
@@ -83,5 +80,7 @@ The security-critical item (#1: client-exposed OpenAI key) never got started. Th
 
 Cut in this order, cheapest-to-defer first:
 1. ~~Week 2's full visual consistency pass (#7)~~ — already cut on 2026-09-20.
-2. Beta window length (Week 5) — 1 week of real usage beats zero, but don't skip it entirely; untested bugs in front of Apple's reviewer are worse than a short beta.
-3. Never cut: the OpenAI proxy (Catch-Up Sprint), the privacy policy (#10-11), or the reviewer demo account (#19) — each of those either exposes your API key/billing or gets the submission rejected outright.
+2. Beta window length (Week C) — a few days of real usage beats zero, but don't skip it entirely.
+3. Never cut: the privacy policy, the App Store nutrition label, or KI-07/KI-09 if Sentry ends up declared in the policy — each either gets the submission rejected outright or ships an inaccurate privacy disclosure.
+
+**This plan has now been rewritten twice** because reality (an illness week, then an unplanned multi-day crash investigation, then a scope pivot) kept outrunning it. Treat "Oct 19-22" as the honest current estimate, not a promise — if another unplanned multi-day item shows up, the right move is another short rewrite like this one, not silently letting the checkboxes drift out of sync with what actually happened again.
