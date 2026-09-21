@@ -61,8 +61,10 @@ Only one open item remains in the Active Issues table: **KI-07** — a 2-minute 
 ## Week C — External beta running + store prep in parallel
 
 - [ ] **Mon Oct 5 → Fri Oct 9** — Daily: check Sentry (once reinstalled) + tester feedback, triage, ship a fixed build only if something blocks testing.
-- [ ] **Somewhere this week** — Capture final App Store screenshots (#15); write store listing copy — description, subtitle, keywords, support URL (#16); set age rating and finalize App Review notes (#17).
+- [ ] **Somewhere this week** — Capture final App Store screenshots (#15); write store listing copy — description, subtitle, keywords, support URL (#16); set age rating and finalize App Review notes (#17). **This is also the UI polish window** — 2026-09-21 decision: current UI ships as-is for launch (see #7, cut earlier), but do a visual pass here since screenshots are what Apple/users judge the app by first. Revisit spacing/theme consistency then, not before.
 - [ ] **Sat Oct 10 / Sun Oct 11** — Close out the beta window. Final feedback triage (#18) — decide launch-blocker vs. post-launch fix.
+
+**Blocker hiding in this week, flagged 2026-09-21: `support@qube.app` and the `qube.app` domain don't exist yet** — `ProfileScreen.js`'s Contact Us / Delete Account copy and the published privacy policy both already reference this address as if it's live. Register the domain and set up at least email forwarding (Google Workspace, ImprovMX, etc. — doesn't need a full site) *before* App Store submission, ideally before Week C's store listing copy (#16) needs a working support URL too. Not a code task — needs you.
 
 ## Week D — Submit + review buffer
 
