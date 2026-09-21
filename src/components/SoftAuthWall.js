@@ -6,16 +6,26 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../theme';
 
-export default function SoftAuthWall({ visible, onClose, onCreateAccount, onLogin }) {
+export default function SoftAuthWall({
+  visible,
+  onClose,
+  onCreateAccount,
+  onLogin,
+  icon = 'bookmark',
+  title = 'Save Your Progress',
+  body = 'Create a free QUBE account to save your work, sync across devices, and never lose your progress.',
+  skipLabel = 'Continue Without Saving',
+  dismissible = true,
+}) {
   return (
     <Modal
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={dismissible ? onClose : undefined}
     >
       <View style={styles.root}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={dismissible ? onClose : undefined} />
 
         <View style={styles.sheet}>
           <View style={styles.handle} />
@@ -27,14 +37,12 @@ export default function SoftAuthWall({ visible, onClose, onCreateAccount, onLogi
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Ionicons name="bookmark" size={30} color={colors.gold} />
+            <Ionicons name={icon} size={30} color={colors.gold} />
           </LinearGradient>
 
           {/* Copy */}
-          <Text style={styles.title}>Save Your Progress</Text>
-          <Text style={styles.body}>
-            Create a free QUBE account to save your work, sync across devices, and never lose your progress.
-          </Text>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.body}>{body}</Text>
 
           {/* Create Account — gold CTA matching Solve button */}
           <TouchableOpacity
@@ -62,14 +70,16 @@ export default function SoftAuthWall({ visible, onClose, onCreateAccount, onLogi
             <Text style={styles.secondaryBtnText}>Login</Text>
           </TouchableOpacity>
 
-          {/* Continue without saving */}
-          <TouchableOpacity
-            onPress={onClose}
-            style={styles.skipBtn}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.skipText}>Continue Without Saving</Text>
-          </TouchableOpacity>
+          {/* Skip / dismiss */}
+          {dismissible && (
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.skipBtn}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.skipText}>{skipLabel}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>

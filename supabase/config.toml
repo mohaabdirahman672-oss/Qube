@@ -48,9 +48,9 @@ port = 54329
 # Configure one of the supported pooler modes: `transaction`, `session`.
 pool_mode = "transaction"
 # How many server connections to allow per user/database pair.
-default_pool_size = 20
+default_pool_size = 15
 # Maximum number of client connections allowed.
-max_client_conn = 100
+max_client_conn = 200
 
 # [db.vault]
 # secret_key = "env(SECRET_VALUE)"
@@ -144,7 +144,7 @@ max_catalogs = 2
 
 # Store vector embeddings in S3 for large and durable datasets
 [storage.vector]
-enabled = true
+enabled = false
 max_buckets = 10
 max_indexes = 5
 
@@ -155,7 +155,7 @@ max_indexes = 5
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
+site_url = "http://localhost:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
@@ -163,7 +163,7 @@ site_url = "http://127.0.0.1:3000"
 # overwrite unrelated live settings — Apple/Google sign-in, MFA, SMS — that differ from this
 # local file; see docs/known-issues.md). qube://reset-password and qube:// must be added by
 # hand in the Supabase Dashboard: Authentication > URL Configuration > Redirect URLs.
-additional_redirect_urls = ["https://127.0.0.1:3000", "qube://reset-password", "qube://"]
+additional_redirect_urls = ["qube://reset-password", "qube://"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -230,9 +230,9 @@ enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-max_frequency = "1s"
+max_frequency = "1m0s"
 # Number of characters used in the email OTP.
-otp_length = 6
+otp_length = 8
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
@@ -290,9 +290,12 @@ max_frequency = "5s"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
+# Matches the live value (true) — `config pull` skipped writing this because
+# account_sid/message_service_sid aren't round-tripped, but leaving it `false` here
+# would have flipped Twilio SMS off in production on the next push.
+enabled = true
+account_sid = "env(SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID)"
+message_service_sid = "env(SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_SID)"
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
 auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
@@ -303,8 +306,8 @@ max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]
@@ -323,8 +326,8 @@ max_frequency = "5s"
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
 [auth.external.apple]
-enabled = false
-client_id = ""
+enabled = true
+client_id = "com.qube.mathapp.siwa,com.qube.mathapp"
 # DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
 secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
 # Overrides the default auth callback URL derived from auth.external_url.
@@ -336,6 +339,17 @@ url = ""
 skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
+
+[auth.external.google]
+client_id = "59533189278-2slvcqoc0i56j7sfno9laq35brft214s.apps.googleusercontent.com"
+enabled = true
+# @react-native-google-signin/google-signin's free tier has no way to pass a custom
+# nonce to configure()/signIn() (that's a paid feature) — Google's SDK embeds its own
+# opaque nonce in the ID token, which the client can read but can never produce a raw
+# value that hashes to. Without this, every native Google sign-in fails with
+# "Nonces mismatch". Signature + audience verification (the actual security check)
+# still applies regardless.
+skip_nonce_check = true
 
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.

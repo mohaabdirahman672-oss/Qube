@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, ActivityIndicator, Image, KeyboardAvoidingView,
@@ -13,6 +13,7 @@ import SoftAuthWall from '../components/SoftAuthWall';
 import { solveMathProblem } from '../services/solveApi';
 import { insertSavedProblem } from '../services/dbService';
 import { useAuth } from '../hooks/useAuth';
+import { getRemainingFreeSolves, consumeFreeSolve, FREE_SOLVE_LIMIT } from '../lib/freeSolves';
 import { colors, spacing, radius, typography } from '../theme';
 
 const DIFF_COLOR = { Easy: colors.green, Medium: colors.gold, Hard: '#EF4444', Advanced: colors.purple };
@@ -49,6 +50,15 @@ async function pickImage(useCamera) {
 export default function SolveScreen({ navigation }) {
   const { session, user } = useAuth();
   const [showAuthWall, setShowAuthWall] = useState(false);
+  const [showPaywall, setShowPaywall]   = useState(false);
+  const [freeRemaining, setFreeRemaining] = useState(FREE_SOLVE_LIMIT);
+
+  // Re-check whenever the screen mounts and whenever sign-in state changes — signing in
+  // makes the local guest counter irrelevant (the real per-user server limit takes over).
+  useEffect(() => {
+    if (session) return;
+    getRemainingFreeSolves().then(setFreeRemaining);
+  }, [session]);
 
   const [mode, setMode]               = useState('type');
   const [typeText, setTypeText]       = useState('');
@@ -96,6 +106,10 @@ export default function SolveScreen({ navigation }) {
 
   async function solve(overrides) {
     if (loading) return;
+    if (!session && freeRemaining <= 0) {
+      setShowPaywall(true);
+      return;
+    }
     setError(null);
     setResult(null);
     setSaved(false);
@@ -119,6 +133,9 @@ export default function SolveScreen({ navigation }) {
       if (!res.hasMath) {
         setError(res.message || 'No math problem detected. Try a clearer photo or switch to Type mode.');
         return;
+      }
+      if (!session) {
+        setFreeRemaining(await consumeFreeSolve());
       }
       setResult(res);
       setTimeout(() => {
@@ -194,6 +211,15 @@ export default function SolveScreen({ navigation }) {
                 <Ionicons name="camera" size={22} color={colors.gold} />
               </View>
             </View>
+
+            {!session ? (
+              <View style={styles.freeCountPill}>
+                <Ionicons name="flash-outline" size={14} color={colors.gold} />
+                <Text style={styles.freeCountText}>
+                  {freeRemaining} free solve{freeRemaining !== 1 ? 's' : ''} left
+                </Text>
+              </View>
+            ) : null}
 
             {/* Mode tabs */}
             <View style={styles.modeTabs}>
@@ -458,6 +484,17 @@ export default function SolveScreen({ navigation }) {
         onCreateAccount={() => { setShowAuthWall(false); navigation.navigate('SignUp'); }}
         onLogin={() => { setShowAuthWall(false); navigation.navigate('Login'); }}
       />
+
+      <SoftAuthWall
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onCreateAccount={() => { setShowPaywall(false); navigation.navigate('SignUp'); }}
+        onLogin={() => { setShowPaywall(false); navigation.navigate('Login'); }}
+        icon="sparkles"
+        title="You're Out of Free Solves"
+        body={`You've used all ${FREE_SOLVE_LIMIT} free solves. Sign in for unlimited AI-powered solving — it's quick and free.`}
+        skipLabel="Not Now"
+      />
     </View>
   );
 }
@@ -475,6 +512,9 @@ const styles = StyleSheet.create({
   title:      { ...typography.h1, color: colors.textPrimary },
   subtitle:   { ...typography.caption, color: colors.textSub, marginTop: 2 },
   headerIcon: { width: 44, height: 44, borderRadius: radius.md, backgroundColor: colors.gold + '18', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.gold + '30' },
+
+  freeCountPill: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: colors.gold + '15', borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 5, marginBottom: spacing.md, borderWidth: 1, borderColor: colors.gold + '30' },
+  freeCountText: { fontSize: 11, fontWeight: '700', color: colors.gold, letterSpacing: 0.2 },
 
   modeTabs:          { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.lg, padding: 4, marginBottom: spacing.lg, borderWidth: 1, borderColor: colors.border },
   modeTab:           { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.sm, gap: 5, borderRadius: radius.md },

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingSymbols from '../components/FloatingSymbols';
+import SoftAuthWall from '../components/SoftAuthWall';
+import { useAuth } from '../hooks/useAuth';
 import { colors, spacing, radius, typography } from '../theme';
+
+// Shown once, after the intro animation finishes, only to guests who've never seen it.
+const WELCOME_PROMPT_SEEN_KEY = '@qube/welcome_prompt_seen';
 
 // ─────────────────────────────────────────────
 //  DATA
@@ -216,6 +222,27 @@ function FeatureCard({ card, animVal, index, onPress }) {
 const CARD_ROUTES = { ai: 'scan', practice: 'practice', quiz: 'practice' };
 
 export default function HomeScreen({ navigation }) {
+  const { session, loading: authLoading } = useAuth();
+  const [showWelcomePrompt, setShowWelcomePrompt] = useState(false);
+  const [entranceDone, setEntranceDone] = useState(false);
+  const promptDecidedRef = useRef(false);
+
+  // The entrance animation's own effect (below) runs once on mount with a stale
+  // closure over session/authLoading, so it only flips this flag; this effect,
+  // re-run whenever auth state actually settles, makes the real decision.
+  useEffect(() => {
+    if (!entranceDone || authLoading || promptDecidedRef.current) return;
+    promptDecidedRef.current = true;
+    if (session) return;
+    AsyncStorage.getItem(WELCOME_PROMPT_SEEN_KEY)
+      .then((seen) => { if (!seen) setShowWelcomePrompt(true); })
+      .catch(() => {});
+  }, [entranceDone, authLoading, session]);
+
+  const dismissWelcomePrompt = () => {
+    setShowWelcomePrompt(false);
+    AsyncStorage.setItem(WELCOME_PROMPT_SEEN_KEY, '1').catch(() => {});
+  };
 
   // Animation refs
   const logoScale   = useRef(new Animated.Value(0.3)).current;
@@ -263,7 +290,9 @@ export default function HomeScreen({ navigation }) {
         Animated.timing(card2Opacity, { toValue: 1, duration: 380, useNativeDriver: true }),
         Animated.timing(card3Opacity, { toValue: 1, duration: 380, useNativeDriver: true }),
       ]),
-    ]).start();
+    ]).start(() => {
+      setEntranceDone(true);
+    });
 
     // Glow pulse — runs independently
     Animated.loop(
@@ -407,6 +436,16 @@ export default function HomeScreen({ navigation }) {
         </ScrollView>
       </SafeAreaView>
 
+      <SoftAuthWall
+        visible={showWelcomePrompt}
+        onClose={dismissWelcomePrompt}
+        onCreateAccount={() => { dismissWelcomePrompt(); navigation.navigate('SignUp'); }}
+        onLogin={() => { dismissWelcomePrompt(); navigation.navigate('Login'); }}
+        icon="school"
+        title="Welcome to Qube"
+        body="Sign in to save your solved problems and sync your progress across devices. Or just dive in — solving works without an account."
+        skipLabel="Maybe Later"
+      />
     </View>
   );
 }

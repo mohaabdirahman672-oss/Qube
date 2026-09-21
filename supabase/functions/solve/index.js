@@ -12,7 +12,15 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const RATE_LIMIT_MAX = 20;
-const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / user
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / authenticated user
+
+// Anonymous callers: the real "N free solves ever" product limit is enforced client-side
+// (src/lib/freeSolves.js) — this is just a coarser server-side abuse backstop, keyed by a
+// client-generated device ID rather than a real user ID, so it's easier to work around
+// (reinstall, clear storage) than the authenticated limit above. That's an accepted
+// tradeoff for a free tier, not a security boundary.
+const ANON_RATE_LIMIT_MAX = 10;
+const ANON_RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
 function decodeJwt(authHeader) {
   const token = authHeader?.replace(/^Bearer\s+/i, "");
@@ -26,7 +34,7 @@ function decodeJwt(authHeader) {
   }
 }
 
-async function checkRateLimit(userId) {
+async function checkRateLimit(userId, limit, windowSeconds) {
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_and_increment_rate_limit`, {
     method: "POST",
     headers: {
@@ -36,8 +44,8 @@ async function checkRateLimit(userId) {
     },
     body: JSON.stringify({
       p_user_id: userId,
-      p_limit: RATE_LIMIT_MAX,
-      p_window_seconds: RATE_LIMIT_WINDOW_SECONDS,
+      p_limit: limit,
+      p_window_seconds: windowSeconds,
     }),
   });
   if (!response.ok) {
@@ -115,15 +123,31 @@ Deno.serve(async (req) => {
   try {
     if (!OPENAI_API_KEY) throw new Error("Server misconfigured: OPENAI_API_KEY not set.");
 
+    // verify_jwt = true already rejected anything without a validly-signed JWT — the anon
+    // key itself is one, so both signed-in users and anonymous guests reach here. Guests
+    // are allowed through (the real "N free solves" limit lives client-side), but still
+    // need a rate-limit key, so an anonymous caller must supply a deviceId.
     const claims = decodeJwt(req.headers.get("Authorization"));
-    if (!claims || claims.role !== "authenticated") {
+    if (!claims || (claims.role !== "authenticated" && claims.role !== "anon")) {
       return new Response(JSON.stringify({ error: "Sign in required." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const allowed = await checkRateLimit(claims.sub);
+    const { text, imageBase64, imageMimeType, deviceId } = await req.json();
+
+    const isAuthenticated = claims.role === "authenticated";
+    if (!isAuthenticated && !deviceId) {
+      return new Response(JSON.stringify({ error: "Missing device identifier." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const allowed = isAuthenticated
+      ? await checkRateLimit(claims.sub, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_SECONDS)
+      : await checkRateLimit(deviceId, ANON_RATE_LIMIT_MAX, ANON_RATE_LIMIT_WINDOW_SECONDS);
     if (!allowed) {
       return new Response(JSON.stringify({ error: "You've hit the hourly limit for solving problems. Please try again later." }), {
         status: 429,
@@ -131,7 +155,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { text, imageBase64, imageMimeType } = await req.json();
     let messages;
 
     if (text) {

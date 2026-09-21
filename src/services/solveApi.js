@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getDeviceId } from '../lib/freeSolves';
 
 const REQUEST_TIMEOUT_MS = 45000;
 
@@ -11,10 +12,14 @@ export async function solveMathProblem({ text, imageBase64, imageMimeType }) {
     imageBytes: imageBase64?.length ?? 0,
   });
 
+  // Sent for every call, but only consulted server-side for unauthenticated callers —
+  // it's an abuse backstop, not the real free-solve limit (that's enforced client-side).
+  const deviceId = await getDeviceId();
+
   let data, error;
   try {
     ({ data, error } = await supabase.functions.invoke('solve', {
-      body: { text, imageBase64, imageMimeType },
+      body: { text, imageBase64, imageMimeType, deviceId },
       timeout: REQUEST_TIMEOUT_MS,
     }));
   } catch (e) {
