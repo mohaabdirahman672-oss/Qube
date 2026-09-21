@@ -46,7 +46,6 @@
           "cameraPermission": "Qube uses your camera to photograph math problems and solve them instantly."
         }
       ],
-      "@sentry/react-native",
       [
         "expo-build-properties",
         {
