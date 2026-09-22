@@ -2,16 +2,20 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ScrollView, Animated, Modal, TextInput,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchCustomCards, insertCustomCard, deleteCustomCard } from '../services/dbService';
+import { getWorkedExample } from '../services/flashcardApi';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import FloatingSymbols from '../components/FloatingSymbols';
 import SoftAuthWall from '../components/SoftAuthWall';
+import LockedPreview from '../components/LockedPreview';
+import PaywallScreen from './PaywallScreen';
 import { CATEGORIES, getCards, getProblems } from '../data/practiceData';
 import { useAuth } from '../hooks/useAuth';
+import { useSubscription } from '../context/SubscriptionContext';
 import { colors, spacing, radius, typography } from '../theme';
 
 const CARD_CATEGORIES  = CATEGORIES.filter(c => c !== 'All');
@@ -27,14 +31,31 @@ const TAG_COLOR  = {
 
 // ── Flashcard ─────────────────────────────────────────────────────────────────
 
-function Flashcard({ card, index, total, onDelete }) {
+function Flashcard({ card, index, total, onDelete, onLockedPress }) {
+  const { isPremium } = useSubscription();
   const [flipped, setFlipped] = useState(false);
   const flipAnim = useRef(new Animated.Value(0)).current;
+
+  const [workedExample, setWorkedExample] = useState(null);
+  const [loadingExample, setLoadingExample] = useState(false);
 
   useEffect(() => {
     setFlipped(false);
     flipAnim.setValue(0);
+    setWorkedExample(null);
   }, [index]);
+
+  // Fetched lazily on first flip, not up front for every card in the deck —
+  // Premium-only content (docs/plans/freemium-paywall-v2.md, decision 5), server
+  // re-checks Premium regardless of what this client believes.
+  useEffect(() => {
+    if (!flipped || !isPremium || workedExample || loadingExample) return;
+    setLoadingExample(true);
+    getWorkedExample({ front: card.front, back: card.back, tag: card.tag })
+      .then(setWorkedExample)
+      .catch(() => setWorkedExample('Could not load a worked example right now.'))
+      .finally(() => setLoadingExample(false));
+  }, [flipped, isPremium, card.front, card.back, card.tag]);
 
   function handleFlip() {
     const toValue = flipped ? 0 : 1;
@@ -75,6 +96,29 @@ function Flashcard({ card, index, total, onDelete }) {
           {/* Back */}
           <Animated.View style={[styles.cardFace, styles.cardBack, { opacity: backOpacity }]}>
             <Text style={styles.cardBackText}>{card.back}</Text>
+
+            <View style={styles.workedExampleWrap}>
+              <Text style={styles.workedExampleLabel}>WORKED EXAMPLE</Text>
+              <LockedPreview
+                locked={!isPremium}
+                onPress={!isPremium ? onLockedPress : undefined}
+                label="Unlock worked examples"
+                minHeight={64}
+              >
+                {isPremium ? (
+                  loadingExample ? (
+                    <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.sm }} />
+                  ) : (
+                    <Text style={styles.workedExampleText}>{workedExample}</Text>
+                  )
+                ) : (
+                  <Text style={styles.workedExampleText}>
+                    {`For example, applying ${card.front.toLowerCase()} to specific numbers gives a step-by-step solution ending in a final answer, shown in full for Premium members.`}
+                  </Text>
+                )}
+              </LockedPreview>
+            </View>
+
             <View style={styles.tapHint}>
               <Ionicons name="repeat-outline" size={14} color={colors.textMuted} />
               <Text style={styles.tapHintText}>Tap to flip back</Text>
@@ -271,7 +315,9 @@ function AddCardModal({ visible, onClose, onSave }) {
 
 export default function PracticeScreen({ navigation }) {
   const { session, user } = useAuth();
+  const { isPremium } = useSubscription();
   const [showAuthWall,    setShowAuthWall]     = useState(false);
+  const [showPaywall,     setShowPaywall]      = useState(false);
 
   const [category,        setCategory]        = useState('All');
   const [cardIndex,       setCardIndex]        = useState(0);
@@ -379,6 +425,7 @@ export default function PracticeScreen({ navigation }) {
                 index={cardIndex}
                 total={allCards.length}
                 onDelete={currentCard?.custom ? () => handleDeleteCard(currentCard.id) : null}
+                onLockedPress={() => setShowPaywall(true)}
               />
               <View style={styles.navRow}>
                 <TouchableOpacity style={styles.navBtn} onPress={prev} activeOpacity={0.8}>
@@ -416,6 +463,25 @@ export default function PracticeScreen({ navigation }) {
             </View>
           )}
 
+          {/* Homework-question generation — stubbed for launch (spec decision 4):
+              shows the locked-preview mechanic so Premium messaging is accurate,
+              no real generation behind it yet. */}
+          <View style={[styles.sectionHeader, { marginTop: spacing.xl }]}>
+            <Ionicons name="library-outline" size={16} color={colors.green} />
+            <Text style={styles.sectionTitle}>Homework Set</Text>
+          </View>
+          <LockedPreview
+            locked={!isPremium}
+            onPress={() => setShowPaywall(true)}
+            label="Generate a homework set with Premium"
+            minHeight={96}
+          >
+            <View style={styles.homeworkStubCard}>
+              <Text style={styles.homeworkStubTitle}>10 {category === 'All' ? 'mixed-topic' : category} questions, generated from what you've studied</Text>
+              <Text style={styles.homeworkStubSub}>Fresh set every time — Premium</Text>
+            </View>
+          </LockedPreview>
+
           <View style={{ height: 120 }} />
         </ScrollView>
       </SafeAreaView>
@@ -431,6 +497,12 @@ export default function PracticeScreen({ navigation }) {
         onClose={() => setShowAuthWall(false)}
         onCreateAccount={() => { setShowAuthWall(false); navigation.navigate('SignUp'); }}
         onLogin={() => { setShowAuthWall(false); navigation.navigate('Login'); }}
+      />
+
+      <PaywallScreen
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        navigation={navigation}
       />
     </View>
   );
@@ -473,6 +545,9 @@ const styles = StyleSheet.create({
   cardTagText:  { fontSize: 9, fontWeight: '800', letterSpacing: 1 },
   cardFrontText:{ ...typography.h2, color: colors.textPrimary, textAlign: 'center', marginBottom: spacing.lg },
   cardBackText: { ...typography.body, color: colors.textPrimary, textAlign: 'center', lineHeight: 26, fontWeight: '600', marginBottom: spacing.lg },
+  workedExampleWrap: { width: '100%', marginBottom: spacing.md },
+  workedExampleLabel: { ...typography.label, color: colors.textMuted, marginBottom: spacing.xs, textAlign: 'center' },
+  workedExampleText: { ...typography.caption, color: colors.textSub, textAlign: 'center', lineHeight: 18, padding: spacing.sm },
   tapHint:      { flexDirection: 'row', alignItems: 'center', gap: 4, position: 'absolute', bottom: spacing.md },
   tapHintText:  { ...typography.caption, color: colors.textMuted },
 
@@ -486,6 +561,17 @@ const styles = StyleSheet.create({
   emptyState:   { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.xl, alignItems: 'center', borderWidth: 1, borderColor: colors.border, marginBottom: spacing.md },
   emptyText:    { ...typography.body, color: colors.textMuted },
   emptyAddLink: { fontSize: 13, color: colors.blue, fontWeight: '600' },
+
+  homeworkStubCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: spacing.xs,
+  },
+  homeworkStubTitle: { ...typography.body, color: colors.textPrimary, fontWeight: '600' },
+  homeworkStubSub:   { ...typography.caption, color: colors.textMuted },
 
   // Problem cards
   problemCard:   { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.sm + 2, borderWidth: 1, borderColor: colors.border },

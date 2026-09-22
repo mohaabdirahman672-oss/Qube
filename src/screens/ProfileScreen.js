@@ -10,6 +10,9 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingSymbols from '../components/FloatingSymbols';
 import { useAuth } from '../hooks/useAuth';
+import { useSubscription } from '../context/SubscriptionContext';
+import { restorePurchases } from '../lib/iap';
+import PaywallScreen from './PaywallScreen';
 import { fetchSavedProblems, clearSavedProblems, fetchCustomCards } from '../services/dbService';
 import { colors, spacing, radius, typography } from '../theme';
 
@@ -20,16 +23,26 @@ const STATS = [
   { icon: 'star-outline',       label: 'AI Accuracy',       value: '98%',  color: colors.green  },
 ];
 
-const PRIVACY_URL = 'https://spot-hurricane-661.notion.site/Qube-Privacy-Policy-Last-updated-August-2026-3b838d7712fc803a8025f809d0fca230';
+// 2026-09-21: this used to point at a Notion page that turned out to be an empty
+// placeholder (title only, no actual content) — found while touching this file for
+// the subscription section below. Swapped to the real privacy policy published this
+// session (see docs/plans/launch-daily-checklist.md). Terms of Service still has no
+// real document — flagged as a separate open item, not silently left on the same
+// broken link.
+const PRIVACY_URL = 'https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp';
+const TERMS_URL = 'https://spot-hurricane-661.notion.site/Qube-Privacy-Policy-Last-updated-August-2026-3b838d7712fc803a8025f809d0fca230'; // TODO: placeholder/empty — needs a real Terms of Service document before submission
 
 const MENU = [
   { icon: 'information-circle-outline', label: 'About Qube',       sub: 'Version 1.0.0 · Beta',          url: null },
   { icon: 'shield-checkmark-outline',   label: 'Privacy Policy',   sub: 'How we handle your data',        url: PRIVACY_URL },
-  { icon: 'document-text-outline',      label: 'Terms of Service', sub: 'Usage terms and conditions',     url: PRIVACY_URL },
+  { icon: 'document-text-outline',      label: 'Terms of Service', sub: 'Usage terms and conditions',     url: TERMS_URL },
 ];
 
 export default function ProfileScreen({ navigation }) {
   const { session, user, signOut, updateDisplayName, sendPasswordReset } = useAuth();
+  const { isPremium, weeklyRemaining, weeklyLimit, refresh: refreshSubscription } = useSubscription();
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [restoring,   setRestoring]   = useState(false);
   const [savedCount,      setSavedCount]      = useState(0);
   const [editNameVisible, setEditNameVisible] = useState(false);
   const [nameInput,       setNameInput]       = useState('');
@@ -160,6 +173,26 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
+  async function handleRestorePurchases() {
+    setRestoring(true);
+    try {
+      const { isPremium: restored } = await restorePurchases();
+      await refreshSubscription();
+      Alert.alert(
+        restored ? 'Restored' : 'No purchases found',
+        restored ? 'Your Premium subscription is active.' : "We couldn't find an active subscription for this Apple ID."
+      );
+    } catch (e) {
+      Alert.alert('Restore failed', e?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setRestoring(false);
+    }
+  }
+
+  function handleManageSubscription() {
+    Linking.openURL('https://apps.apple.com/account/subscriptions');
+  }
+
   async function handleSignOut() {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -269,8 +302,55 @@ export default function ProfileScreen({ navigation }) {
             </View>
           )}
 
+          {/* ── Premium / subscription ───────────────────────────────────── */}
+          <Text style={styles.sectionLabel}>PREMIUM</Text>
+          {isPremium ? (
+            <>
+              <View style={[styles.menuRow, { borderColor: colors.gold + '40' }]}>
+                <View style={[styles.menuIcon, { backgroundColor: colors.gold + '18', borderColor: colors.gold + '30' }]}>
+                  <Ionicons name="sparkles" size={18} color={colors.gold} />
+                </View>
+                <View style={styles.menuText}>
+                  <Text style={styles.menuLabel}>Premium active</Text>
+                  <Text style={styles.menuSub}>Unlimited solves and full access</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.menuRow} onPress={handleManageSubscription} activeOpacity={0.75}>
+                <View style={[styles.menuIcon, { backgroundColor: colors.blue + '18', borderColor: colors.blue + '30' }]}>
+                  <Ionicons name="card-outline" size={18} color={colors.blue} />
+                </View>
+                <View style={styles.menuText}>
+                  <Text style={styles.menuLabel}>Manage Subscription</Text>
+                  <Text style={styles.menuSub}>Change plan or cancel in the App Store</Text>
+                </View>
+                <Ionicons name="open-outline" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity style={[styles.menuRow, { borderColor: colors.gold + '40' }]} onPress={() => setShowPaywall(true)} activeOpacity={0.75}>
+              <View style={[styles.menuIcon, { backgroundColor: colors.gold + '18', borderColor: colors.gold + '30' }]}>
+                <Ionicons name="sparkles" size={18} color={colors.gold} />
+              </View>
+              <View style={styles.menuText}>
+                <Text style={styles.menuLabel}>Upgrade to Premium</Text>
+                <Text style={styles.menuSub}>
+                  {weeklyRemaining !== null ? `${weeklyRemaining} of ${weeklyLimit} free solves left this week` : 'Unlimited solves, worked examples, and more'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.menuRow} onPress={handleRestorePurchases} activeOpacity={0.75} disabled={restoring}>
+            <View style={[styles.menuIcon, { backgroundColor: colors.surfaceHigh, borderColor: colors.border }]}>
+              <Ionicons name="refresh-outline" size={18} color={colors.textSub} />
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuLabel}>{restoring ? 'Restoring…' : 'Restore Purchases'}</Text>
+            </View>
+          </TouchableOpacity>
+
           {/* ── My Activity ──────────────────────────────────────────────── */}
-          <Text style={styles.sectionLabel}>MY ACTIVITY</Text>
+          <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>MY ACTIVITY</Text>
           <TouchableOpacity
             style={styles.menuRow}
             onPress={openStats}
@@ -880,6 +960,13 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <PaywallScreen
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        navigation={navigation}
+        limit={weeklyLimit}
+      />
     </View>
   );
 }

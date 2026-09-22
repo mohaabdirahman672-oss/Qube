@@ -12,15 +12,21 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const RATE_LIMIT_MAX = 20;
-const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / authenticated user
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / authenticated user — abuse backstop, not the product limit
 
-// Anonymous callers: the real "N free solves ever" product limit is enforced client-side
-// (src/lib/freeSolves.js) — this is just a coarser server-side abuse backstop, keyed by a
-// client-generated device ID rather than a real user ID, so it's easier to work around
-// (reinstall, clear storage) than the authenticated limit above. That's an accepted
-// tradeoff for a free tier, not a security boundary.
+// Coarse hourly abuse backstop for anonymous callers, keyed by a client-generated
+// device ID. Easier to work around (reinstall, clear storage) than the authenticated
+// limit above, which is fine — it only needs to stop scripted abuse, not enforce the
+// real product limit (that's WEEKLY_FREE_SOLVE_LIMIT below, enforced server-side).
 const ANON_RATE_LIMIT_MAX = 10;
 const ANON_RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
+
+// The actual product free tier (docs/plans/freemium-paywall-v2.md): 10 solves/week,
+// resetting Monday 00:00 UTC, tracked server-side (public.weekly_solve_usage) keyed
+// by auth uid or device id — NOT client-side, specifically so reinstalling the app
+// or clearing storage doesn't reset it. Applies to guests AND signed-in non-Premium
+// users alike; only a verified Premium entitlement bypasses it.
+const WEEKLY_FREE_SOLVE_LIMIT = 10;
 
 function decodeJwt(authHeader) {
   const token = authHeader?.replace(/^Bearer\s+/i, "");
@@ -51,6 +57,42 @@ async function checkRateLimit(userId, limit, windowSeconds) {
   if (!response.ok) {
     console.error("Rate limit check failed:", await response.text().catch(() => ""));
     return true; // fail open — a broken rate-limit check shouldn't take down the feature
+  }
+  return await response.json();
+}
+
+async function checkAndIncrementWeeklySolve(key, limit) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_and_increment_weekly_solve`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_SERVICE_ROLE_KEY,
+      "Authorization": "Bearer " + SUPABASE_SERVICE_ROLE_KEY,
+    },
+    body: JSON.stringify({ p_key: key, p_limit: limit }),
+  });
+  if (!response.ok) {
+    console.error("Weekly solve check failed:", await response.text().catch(() => ""));
+    return true; // fail open to free tier, never silently block a paying-eligible user
+  }
+  return await response.json();
+}
+
+async function isPremiumUser(userId) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/is_user_premium`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_SERVICE_ROLE_KEY,
+      "Authorization": "Bearer " + SUPABASE_SERVICE_ROLE_KEY,
+    },
+    body: JSON.stringify({ p_user_id: userId }),
+  });
+  if (!response.ok) {
+    console.error("Premium check failed:", await response.text().catch(() => ""));
+    // Fail to free tier, not premium — an outage here should never leak paid access
+    // (docs/plans/freemium-paywall-v2.md, Edge Cases).
+    return false;
   }
   return await response.json();
 }
@@ -153,6 +195,24 @@ Deno.serve(async (req) => {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Premium bypasses the weekly product cap entirely, but still passes through the
+    // hourly abuse backstop above — "unlimited" means no product limit, not literally
+    // no ceiling against a compromised/scripted client.
+    const isPremium = isAuthenticated ? await isPremiumUser(claims.sub) : false;
+    if (!isPremium) {
+      const weeklyKey = isAuthenticated ? claims.sub : deviceId;
+      const weeklyAllowed = await checkAndIncrementWeeklySolve(weeklyKey, WEEKLY_FREE_SOLVE_LIMIT);
+      if (!weeklyAllowed) {
+        return new Response(JSON.stringify({
+          error: "You've used your free solves this week.",
+          code: "WEEKLY_LIMIT_REACHED",
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     let messages;

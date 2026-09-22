@@ -1,7 +1,18 @@
 # Freemium Pricing + Paywall v2 (weekly cap, Premium subscription)
 
-**Status:** Draft — awaiting lead approval. No code written yet per workflow.
-**Supersedes in part:** the lifetime-5-free-solves guest model shipped 2026-09-21 (KI-R20). That model stays live until this is approved and built; nothing here has shipped.
+**Status:** ✅ Approved 2026-09-21. Answers to all 8 Open Questions below, building now.
+**Supersedes:** the lifetime-5-free-solves guest model shipped 2026-09-21 (KI-R20) — including its "signing in = unlimited" behavior, which is **deliberately reversed** here (confirmed by lead, not a regression to guard against).
+
+## Approved decisions (answers to the Open Questions section below)
+
+1. **N = 10** free solves/week.
+2. **Signing in without Premium does NOT remove the weekly cap.** Only an active Premium entitlement bypasses it — applies equally to guests and signed-in free users. This intentionally reverses KI-R20's "sign-in = unlimited" behavior.
+3. Anonymous → signed-in: **merge** device usage into the account's current-week count (capped at N) — closes the reset-by-signing-in loop now that sign-in no longer implies unlimited.
+4. Similar-question and homework-question generation: **stub only** for launch — real `LockedPreview` UI (titles/shape visible, content blurred+locked), no generation logic. Post-launch scope.
+5. Flashcard worked examples: **live AI generation with caching**, not hand-authored. Scales to the full course library instead of covering only the 36 static cards.
+6. **RevenueCat confirmed.**
+7. **Monday 00:00 UTC reset confirmed** (not personalized per user).
+8. Trial scope: not yet answered explicitly — proceeding with the spec's literal wording (7-day trial "auto-converts to the monthly or annual plan," implying trial is offered on **both**); will surface if App Store Connect's subscription-group model makes that awkward to configure.
 
 ---
 

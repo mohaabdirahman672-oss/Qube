@@ -10,10 +10,12 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import FloatingSymbols from '../components/FloatingSymbols';
 import SoftAuthWall from '../components/SoftAuthWall';
+import LockedPreview from '../components/LockedPreview';
+import PaywallScreen from './PaywallScreen';
 import { solveMathProblem } from '../services/solveApi';
 import { insertSavedProblem } from '../services/dbService';
 import { useAuth } from '../hooks/useAuth';
-import { getRemainingFreeSolves, consumeFreeSolve, FREE_SOLVE_LIMIT } from '../lib/freeSolves';
+import { useSubscription } from '../context/SubscriptionContext';
 import { colors, spacing, radius, typography } from '../theme';
 
 const DIFF_COLOR = { Easy: colors.green, Medium: colors.gold, Hard: '#EF4444', Advanced: colors.purple };
@@ -49,16 +51,9 @@ async function pickImage(useCamera) {
 
 export default function SolveScreen({ navigation }) {
   const { session, user } = useAuth();
+  const { isPremium, weeklyRemaining, weeklyLimit, refresh: refreshUsage } = useSubscription();
   const [showAuthWall, setShowAuthWall] = useState(false);
   const [showPaywall, setShowPaywall]   = useState(false);
-  const [freeRemaining, setFreeRemaining] = useState(FREE_SOLVE_LIMIT);
-
-  // Re-check whenever the screen mounts and whenever sign-in state changes — signing in
-  // makes the local guest counter irrelevant (the real per-user server limit takes over).
-  useEffect(() => {
-    if (session) return;
-    getRemainingFreeSolves().then(setFreeRemaining);
-  }, [session]);
 
   const [mode, setMode]               = useState('type');
   const [typeText, setTypeText]       = useState('');
@@ -106,7 +101,11 @@ export default function SolveScreen({ navigation }) {
 
   async function solve(overrides) {
     if (loading) return;
-    if (!session && freeRemaining <= 0) {
+    // Weekly cap applies to every non-Premium caller — guest or signed in alike
+    // (docs/plans/freemium-paywall-v2.md, decision 2; deliberately reverses the
+    // KI-R20 "sign-in = unlimited" behavior). weeklyRemaining null means the usage
+    // fetch hasn't resolved yet — don't block on an unknown value.
+    if (!isPremium && weeklyRemaining !== null && weeklyRemaining <= 0) {
       setShowPaywall(true);
       return;
     }
@@ -134,16 +133,24 @@ export default function SolveScreen({ navigation }) {
         setError(res.message || 'No math problem detected. Try a clearer photo or switch to Type mode.');
         return;
       }
-      if (!session) {
-        setFreeRemaining(await consumeFreeSolve());
-      }
+      // Server already decremented the weekly counter as part of this call
+      // (supabase/functions/solve) — re-fetch to reflect it, no local increment.
+      if (!isPremium) refreshUsage();
       setResult(res);
       setTimeout(() => {
         scrollRef.current?.scrollTo({ y: solutionOffset.current - 16, animated: true });
       }, 100);
     } catch (e) {
-      console.log('[SolveScreen] solve() caught error', e?.message);
+      console.log('[SolveScreen] solve() caught error', e?.message, e?.code);
       setLoading(false);
+      if (e.code === 'WEEKLY_LIMIT_REACHED') {
+        // Client-side count was stale (e.g. another device used the remaining
+        // solves) — trust the server's rejection and show the paywall instead of
+        // a plain error string.
+        refreshUsage();
+        setShowPaywall(true);
+        return;
+      }
       setError(e.message || 'Something went wrong. Please try again.');
     }
   }
@@ -212,11 +219,11 @@ export default function SolveScreen({ navigation }) {
               </View>
             </View>
 
-            {!session ? (
+            {!isPremium && weeklyRemaining !== null ? (
               <View style={styles.freeCountPill}>
                 <Ionicons name="flash-outline" size={14} color={colors.gold} />
                 <Text style={styles.freeCountText}>
-                  {freeRemaining} free solve{freeRemaining !== 1 ? 's' : ''} left
+                  {weeklyRemaining} free solve{weeklyRemaining !== 1 ? 's' : ''} left this week
                 </Text>
               </View>
             ) : null}
@@ -444,6 +451,39 @@ export default function SolveScreen({ navigation }) {
                   </View>
                 ) : null}
 
+                {/* Similar-question generation — stubbed for launch (spec decision 4):
+                    locked-preview mechanic only, no real generation behind it yet. */}
+                <Text style={styles.lockedSectionLabel}>SIMILAR QUESTIONS</Text>
+                <LockedPreview
+                  locked={!isPremium}
+                  onPress={() => setShowPaywall(true)}
+                  label="Generate similar questions with Premium"
+                  minHeight={90}
+                >
+                  <View style={styles.lockedStubList}>
+                    {[1, 2, 3].map(i => (
+                      <View key={i} style={styles.lockedStubRow}>
+                        <Text style={styles.lockedStubRowText}>
+                          {result.problemType || 'Practice'} variation #{i}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                </LockedPreview>
+
+                {/* Graphing — not built yet (ships v1.2); gate stubbed now per spec. */}
+                <Text style={styles.lockedSectionLabel}>GRAPH</Text>
+                <LockedPreview
+                  locked={!isPremium}
+                  onPress={() => setShowPaywall(true)}
+                  label="Graphing — Premium, coming in v1.2"
+                  minHeight={110}
+                >
+                  <View style={styles.lockedStubGraph}>
+                    <Ionicons name="stats-chart" size={28} color={colors.textMuted} />
+                  </View>
+                </LockedPreview>
+
                 {/* Actions */}
                 <View style={styles.actionRow}>
                   <TouchableOpacity
@@ -485,15 +525,11 @@ export default function SolveScreen({ navigation }) {
         onLogin={() => { setShowAuthWall(false); navigation.navigate('Login'); }}
       />
 
-      <SoftAuthWall
+      <PaywallScreen
         visible={showPaywall}
         onClose={() => setShowPaywall(false)}
-        onCreateAccount={() => { setShowPaywall(false); navigation.navigate('SignUp'); }}
-        onLogin={() => { setShowPaywall(false); navigation.navigate('Login'); }}
-        icon="sparkles"
-        title="You're Out of Free Solves"
-        body={`You've used all ${FREE_SOLVE_LIMIT} free solves. Sign in for unlimited AI-powered solving — it's quick and free.`}
-        skipLabel="Not Now"
+        navigation={navigation}
+        limit={weeklyLimit}
       />
     </View>
   );
@@ -585,6 +621,12 @@ const styles = StyleSheet.create({
   practiceNextQ:       { ...typography.body, color: colors.textPrimary, marginBottom: spacing.md, lineHeight: 22 },
   practiceNextBtn:     { backgroundColor: colors.purple + '22', borderRadius: radius.md, paddingVertical: spacing.sm, alignItems: 'center', borderWidth: 1, borderColor: colors.purple + '40' },
   practiceNextBtnText: { fontSize: 13, fontWeight: '700', color: colors.purple },
+
+  lockedSectionLabel: { ...typography.label, color: colors.textMuted, marginTop: spacing.lg, marginBottom: spacing.sm },
+  lockedStubList: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.sm },
+  lockedStubRow: { paddingVertical: spacing.xs + 2, paddingHorizontal: spacing.sm },
+  lockedStubRowText: { ...typography.body, color: colors.textSub },
+  lockedStubGraph: { backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, height: 110, alignItems: 'center', justifyContent: 'center' },
 
   actionRow:              { flexDirection: 'row', gap: spacing.sm },
   actionBtn:              { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: colors.blue + '15', borderRadius: radius.md, paddingVertical: spacing.sm + 2, borderWidth: 1, borderColor: colors.blue + '30' },

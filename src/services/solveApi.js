@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { getDeviceId } from '../lib/freeSolves';
+import { getDeviceId } from '../lib/weeklyUsage';
 
 const REQUEST_TIMEOUT_MS = 45000;
 
@@ -32,15 +32,20 @@ export async function solveMathProblem({ text, imageBase64, imageMimeType }) {
     if (error.name === 'AbortError') {
       throw new Error('This is taking longer than expected. Please check your connection and try again.');
     }
-    const message = await extractErrorMessage(error);
-    throw new Error(message);
+    const { message, code } = await extractErrorDetails(error);
+    const err = new Error(message);
+    if (code) err.code = code;
+    throw err;
   }
 
   console.log('[solveApi] invoke succeeded', { hasMath: data?.hasMath });
   return data;
 }
 
-async function extractErrorMessage(error) {
+async function extractErrorDetails(error) {
   const body = await error.context?.json?.().catch(() => null);
-  return body?.error || error.message || 'Something went wrong. Please try again.';
+  return {
+    message: body?.error || error.message || 'Something went wrong. Please try again.',
+    code: body?.code || null,
+  };
 }

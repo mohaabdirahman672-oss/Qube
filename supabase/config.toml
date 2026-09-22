@@ -442,3 +442,23 @@ entrypoint = "./functions/solve/index.js"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/solve/*.html" ]
+
+[functions.flashcard-example]
+enabled = true
+verify_jwt = true
+import_map = "./functions/flashcard-example/deno.json"
+entrypoint = "./functions/flashcard-example/index.js"
+
+[functions.revenuecat-webhook]
+enabled = true
+# RevenueCat calls this directly with its own shared-secret Authorization header,
+# not a Supabase-signed JWT — verified by hand inside the function instead.
+verify_jwt = false
+import_map = "./functions/revenuecat-webhook/deno.json"
+entrypoint = "./functions/revenuecat-webhook/index.js"
+
+[functions.weekly-usage]
+enabled = true
+verify_jwt = true
+import_map = "./functions/weekly-usage/deno.json"
+entrypoint = "./functions/weekly-usage/index.js"

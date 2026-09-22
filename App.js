@@ -5,6 +5,7 @@ import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { registerRootComponent } from 'expo';
 import { AuthProvider } from './src/context/AuthContext';
+import { SubscriptionProvider } from './src/context/SubscriptionContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import { colors } from './src/theme';
 
@@ -30,12 +31,14 @@ const NAV_THEME = {
 function App() {
   return (
     <AuthProvider>
-      <SafeAreaProvider>
-        <NavigationContainer theme={NAV_THEME}>
-          <StatusBar style="light" translucent />
-          <RootNavigator />
-        </NavigationContainer>
-      </SafeAreaProvider>
+      <SubscriptionProvider>
+        <SafeAreaProvider>
+          <NavigationContainer theme={NAV_THEME}>
+            <StatusBar style="light" translucent />
+            <RootNavigator />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </SubscriptionProvider>
     </AuthProvider>
   );
 }
