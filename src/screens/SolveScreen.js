@@ -452,12 +452,15 @@ export default function SolveScreen({ navigation }) {
                 ) : null}
 
                 {/* Similar-question generation — stubbed for launch (spec decision 4):
-                    locked-preview mechanic only, no real generation behind it yet. */}
+                    locked-preview mechanic only, no real generation exists yet for
+                    ANYONE, Premium included — so this stays locked unconditionally
+                    (not gated on isPremium) rather than "unlocking" into fake content
+                    for a paying user. Only the flashcard worked-example feature in
+                    PracticeScreen.js is actually built and truly Premium-gated. */}
                 <Text style={styles.lockedSectionLabel}>SIMILAR QUESTIONS</Text>
                 <LockedPreview
-                  locked={!isPremium}
-                  onPress={() => setShowPaywall(true)}
-                  label="Generate similar questions with Premium"
+                  locked
+                  label="Similar questions — coming soon"
                   minHeight={90}
                 >
                   <View style={styles.lockedStubList}>
@@ -471,12 +474,12 @@ export default function SolveScreen({ navigation }) {
                   </View>
                 </LockedPreview>
 
-                {/* Graphing — not built yet (ships v1.2); gate stubbed now per spec. */}
+                {/* Graphing — not built yet (ships v1.2). Same reasoning as above:
+                    always locked, never "unlocks" for Premium until it's real. */}
                 <Text style={styles.lockedSectionLabel}>GRAPH</Text>
                 <LockedPreview
-                  locked={!isPremium}
-                  onPress={() => setShowPaywall(true)}
-                  label="Graphing — Premium, coming in v1.2"
+                  locked
+                  label="Graphing — coming in v1.2"
                   minHeight={110}
                 >
                   <View style={styles.lockedStubGraph}>

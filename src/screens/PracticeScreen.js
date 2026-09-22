@@ -464,21 +464,21 @@ export default function PracticeScreen({ navigation }) {
           )}
 
           {/* Homework-question generation — stubbed for launch (spec decision 4):
-              shows the locked-preview mechanic so Premium messaging is accurate,
-              no real generation behind it yet. */}
+              no real generation exists yet for ANYONE, Premium included, so this
+              stays locked unconditionally rather than "unlocking" into fake content
+              for a paying user once they subscribe. */}
           <View style={[styles.sectionHeader, { marginTop: spacing.xl }]}>
             <Ionicons name="library-outline" size={16} color={colors.green} />
             <Text style={styles.sectionTitle}>Homework Set</Text>
           </View>
           <LockedPreview
-            locked={!isPremium}
-            onPress={() => setShowPaywall(true)}
-            label="Generate a homework set with Premium"
+            locked
+            label="Homework sets — coming soon"
             minHeight={96}
           >
             <View style={styles.homeworkStubCard}>
               <Text style={styles.homeworkStubTitle}>10 {category === 'All' ? 'mixed-topic' : category} questions, generated from what you've studied</Text>
-              <Text style={styles.homeworkStubSub}>Fresh set every time — Premium</Text>
+              <Text style={styles.homeworkStubSub}>Fresh set every time — in a future update</Text>
             </View>
           </LockedPreview>
 
