@@ -2,8 +2,9 @@
 
 **Start:** Sat, Sep 12, 2026
 **Replanned once:** Sat, Sep 19, 2026 — lost the week of Sep 13-18 to illness.
-**Replanned again:** Mon, Sep 21, 2026 — see "Why this got rewritten" below. This version replaces all prior day-by-day dates; treat the Sep 19 version as history only.
-**Target:** Live on the App Store by **Oct 19-22, 2026**, with **Oct 26** as hard outer buffer.
+**Replanned again:** Mon, Sep 21, 2026 (morning) — see "Why this got rewritten" below.
+**Replanned a third time:** Mon, Sep 21, 2026 (afternoon) — the freemium v2 / Premium subscription feature (KI-R21) landed as a same-day scope addition, on top of an already-tight plan. This is a real 1-2 week addition (payments, App Store Connect + RevenueCat setup, a new native module needing its own build/shakeout — see `docs/plans/freemium-paywall-v2.md`), not a rounding error, so it gets its own line rather than silently eating the buffer like the last two surprises did.
+**Target:** Live on the App Store by **Nov 2-5, 2026**, with **Nov 9** as hard outer buffer.
 Item numbers `(#N)` reference `docs/plans/beta-launch-countdown.md`.
 
 ---
@@ -27,16 +28,32 @@ Net effect: the early finish and the unplanned work roughly cancel out. This ver
 - [x] First working EAS build (`eas build --profile preview --platform ios`)
 - [x] **Launch-crash bug found and fixed** (KI-R17) — confirmed working on real device, all 5 tabs open
 - [x] **Google/Apple sign-in fixed** (KI-R19) — confirmed `hasSession: true` live on device for both
-- [x] **Freemium model** — guest solving (5 free, `FREE_SOLVE_LIMIT` in `src/lib/freeSolves.js`), paywall, welcome prompt, anon-caller support in the solve Edge Function, deployed — **pending your on-device verification** (see message above this one)
+- [x] ~~Freemium model — guest solving (5 free, lifetime, client-side)~~ — **superseded same day**, see below
+- [x] **Freemium v2 / Premium subscription** (KI-R21) — weekly server-enforced cap (10/week, Monday reset), RevenueCat wrapper, entitlement sync, paywall screen, locked-preview mechanic on flashcards/similar-questions/homework/graphing, flashcard worked examples via live AI + caching. Verified live against the real Supabase project (weekly cap decrements and 402s correctly). **Not yet done**: RevenueCat/App Store Connect product setup, a real purchase/trial/cancel test, the first native build since this landed (in progress — see Week A.5 below).
 - [x] **Privacy policy drafted and published** — `https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp` (see note under Sep 22 below — this link is private until you change its sharing setting)
 
-Only one open item remains in the Active Issues table: **KI-07** — a 2-minute manual Supabase Dashboard step (add `qube://reset-password` and `qube://` to the redirect URL allow-list).
+Open items in the Active Issues table: **KI-07** (2-min Supabase Dashboard step), **KI-08** (RevenueCat/App Store Connect not configured), **KI-10** (Terms of Service placeholder), **KI-11** (first native build since RevenueCat landed, in progress).
+
+---
+
+## Week A.5 — Subscriptions setup (new, inserted 2026-09-21 afternoon)
+
+Everything here is new scope from KI-R21 and did not exist in any prior version of this plan. Ordered so the native build (the slow, blocking step) starts as early as possible.
+
+- [x] **Mon Sep 21** — `eas build --profile development --platform ios` kicked off (react-native-purchases needs a real native build — every change since KI-R17 had been pure JS/hot-reloadable, this is the first exception).
+- [ ] **Once the build above finishes** — full shakeout pass, not just "did it build": app launches, splash clears, all 5 tabs open, sign-in still works. Given the KI-R14-R19 history, do not skip straight to testing purchases before confirming the basics still work on this build.
+- [ ] **App Store Connect**: create a subscription group with 2 auto-renewable products (monthly $9.99, annual $79.99) and a 7-day free trial intro offer. **Needs your Apple Developer access — I can't do this step.**
+- [ ] **RevenueCat**: create a project, wire it to the App Store Connect products above, get the public iOS API key.
+- [ ] Set `EXPO_PUBLIC_REVENUECAT_IOS_KEY` via `eas env:set` across all 3 environments (same pattern as KI-R9's fix).
+- [ ] Set `REVENUECAT_WEBHOOK_SECRET` as a Supabase function secret; configure the matching webhook URL + Authorization header in the RevenueCat dashboard, pointing at `supabase/functions/revenuecat-webhook`.
+- [ ] Apple Sandbox Tester account — test trial start, cancel-before-convert (confirm it reverts to free tier, not a locked-out app), and a renewal.
+- [ ] Draft a real Terms of Service document (KI-10) — no longer optional now that the app has paid subscriptions; App Store review checks for this.
 
 ---
 
 ## Week A — Finish Phase 3 (beta-readiness)
 
-- [x] **Mon Sep 21 (today)** — Privacy policy drafted and published; freemium model implemented, deployed, and committed.
+- [x] **Mon Sep 21 (today)** — Privacy policy drafted and published; freemium v2 + subscriptions (KI-R21) implemented, deployed, and committed.
 - [ ] **Tue Sep 22** —
   - Open the privacy policy link above → **Share → "Anyone with the link can view"** (it's private by default; App Store Connect and Apple's reviewer both need it to load without a claude.ai login). Keep the URL handy for #11 below and for the App Store Connect "Privacy Policy URL" field.
   - On-device: verify the freemium flows (welcome prompt once, guest solve counter, paywall at 5, sign-in unlocks it) — checklist is in my last message.
@@ -74,7 +91,9 @@ Only one open item remains in the Active Issues table: **KI-07** — a 2-minute 
 
 ## Week E — Buffer
 
-- [ ] **Mon Oct 19 → Thu Oct 22** — Resubmission buffer if Apple kicked anything back. **Target: live by Oct 19-22**, with **Oct 26** as the hard outer edge.
+- [ ] Resubmission buffer if Apple kicked anything back.
+
+**Note on dates below Week A.5**: the day labels in Weeks A-E were written before today's subscriptions scope addition and now run roughly a week-plus later than shown (the header's **Nov 2-5** target / **Nov 9** buffer are the real numbers). Not renumbering every individual day a third time today — that's exactly the kind of low-value busywork that made the Sep 19 version go stale. Treat Weeks A-E as an ordered sequence of steps, not literal dates, until Week A.5 (subscriptions setup) is done and the next real replan can date them properly.
 
 ---
 
