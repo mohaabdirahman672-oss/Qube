@@ -550,7 +550,7 @@ export default function ProfileScreen({ navigation }) {
                 },
                 {
                   q: 'Is Qube free to use?',
-                  a: 'Yes! All core features — AI solving, flashcards, and problem saving — are free. Pro features with advanced analytics and unlimited history are coming soon.',
+                  a: 'Yes — you get 10 free AI solves every week, no account required, plus flashcards and practice problems. Premium ($9.99/mo or $79.99/yr, with a 7-day free trial) adds unlimited solves, worked examples on every flashcard, and more.',
                 },
                 {
                   q: 'How accurate is the AI solver?',
