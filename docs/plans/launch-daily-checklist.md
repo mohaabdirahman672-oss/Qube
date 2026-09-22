@@ -29,10 +29,10 @@ Net effect: the early finish and the unplanned work roughly cancel out. This ver
 - [x] **Launch-crash bug found and fixed** (KI-R17) — confirmed working on real device, all 5 tabs open
 - [x] **Google/Apple sign-in fixed** (KI-R19) — confirmed `hasSession: true` live on device for both
 - [x] ~~Freemium model — guest solving (5 free, lifetime, client-side)~~ — **superseded same day**, see below
-- [x] **Freemium v2 / Premium subscription** (KI-R21) — weekly server-enforced cap (10/week, Monday reset), RevenueCat wrapper, entitlement sync, paywall screen, locked-preview mechanic on flashcards/similar-questions/homework/graphing, flashcard worked examples via live AI + caching. Verified live against the real Supabase project (weekly cap decrements and 402s correctly). **Not yet done**: RevenueCat/App Store Connect product setup, a real purchase/trial/cancel test, the first native build since this landed (in progress — see Week A.5 below).
+- [x] **Freemium v2 / Premium subscription** (KI-R21/KI-R22) — weekly server-enforced cap (10/week, Monday reset), RevenueCat wrapper, entitlement sync, paywall screen, locked-preview mechanic on flashcards/similar-questions/homework/graphing, flashcard worked examples via live AI + caching. **Fully verified live on the real device**: 10 real scans (camera + upload + practice text) all solved and decremented correctly, 11th correctly triggered the on-device paywall with the exact spec'd copy, Google sign-in still works, no crash regressions. Found and fixed one real bug in the process (a `void`-RPC response-parsing error that mislabeled a successful guest→account merge as a failure). **Still not done**: RevenueCat/App Store Connect product setup (KI-08) — the paywall's trial button correctly shows "Not available yet" until that's configured.
 - [x] **Privacy policy drafted and published** — `https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp` (see note under Sep 22 below — this link is private until you change its sharing setting)
 
-Open items in the Active Issues table: **KI-07** (2-min Supabase Dashboard step), **KI-08** (RevenueCat/App Store Connect not configured), **KI-10** (Terms of Service placeholder), **KI-11** (first native build since RevenueCat landed, in progress).
+Open items in the Active Issues table: **KI-07** (2-min Supabase Dashboard step), **KI-08** (RevenueCat/App Store Connect not configured), **KI-10** (Terms of Service placeholder).
 
 ---
 
@@ -40,8 +40,8 @@ Open items in the Active Issues table: **KI-07** (2-min Supabase Dashboard step)
 
 Everything here is new scope from KI-R21 and did not exist in any prior version of this plan. Ordered so the native build (the slow, blocking step) starts as early as possible.
 
-- [x] **Mon Sep 21** — `eas build --profile development --platform ios` kicked off (react-native-purchases needs a real native build — every change since KI-R17 had been pure JS/hot-reloadable, this is the first exception).
-- [ ] **Once the build above finishes** — full shakeout pass, not just "did it build": app launches, splash clears, all 5 tabs open, sign-in still works. Given the KI-R14-R19 history, do not skip straight to testing purchases before confirming the basics still work on this build.
+- [x] **Mon Sep 21** — `eas build --profile development --platform ios` kicked off and finished (react-native-purchases needs a real native build — every change since KI-R17 had been pure JS/hot-reloadable, this is the first exception).
+- [x] **Mon Sep 21** — Full shakeout pass done, on the real device, not just "did it build": splash clears, sign-in works, 10 real scans across all 3 input modes solve correctly, the weekly cap and paywall trigger exactly as designed at solve #11. No KI-R14-R19 regression. See KI-R22.
 - [ ] **App Store Connect**: create a subscription group with 2 auto-renewable products (monthly $9.99, annual $79.99) and a 7-day free trial intro offer. **Needs your Apple Developer access — I can't do this step.**
 - [ ] **RevenueCat**: create a project, wire it to the App Store Connect products above, get the public iOS API key.
 - [ ] Set `EXPO_PUBLIC_REVENUECAT_IOS_KEY` via `eas env:set` across all 3 environments (same pattern as KI-R9's fix).
