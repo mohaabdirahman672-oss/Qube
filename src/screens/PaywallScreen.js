@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Alert, ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
@@ -32,6 +32,7 @@ function resetDayName(resetsOn) {
 // primary CTA starts a trial, and a clearly-visible secondary line always offers
 // the free path back in — never trap a free user into feeling forced to pay.
 export default function PaywallScreen({ visible, onClose, navigation, limit = 10 }) {
+  const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const { resetsOn, refresh } = useSubscription();
   const [plan, setPlan] = useState('annual');
@@ -96,7 +97,7 @@ export default function PaywallScreen({ visible, onClose, navigation, limit = 10
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent={false}>
       <View style={styles.root}>
-        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={[styles.safe, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
               <Ionicons name="close" size={24} color={colors.textSub} />
@@ -179,7 +180,7 @@ export default function PaywallScreen({ visible, onClose, navigation, limit = 10
               <Text style={styles.restoreText}>{restoring ? 'Restoring…' : 'Restore Purchases'}</Text>
             </TouchableOpacity>
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </View>
     </Modal>
   );

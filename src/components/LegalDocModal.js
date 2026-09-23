@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, typography } from '../theme';
 
@@ -8,11 +8,19 @@ import { colors, spacing, radius, typography } from '../theme';
 // instead of bouncing out to an external browser — see docs/known-issues.md,
 // the "opens claude.ai" bug found 2026-09-23. Content lives in
 // src/data/legalContent.js; this component is just the shell + renderer.
+//
+// Uses useSafeAreaInsets() + manual padding rather than <SafeAreaView> — RN's
+// built-in <Modal> presents its content in a separate native view hierarchy
+// (a distinct UIViewController on iOS), and SafeAreaView's automatic insets
+// don't reliably reach content inside it, leaving the header (and its close
+// button) up under the status bar/notch. Reading insets explicitly sidesteps
+// that instead of depending on Modal-specific SafeAreaView behavior.
 export default function LegalDocModal({ visible, onClose, title, subtitle, sections, footer }) {
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent={false}>
       <View style={styles.root}>
-        <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <View style={[styles.safe, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
           <View style={styles.header}>
             <View style={styles.headerText}>
               <Text style={styles.title}>{title}</Text>
@@ -36,7 +44,7 @@ export default function LegalDocModal({ visible, onClose, title, subtitle, secti
             {footer}
             <View style={{ height: spacing.xl }} />
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </View>
     </Modal>
   );
