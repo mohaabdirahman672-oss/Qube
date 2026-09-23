@@ -10,7 +10,10 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingSymbols from '../components/FloatingSymbols';
 import LegalDocModal from '../components/LegalDocModal';
-import { PRIVACY_POLICY_SECTIONS, TERMS_OF_SERVICE_SECTIONS } from '../data/legalContent';
+import {
+  PRIVACY_POLICY_SECTIONS, TERMS_OF_SERVICE_SECTIONS,
+  PRIVACY_POLICY_EFFECTIVE, TERMS_OF_SERVICE_EFFECTIVE,
+} from '../data/legalContent';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
 import { restorePurchases } from '../lib/iap';
@@ -319,7 +322,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
                 <View style={styles.menuText}>
                   <Text style={styles.menuLabel}>Premium active</Text>
-                  <Text style={styles.menuSub}>Unlimited solves and full access</Text>
+                  <Text style={styles.menuSub}>No weekly limit, worked examples on flashcards</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.menuRow} onPress={handleManageSubscription} activeOpacity={0.75}>
@@ -341,7 +344,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.menuText}>
                 <Text style={styles.menuLabel}>Upgrade to Premium</Text>
                 <Text style={styles.menuSub}>
-                  {weeklyRemaining !== null ? `${weeklyLimit - weeklyRemaining} of ${weeklyLimit} free solves used this week` : 'Unlimited solves, worked examples, and more'}
+                  {weeklyRemaining !== null ? `${weeklyLimit - weeklyRemaining} of ${weeklyLimit} free solves used this week` : 'No weekly limit, plus worked examples on flashcards'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
@@ -557,11 +560,11 @@ export default function ProfileScreen({ navigation }) {
                 },
                 {
                   q: 'Is Qube free to use?',
-                  a: 'Yes — you get 20 free AI solves every week, no account required, plus flashcards and practice problems. Premium ($9.99/mo or $79.99/yr, with a 7-day free trial) adds unlimited solves, worked examples on every flashcard, and more.',
+                  a: 'Yes — you get 20 free AI solves every week, no account required, plus flashcards and practice problems. Premium ($9.99/month or $79.99/year, with a 7-day free trial for new subscribers) removes the weekly limit and adds AI worked examples on every flashcard.',
                 },
                 {
                   q: 'How accurate is the AI solver?',
-                  a: 'Qube\'s AI achieves approximately 98% accuracy on standard algebra, calculus, trigonometry, and arithmetic problems. Very advanced proofs or ambiguous handwriting may occasionally produce errors.',
+                  a: 'Very accurate on standard arithmetic, algebra, trigonometry, and calculus problems, but not perfect: it can misread handwriting or a blurry photo, misinterpret an ambiguous problem, or make a reasoning error. Always check the steps, especially before relying on an answer for graded work.',
                 },
                 {
                   q: 'How do I reset my password?',
@@ -709,46 +712,6 @@ export default function ProfileScreen({ navigation }) {
               </View>
               {!isGuest && <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />}
             </TouchableOpacity>
-
-            {/* Pro upgrade placeholder */}
-            <Text style={[styles.settingsSectionLabel, { marginTop: spacing.lg }]}>PLAN</Text>
-            <View style={styles.proCard}>
-              <LinearGradient
-                colors={[colors.goldDark + '22', colors.gold + '12']}
-                style={styles.proCardGrad}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View style={styles.proCardTop}>
-                  <View>
-                    <View style={styles.proComingSoonBadge}>
-                      <Text style={styles.proComingSoonText}>COMING SOON</Text>
-                    </View>
-                    <Text style={styles.proCardTitle}>Upgrade to Pro</Text>
-                    <Text style={styles.proCardSub}>Unlock everything Qube has to offer</Text>
-                  </View>
-                  <Ionicons name="rocket-outline" size={32} color={colors.gold} style={{ opacity: 0.7 }} />
-                </View>
-
-                <View style={styles.proFeatureList}>
-                  {[
-                    'Unlimited problem saves',
-                    'Advanced statistics & insights',
-                    'Priority AI solving',
-                    'Offline flashcard access',
-                  ].map(f => (
-                    <View key={f} style={styles.proFeatureRow}>
-                      <Ionicons name="checkmark-circle" size={14} color={colors.gold} style={{ opacity: 0.6 }} />
-                      <Text style={styles.proFeatureText}>{f}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <View style={styles.proBtn}>
-                  <Text style={styles.proBtnText}>Coming Soon</Text>
-                </View>
-              </LinearGradient>
-            </View>
 
             {/* Danger zone */}
             <Text style={[styles.settingsSectionLabel, { marginTop: spacing.lg }]}>DANGER ZONE</Text>
@@ -1006,7 +969,7 @@ export default function ProfileScreen({ navigation }) {
         visible={legalDoc === 'privacy'}
         onClose={() => setLegalDoc(null)}
         title="Privacy Policy"
-        subtitle="Effective September 23, 2026"
+        subtitle={PRIVACY_POLICY_EFFECTIVE}
         sections={PRIVACY_POLICY_SECTIONS}
       />
 
@@ -1014,7 +977,7 @@ export default function ProfileScreen({ navigation }) {
         visible={legalDoc === 'terms'}
         onClose={() => setLegalDoc(null)}
         title="Terms of Service"
-        subtitle="Effective September 23, 2026"
+        subtitle={TERMS_OF_SERVICE_EFFECTIVE}
         sections={TERMS_OF_SERVICE_SECTIONS}
       />
     </View>
@@ -1090,18 +1053,6 @@ const styles = StyleSheet.create({
   settingsRow:          { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm + 2, borderBottomWidth: 1, borderBottomColor: colors.border },
   readOnlyBadge:        { backgroundColor: colors.surfaceHigh, borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, borderWidth: 1, borderColor: colors.border },
   readOnlyText:         { fontSize: 8, fontWeight: '800', color: colors.textMuted, letterSpacing: 0.8 },
-  proCard:              { borderRadius: radius.lg, overflow: 'hidden', borderWidth: 1, borderColor: colors.gold + '30', marginBottom: spacing.sm },
-  proCardGrad:          { padding: spacing.md },
-  proCardTop:           { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: spacing.md },
-  proComingSoonBadge:   { backgroundColor: colors.gold + '25', borderRadius: radius.full, paddingHorizontal: spacing.sm, paddingVertical: 2, borderWidth: 1, borderColor: colors.gold + '40', alignSelf: 'flex-start', marginBottom: spacing.xs },
-  proComingSoonText:    { fontSize: 8, fontWeight: '800', color: colors.gold, letterSpacing: 1.2 },
-  proCardTitle:         { fontSize: 17, fontWeight: '800', color: colors.textPrimary, marginBottom: 3 },
-  proCardSub:           { fontSize: 12, color: colors.textSub },
-  proFeatureList:       { gap: spacing.xs, marginBottom: spacing.md },
-  proFeatureRow:        { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  proFeatureText:       { fontSize: 12, color: colors.textSub },
-  proBtn:               { backgroundColor: colors.border, borderRadius: radius.md, paddingVertical: spacing.sm + 2, alignItems: 'center' },
-  proBtnText:           { fontSize: 13, fontWeight: '700', color: colors.textMuted },
 
   // Notifications modal
   notifRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm + 2, borderBottomWidth: 1, borderBottomColor: colors.border },

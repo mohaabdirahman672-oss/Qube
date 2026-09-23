@@ -5,6 +5,11 @@
 // (src/components/LegalDocModal.js) rather than duplicating markup per screen.
 // If either published doc changes materially, update the matching sections here.
 
+// Shown as the legal modals' subtitle (Profile, Paywall). Keep in step with the
+// hosted docs' effective dates.
+export const PRIVACY_POLICY_EFFECTIVE   = 'Effective September 23, 2026';
+export const TERMS_OF_SERVICE_EFFECTIVE = 'Effective September 23, 2026';
+
 export const PRIVACY_POLICY_SECTIONS = [
   {
     heading: 'Information we collect',

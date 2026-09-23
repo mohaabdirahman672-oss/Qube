@@ -67,6 +67,27 @@ export async function getOfferings() {
   return offerings.current;
 }
 
+// Apple gives one intro offer (our free trial) per subscription group per Apple
+// ID. Returns { [productId]: { status } }, or {} if it can't be checked.
+export async function getIntroEligibility(productIds) {
+  if (!configured || !productIds.length) return {};
+  try {
+    return await Purchases.checkTrialOrIntroductoryPriceEligibility(productIds);
+  } catch (e) {
+    console.log('[iap] eligibility check failed', e?.message);
+    return {};
+  }
+}
+
+// Only a definite ELIGIBLE counts. UNKNOWN is treated as not eligible — per
+// RevenueCat's guidance, show regular pricing rather than promise a trial the
+// user may not get (App Review guideline 3.1.2).
+export function isTrialEligible(product, eligibility) {
+  if (!product?.introPrice) return false;
+  return eligibility?.[product.identifier]?.status
+    === Purchases.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE;
+}
+
 export async function purchasePackage(pkg) {
   const { customerInfo } = await Purchases.purchasePackage(pkg);
   return {

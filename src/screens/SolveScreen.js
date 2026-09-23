@@ -461,6 +461,7 @@ export default function SolveScreen({ navigation }) {
         onClose={() => setShowPaywall(false)}
         navigation={navigation}
         limit={weeklyLimit}
+        reason="limit"
       />
     </View>
   );
