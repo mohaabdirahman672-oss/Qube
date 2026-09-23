@@ -9,6 +9,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FloatingSymbols from '../components/FloatingSymbols';
+import LegalDocModal from '../components/LegalDocModal';
+import { PRIVACY_POLICY_SECTIONS, TERMS_OF_SERVICE_SECTIONS } from '../data/legalContent';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
 import { restorePurchases } from '../lib/iap';
@@ -23,23 +25,30 @@ const STATS = [
   { icon: 'star-outline',       label: 'AI Accuracy',       value: '98%',  color: colors.green  },
 ];
 
-// 2026-09-21: both used to point at the same Notion page, which turned out to be an
-// empty placeholder (title only, no actual content) — found while touching this file
-// for the subscription section below. Both now point at real documents published
-// this session (KI-10, resolved 2026-09-23) — see docs/plans/launch-daily-checklist.md.
-const PRIVACY_URL = 'https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp';
-const TERMS_URL = 'https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS';
+// 2026-09-23: these used to open in an external browser (Linking.openURL) — moved
+// to in-app native screens (LegalDocModal) instead, since leaving the app to show
+// legal text was the actual complaint. The hosted URLs stay canonical for App
+// Store Connect's "Privacy Policy URL" field and anyone outside the app, but
+// they're no longer what taps inside Profile lead to. See docs/known-issues.md.
+const ABOUT_SECTIONS = [
+  {
+    heading: 'What is Qube?',
+    body: 'Qube is an AI-powered math solver — scan or type any problem and get a step-by-step solution, plus flashcards and practice problems to study with. 10 free solves every week, no account required.',
+  },
+  { heading: 'Version', body: '1.0.0 · Beta' },
+];
 
 const MENU = [
-  { icon: 'information-circle-outline', label: 'About Qube',       sub: 'Version 1.0.0 · Beta',          url: null },
-  { icon: 'shield-checkmark-outline',   label: 'Privacy Policy',   sub: 'How we handle your data',        url: PRIVACY_URL },
-  { icon: 'document-text-outline',      label: 'Terms of Service', sub: 'Usage terms and conditions',     url: TERMS_URL },
+  { icon: 'information-circle-outline', label: 'About Qube',       sub: 'Version 1.0.0 · Beta',          doc: 'about'   },
+  { icon: 'shield-checkmark-outline',   label: 'Privacy Policy',   sub: 'How we handle your data',        doc: 'privacy' },
+  { icon: 'document-text-outline',      label: 'Terms of Service', sub: 'Usage terms and conditions',     doc: 'terms'   },
 ];
 
 export default function ProfileScreen({ navigation }) {
   const { session, user, signOut, updateDisplayName, sendPasswordReset } = useAuth();
   const { isPremium, weeklyRemaining, weeklyLimit, refresh: refreshSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
+  const [legalDoc, setLegalDoc] = useState(null); // 'about' | 'privacy' | 'terms' | null
   const [restoring,   setRestoring]   = useState(false);
   const [savedCount,      setSavedCount]      = useState(0);
   const [editNameVisible, setEditNameVisible] = useState(false);
@@ -464,8 +473,8 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity
               key={item.label}
               style={styles.menuRow}
-              onPress={() => item.url && Linking.openURL(item.url)}
-              activeOpacity={item.url ? 0.7 : 1}
+              onPress={() => setLegalDoc(item.doc)}
+              activeOpacity={0.7}
             >
               <View style={[styles.menuIcon, { backgroundColor: colors.surfaceHigh, borderColor: colors.border }]}>
                 <Ionicons name={item.icon} size={18} color={colors.textSub} />
@@ -965,11 +974,61 @@ export default function ProfileScreen({ navigation }) {
         navigation={navigation}
         limit={weeklyLimit}
       />
+
+      <LegalDocModal
+        visible={legalDoc === 'about'}
+        onClose={() => setLegalDoc(null)}
+        title="About Qube"
+        sections={ABOUT_SECTIONS}
+        footer={
+          <View style={styles.aboutLinks}>
+            <TouchableOpacity style={styles.aboutLinkRow} onPress={() => setLegalDoc('privacy')} activeOpacity={0.75}>
+              <Text style={styles.aboutLinkText}>Privacy Policy</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.aboutLinkRow} onPress={() => setLegalDoc('terms')} activeOpacity={0.75}>
+              <Text style={styles.aboutLinkText}>Terms of Service</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.aboutLinkRow}
+              onPress={() => Linking.openURL('mailto:support@qube.app?subject=Qube%20Support')}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.aboutLinkText}>Contact Us</Text>
+              <Ionicons name="open-outline" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        }
+      />
+
+      <LegalDocModal
+        visible={legalDoc === 'privacy'}
+        onClose={() => setLegalDoc(null)}
+        title="Privacy Policy"
+        subtitle="Effective September 21, 2026"
+        sections={PRIVACY_POLICY_SECTIONS}
+      />
+
+      <LegalDocModal
+        visible={legalDoc === 'terms'}
+        onClose={() => setLegalDoc(null)}
+        title="Terms of Service"
+        subtitle="Effective September 23, 2026"
+        sections={TERMS_OF_SERVICE_SECTIONS}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  aboutLinks: { marginTop: spacing.sm, borderTopWidth: 1, borderColor: colors.border },
+  aboutLinkRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+  },
+  aboutLinkText: { ...typography.body, color: colors.blue, fontWeight: '600' },
+
   root:       { flex: 1, backgroundColor: colors.bg },
   bgGlowBlue: { position: 'absolute', top: -100, left: -60, width: 280, height: 280, borderRadius: 140, backgroundColor: colors.blue, opacity: 0.06 },
   bgGlowGold: { position: 'absolute', bottom: 200, right: -80, width: 240, height: 240, borderRadius: 120, backgroundColor: colors.gold, opacity: 0.04 },
