@@ -38,7 +38,7 @@ Net effect: the early finish and the unplanned work roughly cancel out. This ver
 
 Open items in the Active Issues table: **KI-08** (RevenueCat/App Store Connect not configured), **KI-09b** (`expo-dev-client` removal, deferred).
 
-**Both legal docs are private by default** — before App Store Connect submission, open each and use **Share → "Anyone with the link can view"**: Privacy Policy (`https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp`) and Terms of Service (`https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS`).
+**Both legal docs are now public** (shared "Anyone with the link can view" on 2026-09-23): Privacy Policy (`https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp`) and Terms of Service (`https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS`).
 
 ---
 
@@ -61,7 +61,7 @@ Everything here is new scope from KI-R21 and did not exist in any prior version 
 - [x] **Mon Sep 21** — Privacy policy drafted and published; freemium v2 + subscriptions (KI-R21) implemented, deployed, and committed. Native build + full on-device shakeout done same day (KI-R22).
 - [x] **Tue-Wed Sep 22-23** — **KI-07 closed** (KI-R23): redirect URLs were already registered; testing the real flow on-device surfaced and fixed two actual bugs — a recovery link was silently signing users in instead of showing the reset screen, and an expired link failed with zero feedback. Both fixed, verified live end-to-end (link → reset screen → new password → signed in).
 - [ ] **Next** —
-  - Open the privacy policy link above → **Share → "Anyone with the link can view"** (it's private by default; App Store Connect and Apple's reviewer both need it to load without a claude.ai login). Keep the URL handy for #11 below and for the App Store Connect "Privacy Policy URL" field.
+  - [x] **Done 2026-09-23.** Open the privacy policy link above → **Share → "Anyone with the link can view"** (it's private by default; App Store Connect and Apple's reviewer both need it to load without a claude.ai login). Keep the URL handy for #11 below and for the App Store Connect "Privacy Policy URL" field.
   - [x] **KI-09 (part 1) done** (KI-R24): Sentry reinstalled, wired into `App.js`, verified live on-device — the privacy policy's crash-reporting claim is now actually true. `expo-dev-client` removal (part 2, KI-09b) deliberately deferred to right before the final production build.
 - [ ] Fill out the App Store Connect privacy "nutrition label" (#11), using the published policy as the source of truth for what's declared (email, photos — transient, not stored — device ID, and crash data now that Sentry is reinstalled). **Answers drafted** in `docs/app-store-connect-prep.md` (copy-paste ready); entering them in App Store Connect still needs your account.
 - [ ] **Thu Sep 24** — Full manual functional pass, part 1: Home (incl. new welcome prompt), Saved, Solve/Scan (incl. new guest counter + paywall) (#12). *Started early, Sep 23:* Profile done (KI-R25); code-level pass of Saved/Practice/Home done, 9 bugs fixed (KI-R27, `docs/reviews/qa-pass-saved-practice-home.md`). Those fixes still need a device check. The 3 Home items were decided and built the same day (KI-R28): true stat pills, the quiz card moved to `docs/backlog.md`, and a real Recent list. That opened KI-12 (deploy `solve`; done same day, KI-R30) and KI-13 (hosted privacy policy out of date; fixed same day as KI-R29, now v1.1). Solve/Scan and auth flows are still to do.
