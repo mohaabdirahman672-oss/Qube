@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import FloatingSymbols from '../components/FloatingSymbols';
 import SoftAuthWall from '../components/SoftAuthWall';
+import RecentSolveModal, { formatSolvedAt } from '../components/RecentSolveModal';
+import { getRecentSolves, recentSolveTitle } from '../lib/recentSolves';
 import { useAuth } from '../hooks/useAuth';
 import { colors, spacing, radius, typography } from '../theme';
 
@@ -45,23 +48,17 @@ const FEATURE_CARDS = [
     glowColor: colors.purple,
     accentLight: colors.purple + '22',
   },
-  {
-    key: 'quiz',
-    icon: 'trophy',
-    label: 'PRACTICE MODE',
-    title: 'Practice Quizzes',
-    subtitle: 'Sharpen skills with adaptive difficulty quizzes.',
-    gradientColors: [colors.goldDark, colors.gold],
-    glowColor: colors.gold,
-    accentLight: colors.gold + '22',
-  },
 ];
 
+// Keep these true — they're what App Store screenshots show first (guideline
+// 2.3). Counts come from src/data/practiceData.js (30 cards, 15 problems).
 const QUICK_STATS = [
-  { value: '500+', label: 'Topics',   icon: 'book-outline'   },
-  { value: '10K',  label: 'Problems', icon: 'calculator-outline' },
-  { value: '98%',  label: 'Accuracy', icon: 'star-outline'   },
+  { value: '30+', label: 'Flashcards',    icon: 'layers-outline'   },
+  { value: '15',  label: 'Practice Sets', icon: 'pencil-outline'   },
+  { value: 'AI',  label: 'Powered',       icon: 'sparkles-outline' },
 ];
+
+const SOURCE_ICON = { camera: 'camera-outline', upload: 'image-outline', type: 'create-outline' };
 
 // ─────────────────────────────────────────────
 //  SUB-COMPONENTS
@@ -87,7 +84,7 @@ function StatPill({ value, label, icon, delay }) {
     >
       <Ionicons name={icon} size={14} color={colors.blue} style={{ marginBottom: 3 }} />
       <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
     </Animated.View>
   );
 }
@@ -219,11 +216,22 @@ function FeatureCard({ card, animVal, index, onPress }) {
 // ─────────────────────────────────────────────
 
 // Map feature card keys to navigator route names
-const CARD_ROUTES = { ai: 'scan', practice: 'practice', quiz: 'practice' };
+const CARD_ROUTES = { ai: 'scan', practice: 'practice' };
 
 export default function HomeScreen({ navigation }) {
   const { session, loading: authLoading } = useAuth();
   const [showWelcomePrompt, setShowWelcomePrompt] = useState(false);
+  const [recentSolves, setRecentSolves]   = useState([]);
+  const [openRecent, setOpenRecent]       = useState(null);
+  const [recentVisible, setRecentVisible] = useState(false);
+
+  // Home stays mounted as a tab, so reload on every focus to pick up a solve
+  // that just happened on the Solve tab (or a sign-out that cleared the list).
+  useFocusEffect(
+    useCallback(() => {
+      getRecentSolves().then(setRecentSolves);
+    }, [session])
+  );
   const [entranceDone, setEntranceDone] = useState(false);
   const promptDecidedRef = useRef(false);
 
@@ -414,15 +422,37 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent</Text>
             </View>
-            <View style={styles.recentCard}>
-              <View style={styles.recentIconWrap}>
-                <Ionicons name="time-outline" size={18} color={colors.textMuted} />
-              </View>
-              <Text style={styles.recentEmpty}>
-                No recent activity yet.{'\n'}
-                <Text style={{ color: colors.blue }}>Scan a problem</Text> to get started.
-              </Text>
-            </View>
+            {recentSolves.length === 0 ? (
+              <TouchableOpacity style={styles.recentCard} activeOpacity={0.8} onPress={() => navigation.navigate('scan')}>
+                <View style={styles.recentIconWrap}>
+                  <Ionicons name="time-outline" size={18} color={colors.textMuted} />
+                </View>
+                <Text style={styles.recentEmpty}>
+                  No recent activity yet.{'\n'}
+                  <Text style={{ color: colors.blue }}>Scan a problem</Text> to get started.
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              recentSolves.map(entry => (
+                <TouchableOpacity
+                  key={entry.id}
+                  style={[styles.recentCard, styles.recentItem]}
+                  activeOpacity={0.8}
+                  onPress={() => { setOpenRecent(entry); setRecentVisible(true); }}
+                >
+                  <View style={styles.recentIconWrap}>
+                    <Ionicons name={SOURCE_ICON[entry.source] || 'calculator-outline'} size={18} color={colors.blue} />
+                  </View>
+                  <View style={styles.recentText}>
+                    <Text style={styles.recentTitle} numberOfLines={2}>{recentSolveTitle(entry)}</Text>
+                    <Text style={styles.recentMeta} numberOfLines={1}>
+                      {entry.result?.answer ? `${entry.result.answer} · ` : ''}{formatSolvedAt(entry.solvedAt)}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                </TouchableOpacity>
+              ))
+            )}
           </Animated.View>
 
           {/* Bottom spacer for nav bar */}
@@ -439,6 +469,12 @@ export default function HomeScreen({ navigation }) {
         title="Welcome to Qube"
         body="Sign in to save your solved problems and sync your progress across devices. Or just dive in — solving works without an account."
         skipLabel="Maybe Later"
+      />
+
+      <RecentSolveModal
+        visible={recentVisible}
+        entry={openRecent}
+        onClose={() => setRecentVisible(false)}
       />
     </View>
   );
@@ -789,5 +825,22 @@ const styles = StyleSheet.create({
     color: colors.textSub,
     lineHeight: 20,
     flex: 1,
+  },
+  recentItem: {
+    marginBottom: spacing.sm,
+  },
+  recentText: {
+    flex: 1,
+  },
+  recentTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    lineHeight: 19,
+  },
+  recentMeta: {
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
   },
 });

@@ -123,6 +123,7 @@ You handle: arithmetic, algebra, equations, inequalities, systems of equations, 
 Respond ONLY with a valid JSON object using this exact structure:
 {
   "hasMath": true,
+  "problem": "The problem exactly as given, restated in plain text (e.g. Solve 2x^2 + 7x - 15 = 0)",
   "problemType": "Quadratic Equation",
   "difficulty": "Medium",
   "steps": [

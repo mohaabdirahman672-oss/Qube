@@ -6,6 +6,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import * as authService from '../services/authService';
 import { parseAuthDeepLink } from '../lib/authDeepLink';
+import { clearRecentSolves } from '../lib/recentSolves';
 
 // Configure Google Sign-In (uses Supabase, no Firebase required).
 // iosClientId is required explicitly — the native module otherwise falls back to
@@ -203,6 +204,9 @@ export function AuthProvider({ children }) {
       await authService.signOutUser();
     }
     try { await GoogleSignin.signOut(); } catch {}
+    // Home's Recent list is on-device only — clear it so a shared device
+    // doesn't show the previous user's solutions (docs/plans/recent-solves.md).
+    await clearRecentSolves();
     setPasswordRecovery(false);
   }
 

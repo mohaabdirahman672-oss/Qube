@@ -8,7 +8,7 @@
 export const PRIVACY_POLICY_SECTIONS = [
   {
     heading: 'Information we collect',
-    body: 'Qube works without an account — you get a limited number of free solves as a guest before we ever ask you to sign in.\n\nAccount info: if you sign in (email, Google, or Apple), we receive your email and, if shared, your name and profile photo. We never see your Google or Apple password.\n\nMath problems, photos, and typed text: sent through our own server to OpenAI’s API to generate a solution. We do not store your problem photos or text afterward — they pass through and are not written to our database.\n\nGuest device data: an anonymous, random identifier stored only on your device, used to count free solves and apply a basic abuse limit. Not tied to your name or email.\n\nDiagnostic data: crash and error reports (device model, OS version, app version) — never your problem content.',
+    body: 'Qube works without an account — you get a limited number of free solves as a guest before we ever ask you to sign in.\n\nAccount info: if you sign in (email, Google, or Apple), we receive your email and, if shared, your name and profile photo. We never see your Google or Apple password.\n\nMath problems, photos, and typed text: sent through our own server to OpenAI’s API to generate a solution. We never store your problem photos, and we do not store problem text afterward unless you choose to Save a solution (see Retention) — otherwise it passes through and is not written to our database.\n\nGuest device data: an anonymous, random identifier stored only on your device, used to count free solves and apply a basic abuse limit. Not tied to your name or email.\n\nDiagnostic data: crash and error reports (device model, OS version, app version) — never your problem content.',
   },
   {
     heading: 'How we use it',
@@ -20,7 +20,7 @@ export const PRIVACY_POLICY_SECTIONS = [
   },
   {
     heading: 'Retention',
-    body: 'Account information is kept for as long as your account exists. Problem photos and text are not retained — they exist only for the moment it takes to generate your solution. Guest device identifiers and local free-solve counts live only on your device.',
+    body: 'Account information is kept for as long as your account exists. Problem photos are never retained — they exist only for the moment it takes to generate your solution. Problem text is not retained on our servers unless you choose to keep it: solutions you tap Save on, and flashcards you create, are stored with your account so they sync across devices, until you delete them or your account.\n\nOn your device only: your last few solutions (the problem text and the solution, never the photo) are kept locally so you can revisit them from Home. They are never uploaded and are cleared when you sign out. Guest device identifiers and local free-solve counts also live only on your device.',
   },
   {
     heading: 'Your rights',
