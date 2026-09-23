@@ -40,7 +40,12 @@ async function rpc(name, body) {
   if (!response.ok) {
     throw new Error(`${name} failed: ${response.status} ${await response.text().catch(() => "")}`);
   }
-  return await response.json();
+  // A `returns void` Postgres function (merge_weekly_solve_usage) comes back from
+  // PostgREST as 204 No Content with an empty body — response.json() throws on
+  // that ("Unexpected end of JSON input"), which was silently turning a successful
+  // merge into a reported failure. Parse only when there's actually a body.
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }
 
 // Next Monday 00:00 UTC, for the paywall's "or wait until [reset day]" copy.
