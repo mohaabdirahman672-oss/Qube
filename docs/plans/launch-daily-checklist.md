@@ -32,7 +32,7 @@ Net effect: the early finish and the unplanned work roughly cancel out. This ver
 - [x] **Freemium v2 / Premium subscription** (KI-R21/KI-R22) — weekly server-enforced cap (10/week, Monday reset), RevenueCat wrapper, entitlement sync, paywall screen, locked-preview mechanic on flashcards/similar-questions/homework/graphing, flashcard worked examples via live AI + caching. **Fully verified live on the real device**: 10 real scans (camera + upload + practice text) all solved and decremented correctly, 11th correctly triggered the on-device paywall with the exact spec'd copy, Google sign-in still works, no crash regressions. Found and fixed one real bug in the process (a `void`-RPC response-parsing error that mislabeled a successful guest→account merge as a failure). **Still not done**: RevenueCat/App Store Connect product setup (KI-08) — the paywall's trial button correctly shows "Not available yet" until that's configured.
 - [x] **Privacy policy drafted and published** — `https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp` (see note under Sep 22 below — this link is private until you change its sharing setting)
 
-Open items in the Active Issues table: **KI-07** (2-min Supabase Dashboard step), **KI-08** (RevenueCat/App Store Connect not configured), **KI-10** (Terms of Service placeholder).
+Open items in the Active Issues table: **KI-08** (RevenueCat/App Store Connect not configured), **KI-10** (Terms of Service placeholder).
 
 ---
 
@@ -53,11 +53,10 @@ Everything here is new scope from KI-R21 and did not exist in any prior version 
 
 ## Week A — Finish Phase 3 (beta-readiness)
 
-- [x] **Mon Sep 21 (today)** — Privacy policy drafted and published; freemium v2 + subscriptions (KI-R21) implemented, deployed, and committed.
-- [ ] **Tue Sep 22** —
+- [x] **Mon Sep 21** — Privacy policy drafted and published; freemium v2 + subscriptions (KI-R21) implemented, deployed, and committed. Native build + full on-device shakeout done same day (KI-R22).
+- [x] **Tue-Wed Sep 22-23** — **KI-07 closed** (KI-R23): redirect URLs were already registered; testing the real flow on-device surfaced and fixed two actual bugs — a recovery link was silently signing users in instead of showing the reset screen, and an expired link failed with zero feedback. Both fixed, verified live end-to-end (link → reset screen → new password → signed in).
+- [ ] **Next** —
   - Open the privacy policy link above → **Share → "Anyone with the link can view"** (it's private by default; App Store Connect and Apple's reviewer both need it to load without a claude.ai login). Keep the URL handy for #11 below and for the App Store Connect "Privacy Policy URL" field.
-  - On-device: verify the freemium flows (welcome prompt once, guest solve counter, paywall at 5, sign-in unlocks it) — checklist is in my last message.
-  - KI-07: add the two redirect URLs in the Supabase Dashboard (2 min), then test password reset / email confirm end-to-end on-device.
   - **Decide KI-09 now, not later**: the privacy policy states Qube uses crash/diagnostic reporting. Either reinstall `@sentry/react-native` before submission (so the policy is accurate) or strip that clause from the policy if you're shipping without it. Recommend reinstalling — it's a bounded, well-understood task (see KI-09) and you'll want crash visibility once real users hit the store.
 - [ ] **Wed Sep 23** — Fill out the App Store Connect privacy "nutrition label" (#11), using the published policy as the source of truth for what's declared (email, photos — transient, not stored — device ID, and crash data if KI-09 lands as reinstalled).
 - [ ] **Thu Sep 24** — Full manual functional pass, part 1: Home (incl. new welcome prompt), Saved, Solve/Scan (incl. new guest counter + paywall) (#12).
@@ -102,6 +101,6 @@ Everything here is new scope from KI-R21 and did not exist in any prior version 
 Cut in this order, cheapest-to-defer first:
 1. ~~Week 2's full visual consistency pass (#7)~~ — already cut on 2026-09-20.
 2. Beta window length (Week C) — a few days of real usage beats zero, but don't skip it entirely.
-3. Never cut: the privacy policy, the App Store nutrition label, or KI-07/KI-09 if Sentry ends up declared in the policy — each either gets the submission rejected outright or ships an inaccurate privacy disclosure.
+3. Never cut: the privacy policy, the App Store nutrition label, or KI-09 if Sentry ends up declared in the policy — each either gets the submission rejected outright or ships an inaccurate privacy disclosure.
 
 **This plan has now been rewritten twice** because reality (an illness week, then an unplanned multi-day crash investigation, then a scope pivot) kept outrunning it. Treat "Oct 19-22" as the honest current estimate, not a promise — if another unplanned multi-day item shows up, the right move is another short rewrite like this one, not silently letting the checkboxes drift out of sync with what actually happened again.
