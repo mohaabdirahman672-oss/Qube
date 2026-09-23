@@ -67,7 +67,7 @@ Paste into App Store Connect → your build → App Review Information → Notes
 
 > Qube works fully without an account — the reviewer can test the core AI
 > solving feature (Scan and Type-in, under the Solve tab) immediately with no
-> sign-in required, up to 10 free solves/week. Camera or Photo Library access
+> sign-in required, up to 20 free solves/week. Camera or Photo Library access
 > is needed for the scan feature (permission prompts are in-app).
 >
 > Optional sign-in (email/password, Google, or Apple) unlocks saving solved

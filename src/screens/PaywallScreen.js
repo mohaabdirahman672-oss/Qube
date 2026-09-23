@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
 import { getOfferings, purchasePackage, restorePurchases } from '../lib/iap';
+import { resetDayName } from '../lib/weeklyUsage';
 import { colors, spacing, radius, typography } from '../theme';
 
 const FEATURES = [
@@ -18,20 +19,11 @@ const FEATURES = [
   { icon: 'stats-chart',     text: 'Graphing — coming in v1.2' },
 ];
 
-function resetDayName(resetsOn) {
-  if (!resetsOn) return 'Monday';
-  try {
-    return new Date(resetsOn).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
-  } catch {
-    return 'Monday';
-  }
-}
-
 // The paywall screen, shown when the weekly free-solve cap is hit (also reachable
 // by tapping any LockedPreview). Per spec: headline states the limit was hit, the
 // primary CTA starts a trial, and a clearly-visible secondary line always offers
 // the free path back in — never trap a free user into feeling forced to pay.
-export default function PaywallScreen({ visible, onClose, navigation, limit = 10 }) {
+export default function PaywallScreen({ visible, onClose, navigation, limit = 20 }) {
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const { resetsOn, refresh } = useSubscription();

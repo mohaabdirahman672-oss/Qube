@@ -16,7 +16,13 @@ import { solveMathProblem } from '../services/solveApi';
 import { insertSavedProblem } from '../services/dbService';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
+import { resetDayName } from '../lib/weeklyUsage';
 import { colors, spacing, radius, typography } from '../theme';
+
+// Below this many remaining, the pill switches to a more urgent "N remaining"
+// framing instead of the default "X of Y used" — still just a pill, never a
+// blocking interruption (that only happens at 0, via the paywall).
+const LOW_BALANCE_THRESHOLD = 5;
 
 const DIFF_COLOR = { Easy: colors.green, Medium: colors.gold, Hard: '#EF4444', Advanced: colors.purple };
 
@@ -51,7 +57,7 @@ async function pickImage(useCamera) {
 
 export default function SolveScreen({ navigation }) {
   const { session, user } = useAuth();
-  const { isPremium, weeklyRemaining, weeklyLimit, refresh: refreshUsage } = useSubscription();
+  const { isPremium, weeklyRemaining, weeklyLimit, resetsOn, refresh: refreshUsage } = useSubscription();
   const [showAuthWall, setShowAuthWall] = useState(false);
   const [showPaywall, setShowPaywall]   = useState(false);
 
@@ -223,7 +229,9 @@ export default function SolveScreen({ navigation }) {
               <View style={styles.freeCountPill}>
                 <Ionicons name="flash-outline" size={14} color={colors.gold} />
                 <Text style={styles.freeCountText}>
-                  {weeklyRemaining} free solve{weeklyRemaining !== 1 ? 's' : ''} left this week
+                  {weeklyRemaining <= LOW_BALANCE_THRESHOLD
+                    ? `${weeklyRemaining} free solve${weeklyRemaining !== 1 ? 's' : ''} remaining • Resets ${resetDayName(resetsOn)}`
+                    : `${weeklyLimit - weeklyRemaining} of ${weeklyLimit} free solves used this week`}
                 </Text>
               </View>
             ) : null}

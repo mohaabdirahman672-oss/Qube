@@ -8,7 +8,7 @@
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-const WEEKLY_FREE_SOLVE_LIMIT = 10; // keep in sync with solve/index.js
+const WEEKLY_FREE_SOLVE_LIMIT = 20; // keep in sync with solve/index.js
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

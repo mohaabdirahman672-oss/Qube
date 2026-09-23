@@ -33,7 +33,7 @@ const STATS = [
 const ABOUT_SECTIONS = [
   {
     heading: 'What is Qube?',
-    body: 'Qube is an AI-powered math solver — scan or type any problem and get a step-by-step solution, plus flashcards and practice problems to study with. 10 free solves every week, no account required.',
+    body: 'Qube is an AI-powered math solver — scan or type any problem and get a step-by-step solution, plus flashcards and practice problems to study with. 20 free solves every week, no account required.',
   },
   { heading: 'Version', body: '1.0.0 · Beta' },
 ];
@@ -341,7 +341,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.menuText}>
                 <Text style={styles.menuLabel}>Upgrade to Premium</Text>
                 <Text style={styles.menuSub}>
-                  {weeklyRemaining !== null ? `${weeklyRemaining} of ${weeklyLimit} free solves left this week` : 'Unlimited solves, worked examples, and more'}
+                  {weeklyRemaining !== null ? `${weeklyLimit - weeklyRemaining} of ${weeklyLimit} free solves used this week` : 'Unlimited solves, worked examples, and more'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
@@ -557,7 +557,7 @@ export default function ProfileScreen({ navigation }) {
                 },
                 {
                   q: 'Is Qube free to use?',
-                  a: 'Yes — you get 10 free AI solves every week, no account required, plus flashcards and practice problems. Premium ($9.99/mo or $79.99/yr, with a 7-day free trial) adds unlimited solves, worked examples on every flashcard, and more.',
+                  a: 'Yes — you get 20 free AI solves every week, no account required, plus flashcards and practice problems. Premium ($9.99/mo or $79.99/yr, with a 7-day free trial) adds unlimited solves, worked examples on every flashcard, and more.',
                 },
                 {
                   q: 'How accurate is the AI solver?',

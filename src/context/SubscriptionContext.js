@@ -20,7 +20,7 @@ export function SubscriptionProvider({ children }) {
   const { session } = useAuth();
   const [isPremium, setIsPremium] = useState(false);
   const [weeklyRemaining, setWeeklyRemaining] = useState(null);
-  const [weeklyLimit, setWeeklyLimit] = useState(10);
+  const [weeklyLimit, setWeeklyLimit] = useState(20);
   const [resetsOn, setResetsOn] = useState(null);
   const [loading, setLoading] = useState(true);
   const initedRef = useRef(false);

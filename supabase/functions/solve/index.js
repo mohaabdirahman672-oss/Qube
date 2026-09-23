@@ -21,12 +21,12 @@ const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / authenticated
 const ANON_RATE_LIMIT_MAX = 10;
 const ANON_RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
 
-// The actual product free tier (docs/plans/freemium-paywall-v2.md): 10 solves/week,
+// The actual product free tier (docs/plans/freemium-paywall-v2.md): 20 solves/week,
 // resetting Monday 00:00 UTC, tracked server-side (public.weekly_solve_usage) keyed
 // by auth uid or device id — NOT client-side, specifically so reinstalling the app
 // or clearing storage doesn't reset it. Applies to guests AND signed-in non-Premium
 // users alike; only a verified Premium entitlement bypasses it.
-const WEEKLY_FREE_SOLVE_LIMIT = 10;
+const WEEKLY_FREE_SOLVE_LIMIT = 20;
 
 function decodeJwt(authHeader) {
   const token = authHeader?.replace(/^Bearer\s+/i, "");
@@ -61,8 +61,8 @@ async function checkRateLimit(userId, limit, windowSeconds) {
   return await response.json();
 }
 
-async function checkAndIncrementWeeklySolve(key, limit) {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/check_and_increment_weekly_solve`, {
+async function getWeeklySolveRemaining(key, limit) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_weekly_solve_remaining`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -73,9 +73,28 @@ async function checkAndIncrementWeeklySolve(key, limit) {
   });
   if (!response.ok) {
     console.error("Weekly solve check failed:", await response.text().catch(() => ""));
-    return true; // fail open to free tier, never silently block a paying-eligible user
+    return limit; // fail open to free tier, never silently block a paying-eligible user
   }
   return await response.json();
+}
+
+// Charges one solve against the weekly cap — called only after a successful AI
+// response (see Deno.serve below), never before, so a failed/errored request is
+// never charged. Increment-only (no limit re-check): eligibility was already
+// confirmed by getWeeklySolveRemaining() before the OpenAI call was even made.
+async function incrementWeeklySolve(key) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_weekly_solve`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": SUPABASE_SERVICE_ROLE_KEY,
+      "Authorization": "Bearer " + SUPABASE_SERVICE_ROLE_KEY,
+    },
+    body: JSON.stringify({ p_key: key }),
+  });
+  if (!response.ok) {
+    console.error("Weekly solve increment failed:", await response.text().catch(() => ""));
+  }
 }
 
 async function isPremiumUser(userId) {
@@ -167,8 +186,9 @@ Deno.serve(async (req) => {
 
     // verify_jwt = true already rejected anything without a validly-signed JWT — the anon
     // key itself is one, so both signed-in users and anonymous guests reach here. Guests
-    // are allowed through (the real "N free solves" limit lives client-side), but still
-    // need a rate-limit key, so an anonymous caller must supply a deviceId.
+    // are allowed through and pass through the weekly cap below like anyone else (the
+    // real limit is enforced server-side, not client-side — see WEEKLY_FREE_SOLVE_LIMIT),
+    // but still need a rate-limit key, so an anonymous caller must supply a deviceId.
     const claims = decodeJwt(req.headers.get("Authorization"));
     if (!claims || (claims.role !== "authenticated" && claims.role !== "anon")) {
       return new Response(JSON.stringify({ error: "Sign in required." }), {
@@ -201,10 +221,10 @@ Deno.serve(async (req) => {
     // hourly abuse backstop above — "unlimited" means no product limit, not literally
     // no ceiling against a compromised/scripted client.
     const isPremium = isAuthenticated ? await isPremiumUser(claims.sub) : false;
+    const weeklyKey = isAuthenticated ? claims.sub : deviceId;
     if (!isPremium) {
-      const weeklyKey = isAuthenticated ? claims.sub : deviceId;
-      const weeklyAllowed = await checkAndIncrementWeeklySolve(weeklyKey, WEEKLY_FREE_SOLVE_LIMIT);
-      if (!weeklyAllowed) {
+      const remaining = await getWeeklySolveRemaining(weeklyKey, WEEKLY_FREE_SOLVE_LIMIT);
+      if (remaining <= 0) {
         return new Response(JSON.stringify({
           error: "You've used your free solves this week.",
           code: "WEEKLY_LIMIT_REACHED",
@@ -246,6 +266,12 @@ Deno.serve(async (req) => {
     if (!jsonMatch) throw new Error("Could not parse AI response. Please try again.");
 
     const result = JSON.parse(jsonMatch[0]);
+
+    // Only charged here, after a real AI response came back (hasMath true or
+    // false both count — the AI successfully answered either way; only a thrown
+    // error above skips this and leaves the weekly count untouched).
+    if (!isPremium) await incrementWeeklySolve(weeklyKey);
+
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

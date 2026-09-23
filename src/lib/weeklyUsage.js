@@ -15,7 +15,8 @@ const MERGE_PENDING_KEY = '@qube/weekly_merge_pending';
 
 // A stable per-install ID. Used as the rate-limit/weekly-cap key for guests, and
 // briefly again right after sign-in so that week's guest usage can be merged into
-// the new account instead of quietly resetting to a full 10 (see mergeIntoAccount).
+// the new account instead of quietly resetting to a full week's allowance (see
+// mergeGuestUsageIntoAccount below).
 export async function getDeviceId() {
   try {
     const existing = await AsyncStorage.getItem(DEVICE_ID_KEY);
@@ -46,7 +47,7 @@ export async function fetchWeeklyUsage() {
 
 // Call once, right after a guest signs in, so this week's guest usage merges into
 // the new account (capped at the weekly limit) instead of the account starting a
-// fresh, unearned 10 — closes the "use 10 as guest, sign in, get 10 more" loop now
+// fresh, unearned allowance — closes the "use it up as a guest, sign in, get more" loop now
 // that signing in no longer bypasses the cap on its own.
 export async function mergeGuestUsageIntoAccount() {
   try {
@@ -65,5 +66,17 @@ export async function mergeGuestUsageIntoAccount() {
     // Best-effort — worst case a user keeps a little unmerged guest usage once.
     // Not worth blocking sign-in over.
     console.log('[weeklyUsage] merge failed, continuing anyway', e?.message);
+  }
+}
+
+// Shared by SolveScreen's low-balance pill and PaywallScreen's "wait until..."
+// line — was duplicated in PaywallScreen.js only; extracted here so both read
+// the same reset-day name from the same `resetsOn` value.
+export function resetDayName(resetsOn) {
+  if (!resetsOn) return 'Monday';
+  try {
+    return new Date(resetsOn).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
+  } catch {
+    return 'Monday';
   }
 }
