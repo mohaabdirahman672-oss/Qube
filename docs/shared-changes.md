@@ -17,7 +17,7 @@
 
 | File | Approved For | Change Description | Date |
 |---|---|---|---|
-| — | — | — | — |
+| `src/context/AuthContext.js` | Recent solves (lead request, `docs/plans/recent-solves.md`) | `signOut()` also calls `clearRecentSolves()` so on-device solution history doesn't carry over to the next user of a shared device | 2026-09-23 |
 
 ---
 
