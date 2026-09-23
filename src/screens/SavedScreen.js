@@ -92,19 +92,29 @@ function SavedItem({ item, onDelete }) {
 
 export default function SavedScreen() {
   const { session, user } = useAuth();
-  const [items,   setItems]   = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [items,     setItems]     = useState([]);
+  // Starts true when signed in so the first frame is the spinner, not a
+  // momentary "Nothing saved yet" before the focus effect kicks off the fetch.
+  const [loading,   setLoading]   = useState(!!session);
+  const [loadError, setLoadError] = useState(false);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!session) { setItems([]); return; }
-      setLoading(true);
-      fetchSavedProblems()
-        .then(({ data }) => setItems(data))
-        .catch(() => setItems([]))
-        .finally(() => setLoading(false));
-    }, [session])
-  );
+  // fetchSavedProblems() never throws — it resolves { data: [], error } — so the
+  // error has to be read off the result, or a network failure silently renders
+  // as "Nothing saved yet" and looks like the user's saved problems are gone.
+  const load = useCallback(() => {
+    if (!session) { setItems([]); setLoading(false); return; }
+    setLoading(true);
+    setLoadError(false);
+    fetchSavedProblems()
+      .then(({ data, error }) => {
+        if (error) { setLoadError(true); return; }
+        setItems(data);
+      })
+      .catch(() => setLoadError(true))
+      .finally(() => setLoading(false));
+  }, [session]);
+
+  useFocusEffect(load);
 
   async function deleteItem(id) {
     Alert.alert('Delete', 'Remove this saved problem?', [
@@ -115,9 +125,8 @@ export default function SavedScreen() {
           setItems(prev => prev.filter(i => i.id !== id));
           const { error } = await deleteSavedProblem(id);
           if (error) {
-            // Reload to restore consistent state
-            const { data } = await fetchSavedProblems();
-            setItems(data);
+            Alert.alert('Couldn\'t delete', 'Check your connection and try again.');
+            load(); // restore consistent state
           }
         },
       },
@@ -130,8 +139,13 @@ export default function SavedScreen() {
       {
         text: 'Clear All', style: 'destructive',
         onPress: async () => {
+          const previous = items;
           setItems([]);
-          await clearSavedProblems(user.id);
+          const { error } = await clearSavedProblems(user.id);
+          if (error) {
+            setItems(previous);
+            Alert.alert('Couldn\'t clear', 'Check your connection and try again.');
+          }
         },
       },
     ]);
@@ -187,6 +201,17 @@ export default function SavedScreen() {
         {loading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator color={colors.blue} size="large" />
+          </View>
+        ) : loadError && items.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="cloud-offline-outline" size={40} color={colors.textMuted} />
+            </View>
+            <Text style={styles.emptyTitle}>Couldn't load saved problems</Text>
+            <Text style={styles.emptyText}>Check your connection and try again.</Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={load} activeOpacity={0.8}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
           </View>
         ) : items.length === 0 ? (
           <View style={styles.emptyState}>
@@ -253,4 +278,6 @@ const styles = StyleSheet.create({
   emptyIcon:  { width: 80, height: 80, borderRadius: radius.xl, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg, borderWidth: 1, borderColor: colors.border },
   emptyTitle: { ...typography.h2, color: colors.textPrimary, marginBottom: spacing.sm, textAlign: 'center' },
   emptyText:  { ...typography.body, color: colors.textSub, textAlign: 'center', lineHeight: 22 },
+  retryBtn:     { marginTop: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2, borderWidth: 1, borderColor: colors.border },
+  retryBtnText: { fontSize: 14, fontWeight: '600', color: colors.blue },
 });

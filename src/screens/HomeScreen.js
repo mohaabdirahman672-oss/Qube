@@ -358,12 +358,6 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.logoBetaText}>BETA</Text>
               </View>
             </View>
-
-            {/* Notification bell */}
-            <TouchableOpacity style={styles.notifBtn} activeOpacity={0.75}>
-              <Ionicons name="notifications-outline" size={22} color={colors.textSub} />
-              <View style={styles.notifDot} />
-            </TouchableOpacity>
           </Animated.View>
 
           {/* ── Greeting ─────────────────────── */}
@@ -540,29 +534,6 @@ const styles = StyleSheet.create({
     color: colors.blue,
     letterSpacing: 1,
   },
-  notifBtn: {
-    marginLeft: 'auto',
-    width: 40,
-    height: 40,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceHigh,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  notifDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.gold,
-    borderWidth: 1.5,
-    borderColor: colors.bg,
-  },
-
   // ── Greeting ──
   greetBlock: {
     marginBottom: spacing.lg,

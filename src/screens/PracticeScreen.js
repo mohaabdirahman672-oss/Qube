@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
   ScrollView, Animated, Modal, TextInput,
-  KeyboardAvoidingView, Platform, ActivityIndicator,
+  KeyboardAvoidingView, Platform, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fetchCustomCards, insertCustomCard, deleteCustomCard } from '../services/dbService';
@@ -39,11 +39,9 @@ function Flashcard({ card, index, total, onDelete, onLockedPress }) {
   const [workedExample, setWorkedExample] = useState(null);
   const [loadingExample, setLoadingExample] = useState(false);
 
-  useEffect(() => {
-    setFlipped(false);
-    flipAnim.setValue(0);
-    setWorkedExample(null);
-  }, [index]);
+  // No reset-on-card-change effect here: the parent keys this component by card
+  // identity, so a new card always gets a fresh mount (unflipped, no stale worked
+  // example, no in-flight fetch from the previous card landing on this one).
 
   // Fetched lazily on first flip, not up front for every card in the deck —
   // Premium-only content (docs/plans/freemium-paywall-v2.md, decision 5), server
@@ -355,7 +353,10 @@ export default function PracticeScreen({ navigation }) {
 
   async function handleAddCard({ front, back, category: cat, tag }) {
     const { data, error } = await insertCustomCard({ userId: user.id, front, back, category: cat, tag });
-    if (error || !data) return;
+    if (error || !data) {
+      Alert.alert('Couldn\'t add card', 'Check your connection and try again.');
+      return;
+    }
     const newCard = { ...data, custom: true };
     setCustomCards(prev => [...prev, newCard]);
     if (category === 'All' || category === newCard.category) {
@@ -363,13 +364,26 @@ export default function PracticeScreen({ navigation }) {
     }
   }
 
-  async function handleDeleteCard(id) {
-    const updated     = customCards.filter(c => c.id !== id);
-    const newFiltered = category === 'All' ? updated : updated.filter(c => c.category === category);
-    const newTotal    = builtinCards.length + newFiltered.length;
-    setCustomCards(updated);
-    setCardIndex(i => Math.min(i, Math.max(0, newTotal - 1)));
-    await deleteCustomCard(id);
+  function handleDeleteCard(id) {
+    Alert.alert('Delete card', 'Remove this flashcard?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          const previous    = customCards;
+          const updated     = customCards.filter(c => c.id !== id);
+          const newFiltered = category === 'All' ? updated : updated.filter(c => c.category === category);
+          const newTotal    = builtinCards.length + newFiltered.length;
+          setCustomCards(updated);
+          setCardIndex(i => Math.min(i, Math.max(0, newTotal - 1)));
+          const { error } = await deleteCustomCard(id);
+          if (error) {
+            setCustomCards(previous);
+            Alert.alert('Couldn\'t delete card', 'Check your connection and try again.');
+          }
+        },
+      },
+    ]);
   }
 
   return (
@@ -421,6 +435,10 @@ export default function PracticeScreen({ navigation }) {
           {allCards.length > 0 ? (
             <>
               <Flashcard
+                // Built-in cards have no id. Keying by category+index+content means
+                // switching category (index stays 0) or deleting a card still
+                // remounts, instead of carrying the old card's flip state over.
+                key={`${category}:${cardIndex}:${currentCard.id ?? currentCard.front}`}
                 card={currentCard}
                 index={cardIndex}
                 total={allCards.length}
@@ -456,7 +474,7 @@ export default function PracticeScreen({ navigation }) {
           </View>
 
           {problems.length > 0 ? (
-            problems.map((p, i) => <ProblemCard key={i} problem={p} />)
+            problems.map((p, i) => <ProblemCard key={`${category}:${i}`} problem={p} />)
           ) : (
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>No problems in this category yet.</Text>
