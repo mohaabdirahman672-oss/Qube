@@ -1006,7 +1006,7 @@ export default function ProfileScreen({ navigation }) {
         visible={legalDoc === 'privacy'}
         onClose={() => setLegalDoc(null)}
         title="Privacy Policy"
-        subtitle="Effective September 21, 2026"
+        subtitle="Effective September 23, 2026"
         sections={PRIVACY_POLICY_SECTIONS}
       />
 
