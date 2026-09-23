@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { Linking } from 'react-native';
+import { Linking, Alert } from 'react-native';
 import { GoogleSignin, statusCodes } from '../lib/googleSignIn';
 import * as Crypto from 'expo-crypto';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -101,6 +101,7 @@ export function AuthProvider({ children }) {
 
     // Keep session state in sync with Supabase auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[Auth] onAuthStateChange', event, { hasSession: !!session });
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setSession(session);
       setUser(session?.user ?? null);
@@ -116,11 +117,39 @@ export function AuthProvider({ children }) {
     if (!isSupabaseConfigured) return;
 
     function handleUrl({ url }) {
+      console.log('[Auth] deep link received', url);
       const tokens = parseAuthDeepLink(url);
-      if (tokens) supabase.auth.setSession(tokens);
+      console.log('[Auth] deep link parsed tokens?', !!tokens, tokens && { type: tokens.type, hasAccess: !!tokens.access_token, hasRefresh: !!tokens.refresh_token, error: tokens?.error });
+      if (tokens?.error) {
+        // Previously silent — an expired or already-used reset/confirm link would
+        // just do nothing, leaving the user stuck looking at the sign-in screen
+        // with no explanation. Supabase's reset links are single-use and expire
+        // quickly, so this is a normal case to hit, not a rare edge.
+        Alert.alert(
+          'Link Expired',
+          tokens.errorDescription || 'This link has expired or already been used. Please request a new one.'
+        );
+        return;
+      }
+      if (tokens) {
+        // Calling setSession() by hand (required on native — see comment above)
+        // fires a plain SIGNED_IN event, never Supabase's own PASSWORD_RECOVERY
+        // event — that one's only emitted by the client's *automatic* URL-detection
+        // flow, which is disabled here (detectSessionInUrl: false). Without this,
+        // a password-reset link silently logs the user in instead of prompting for
+        // a new password. Setting it directly from the link's own `type=recovery`
+        // param, rather than waiting on an auth event that never comes.
+        if (tokens.type === 'recovery') setPasswordRecovery(true);
+        supabase.auth.setSession(tokens).then(({ data, error }) => {
+          console.log('[Auth] deep link setSession resolved', { hasSession: !!data?.session, error: error?.message });
+        });
+      }
     }
 
-    Linking.getInitialURL().then(url => url && handleUrl({ url }));
+    Linking.getInitialURL().then(url => {
+      console.log('[Auth] getInitialURL', url);
+      if (url) handleUrl({ url });
+    });
     const subscription = Linking.addEventListener('url', handleUrl);
     return () => subscription.remove();
   }, []);
