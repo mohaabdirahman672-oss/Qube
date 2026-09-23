@@ -55,8 +55,8 @@ Paste into App Store Connect → App Information → Privacy Policy URL:
 https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp
 ```
 
-**Before pasting**: open that link → Share → "Anyone with the link can view".
-It's private by default; Apple's reviewer needs to load it without a claude.ai
+**Already public** (shared 2026-09-23).
+Apple's reviewer can load it without a claude.ai
 account.
 
 ---
@@ -74,11 +74,19 @@ Paste into App Store Connect → your build → App Review Information → Notes
 > problems and custom flashcards. A reviewer account is provided below if you'd
 > like to test those or the Premium subscription flow.
 >
-> Premium ($9.99/mo or $79.99/yr, 7-day free trial) unlocks unlimited solves
-> and AI-generated worked examples on flashcards. The "Similar Questions",
-> "Homework Set", and "Graph" sections visible after solving a problem are
-> intentionally locked with a "coming soon" label — that's a planned v1.2
-> feature, not a bug or an unfinished Premium entitlement.
+> Premium ($9.99/month or $79.99/year, 7-day free trial for new subscribers)
+> removes the weekly solve limit and adds AI-generated worked examples on
+> flashcards. The paywall lists "Similar questions", "Homework sets", and
+> "Graphing" separately under "Coming to Premium", each marked SOON. The
+> matching sections after solving a problem are locked with a "coming soon"
+> label for every user, including subscribers. They are planned for a future
+> update and are not sold as current Premium features.
+>
+> Subscribing requires signing in because Premium is an account-based
+> entitlement: it's tied to the user's Qube account so it works across every
+> device they sign in on, alongside their synced saved problems and
+> flashcards. Sign in with Apple is offered, so this takes one tap. Everything
+> else, including the core solve feature, works without an account.
 
 **Demo account**: with the login gate removed, a demo account is no longer
 strictly required to reach the app's main feature (this alone was the single
@@ -102,6 +110,21 @@ App Review Information → Age Rating questionnaire. Qube has no user-generated
 content shown to other users, no mature content, no gambling. Expect this to
 land at **4+**. Answer "No" to every content category unless something in the
 app changes (e.g. a future social/sharing feature).
+
+---
+
+## 5. Subscription metadata (guideline 3.1.2)
+
+Apple requires working **Terms of Use** and **Privacy Policy** links in both
+places:
+- **In the app**: done. The paywall shows the auto-renew disclosure and links
+  to both documents (docs/plans/paywall-compliance.md).
+- **In the App Store listing**: still to do. Put the Privacy Policy URL in the
+  Privacy Policy URL field. For Terms, either paste the Terms URL
+  (`https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS`) at the end of the App
+  Description ("Terms of Use: <url>"), or add it under App Information →
+  License Agreement (custom EULA). Missing it from the listing is its own
+  common rejection, separate from the in-app links.
 
 ---
 
