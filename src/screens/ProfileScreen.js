@@ -23,14 +23,12 @@ const STATS = [
   { icon: 'star-outline',       label: 'AI Accuracy',       value: '98%',  color: colors.green  },
 ];
 
-// 2026-09-21: this used to point at a Notion page that turned out to be an empty
-// placeholder (title only, no actual content) — found while touching this file for
-// the subscription section below. Swapped to the real privacy policy published this
-// session (see docs/plans/launch-daily-checklist.md). Terms of Service still has no
-// real document — flagged as a separate open item, not silently left on the same
-// broken link.
+// 2026-09-21: both used to point at the same Notion page, which turned out to be an
+// empty placeholder (title only, no actual content) — found while touching this file
+// for the subscription section below. Both now point at real documents published
+// this session (KI-10, resolved 2026-09-23) — see docs/plans/launch-daily-checklist.md.
 const PRIVACY_URL = 'https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp';
-const TERMS_URL = 'https://spot-hurricane-661.notion.site/Qube-Privacy-Policy-Last-updated-August-2026-3b838d7712fc803a8025f809d0fca230'; // TODO: placeholder/empty — needs a real Terms of Service document before submission
+const TERMS_URL = 'https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS';
 
 const MENU = [
   { icon: 'information-circle-outline', label: 'About Qube',       sub: 'Version 1.0.0 · Beta',          url: null },
