@@ -34,7 +34,11 @@ Net effect: the early finish and the unplanned work roughly cancel out. This ver
 - [x] **KI-07 closed** (KI-R23) — password reset deep link fully working live on-device; found and fixed two real bugs along the way (silent sign-in instead of reset screen; silent failure on expired links).
 - [x] **KI-09 part 1 done** (KI-R24) — Sentry reinstalled and verified live on-device. Part 2 (`expo-dev-client` removal) deliberately deferred as KI-09b.
 
-Open items in the Active Issues table: **KI-08** (RevenueCat/App Store Connect not configured), **KI-09b** (`expo-dev-client` removal, deferred), **KI-10** (Terms of Service placeholder).
+- [x] **KI-10 closed** — real Terms of Service drafted and published, wired into `ProfileScreen.js`.
+
+Open items in the Active Issues table: **KI-08** (RevenueCat/App Store Connect not configured), **KI-09b** (`expo-dev-client` removal, deferred).
+
+**Both legal docs are private by default** — before App Store Connect submission, open each and use **Share → "Anyone with the link can view"**: Privacy Policy (`https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp`) and Terms of Service (`https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS`).
 
 ---
 
@@ -49,7 +53,6 @@ Everything here is new scope from KI-R21 and did not exist in any prior version 
 - [ ] Set `EXPO_PUBLIC_REVENUECAT_IOS_KEY` via `eas env:set` across all 3 environments (same pattern as KI-R9's fix).
 - [ ] Set `REVENUECAT_WEBHOOK_SECRET` as a Supabase function secret; configure the matching webhook URL + Authorization header in the RevenueCat dashboard, pointing at `supabase/functions/revenuecat-webhook`.
 - [ ] Apple Sandbox Tester account — test trial start, cancel-before-convert (confirm it reverts to free tier, not a locked-out app), and a renewal.
-- [ ] Draft a real Terms of Service document (KI-10) — no longer optional now that the app has paid subscriptions; App Store review checks for this.
 
 ---
 
