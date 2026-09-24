@@ -5,7 +5,7 @@
 ## What was built
 | # | Problem | Fix |
 |---|---|---|
-| 1 | Paywall sold features that don't exist (similar questions, homework sets) | The Premium list now has only real features: no weekly limit and flashcard worked examples. The unbuilt ones are in a muted, dashed "Coming to Premium" box with SOON tags. "Unlimited" is dropped everywhere because `solve` still applies a 20/hour abuse limit to Premium |
+| 1 | Paywall sold features that don't exist (similar questions, homework sets) | The Premium list now has only real features: no weekly limit and flashcard worked examples. The unbuilt ones are in a muted, dashed "Coming to Premium" box with SOON tags. "Unlimited" was dropped because `solve` applied a 20/hour abuse limit to Premium. *Superseded by KI-R32:* Premium's ceiling is now 100/hour and the copy reads "Unlimited solves (fair use)" |
 | 2 | Required subscription fine print missing | The paywall now states: charged to Apple ID; auto-renews unless cancelled ≥24h before the period ends; renewal charged within 24h before it ends; how to manage or cancel. Terms of Service and Privacy Policy links open in-app (`LegalDocModal`) |
 | 3 | Prices could show without a billing period | Prices always render as `<store price> / month` and `<store price> / year` |
 | 4 | Trial offered to users who can't get one | `iap.js` adds `getIntroEligibility()` and `isTrialEligible()`. Trial wording appears only with an intro offer **and** a definite ELIGIBLE status. UNKNOWN, INELIGIBLE and no-offer show "Subscribe" with regular-price fine print. Trial length is read from the store's intro offer |
@@ -34,8 +34,9 @@ Also fixed while in here:
   guidance. Some new users may see regular pricing when they'd actually get
   the trial. Apple's purchase sheet still shows the trial at confirmation, so
   they're never charged unexpectedly.
-- **"No weekly limit" instead of "unlimited".** The alternative, raising the
-  Premium hourly cap and adding a fair-use clause, is left open (see Risks).
+- ~~**"No weekly limit" instead of "unlimited".**~~ Superseded the same day
+  by the lead's decision (KI-R32): a 100/hour Premium ceiling, "Unlimited
+  solves (fair use)" copy, and fair use defined in the Terms.
 
 ## Risks and open items
 - **Untestable until KI-08.** Until the products and API key exist, the
@@ -47,10 +48,7 @@ Also fixed while in here:
 - **The legal modal is nested inside the paywall modal.** RN on iOS supports
   this. Verify on device that the legal modal opens on top and closes back
   to the paywall.
-- **Product question:** paying users are capped at 20 solves an hour by
-  the abuse limit. A heavy homework session could hit that. Consider raising
-  the Premium limit (for example to 100/hour) in `solve` and then advertising
-  "unlimited (fair use)". That's one line of server code plus a deploy.
+- **Resolved same day (KI-R32):** the Premium hourly ceiling was raised to 100/hour and the copy changed to "Unlimited solves (fair use)", with fair use defined in the Terms.
 - **App Store listing** still needs the Terms of Use link (prep doc §5).
 
 ## Device checklist

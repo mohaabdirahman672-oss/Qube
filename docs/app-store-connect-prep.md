@@ -75,7 +75,7 @@ Paste into App Store Connect → your build → App Review Information → Notes
 > like to test those or the Premium subscription flow.
 >
 > Premium ($9.99/month or $79.99/year, 7-day free trial for new subscribers)
-> removes the weekly solve limit and adds AI-generated worked examples on
+> adds unlimited solves (fair use: up to 100/hour, stated in the Terms) and AI-generated worked examples on
 > flashcards. The paywall lists "Similar questions", "Homework sets", and
 > "Graphing" separately under "Coming to Premium", each marked SOON. The
 > matching sections after solving a problem are locked with a "coming soon"

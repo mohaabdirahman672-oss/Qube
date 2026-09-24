@@ -77,6 +77,4 @@ None new. `react-native-purchases` 10.10.1 already exposes the eligibility API.
 Compile and bundle checks here. On-device checks are listed in the review doc.
 
 ## Open Questions
-- Should the Premium hourly cap be raised (e.g. 100/hour) so that
-  "unlimited" could be claimed with a fair-use clause? That's a product
-  decision and needs a `solve` deploy. For now the copy says "no weekly limit".
+- ~~Should the Premium hourly cap be raised?~~ **Decided by the lead:** yes, to 100/hour, with "Unlimited solves (fair use)" copy (KI-R32).
