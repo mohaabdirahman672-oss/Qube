@@ -68,15 +68,15 @@ export const TERMS_OF_SERVICE_SECTIONS = [
   },
   {
     heading: 'Subscriptions & billing',
-    body: 'Qube Premium is an auto-renewing subscription purchased through your Apple ID: $9.99/month or $79.99/year, with a 7-day free trial on first subscription where offered.\n\nPayment is charged to your Apple ID at confirmation of purchase. It renews automatically unless auto-renew is turned off at least 24 hours before the current period ends, and your account is charged for renewal within that 24-hour window. Manage or cancel any time in Settings → Apple ID → Subscriptions — it takes effect at the end of the current paid period.\n\nIf you cancel a trial before it converts, you keep app access — you simply return to the free weekly tier. Refunds are handled by Apple under their standard policies.',
+    body: 'Qube Premium is an auto-renewing subscription purchased through your Apple ID: $9.99/month or $79.99/year, with a 7-day free trial on first subscription where offered. It includes unlimited AI solves (fair use — see Free tier & fair use) and AI worked examples on every flashcard.\n\nPayment is charged to your Apple ID at confirmation of purchase. It renews automatically unless auto-renew is turned off at least 24 hours before the current period ends, and your account is charged for renewal within that 24-hour window. Manage or cancel any time in Settings → Apple ID → Subscriptions — it takes effect at the end of the current paid period.\n\nIf you cancel a trial before it converts, you keep app access — you simply return to the free weekly tier. Refunds are handled by Apple under their standard policies.',
   },
   {
     heading: 'Free tier & fair use',
-    body: 'The free tier includes a limited number of AI solves per week, resetting on a regular schedule shown in the app. We may adjust the limit, and may rate-limit or suspend access that looks automated or abusive.',
+    body: 'The free tier includes a limited number of AI solves per week, resetting on a regular schedule shown in the app. We may adjust the limit, and may rate-limit or suspend access that looks automated or abusive.\n\nPremium includes unlimited solves, subject to fair use: currently up to 100 solves per hour, far beyond normal study use. This ceiling exists only to stop automated or scripted use. If you reach it, you can solve again within the hour, and your weekly access is never affected.',
   },
   {
     heading: 'Your content & conduct',
-    body: 'You keep ownership of what you submit to Qube. By submitting it, you give us the limited right to process it (including sending it to our AI provider) solely to generate your solution.\n\nPlease don’t: submit illegal or abusive content, attempt to circumvent rate limits or subscription gating, build a competing service on our AI proxy, or interfere with the app’s operation. We may suspend accounts that violate this.',
+    body: 'You keep ownership of what you submit to Qube. By submitting it, you give us the limited right to process it (including sending it to our AI provider) solely to generate your solution, and to store solutions you choose to Save.\n\nPlease don’t: submit illegal or abusive content, attempt to circumvent rate limits or subscription gating, build a competing service on our AI proxy, or interfere with the app’s operation. We may suspend accounts that violate this.',
   },
   {
     heading: 'Intellectual property',

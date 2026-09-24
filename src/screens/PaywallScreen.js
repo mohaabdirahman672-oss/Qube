@@ -16,10 +16,10 @@ import {
 } from '../data/legalContent';
 import { colors, spacing, radius, typography } from '../theme';
 
-// Only what a subscriber actually gets today (App Review 2.3 / 3.1.2). Not
-// "unlimited": solve still applies an hourly abuse limit to Premium.
+// Only what a subscriber actually gets today (App Review 2.3 / 3.1.2). "Fair use"
+// is defined in the Terms: solve's 100/hour Premium ceiling (PREMIUM_RATE_LIMIT_MAX).
 const FEATURES = [
-  { icon: 'infinite', text: 'No weekly limit on solves' },
+  { icon: 'infinite', text: 'Unlimited solves (fair use)' },
   { icon: 'bulb',     text: 'Worked examples with real numbers on every flashcard' },
 ];
 

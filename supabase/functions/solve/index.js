@@ -14,6 +14,12 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60; // 20 requests / hour / authenticated user — abuse backstop, not the product limit
 
+// Premium's fair-use ceiling. Premium is advertised as "Unlimited (fair use)" —
+// this is high enough that no genuine homework session hits it, and exists only
+// to cap OpenAI cost from scripted/automated hammering. The Terms of Service
+// ("Fair use") state this number; change both together.
+const PREMIUM_RATE_LIMIT_MAX = 100;
+
 // Coarse hourly abuse backstop for anonymous callers, keyed by a client-generated
 // device ID. Easier to work around (reinstall, clear storage) than the authenticated
 // limit above, which is fine — it only needs to stop scripted abuse, not enforce the
@@ -208,8 +214,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Checked first because it decides the hourly ceiling below. Premium bypasses
+    // the weekly product cap entirely and gets the higher fair-use hourly ceiling —
+    // "unlimited" means no product limit, not literally no ceiling against a
+    // compromised/scripted client.
+    const isPremium = isAuthenticated ? await isPremiumUser(claims.sub) : false;
+
     const allowed = isAuthenticated
-      ? await checkRateLimit(claims.sub, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_SECONDS)
+      ? await checkRateLimit(claims.sub, isPremium ? PREMIUM_RATE_LIMIT_MAX : RATE_LIMIT_MAX, RATE_LIMIT_WINDOW_SECONDS)
       : await checkRateLimit(deviceId, ANON_RATE_LIMIT_MAX, ANON_RATE_LIMIT_WINDOW_SECONDS);
     if (!allowed) {
       return new Response(JSON.stringify({ error: "You've hit the hourly limit for solving problems. Please try again later." }), {
@@ -218,10 +230,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Premium bypasses the weekly product cap entirely, but still passes through the
-    // hourly abuse backstop above — "unlimited" means no product limit, not literally
-    // no ceiling against a compromised/scripted client.
-    const isPremium = isAuthenticated ? await isPremiumUser(claims.sub) : false;
     const weeklyKey = isAuthenticated ? claims.sub : deviceId;
     if (!isPremium) {
       const remaining = await getWeeklySolveRemaining(weeklyKey, WEEKLY_FREE_SOLVE_LIMIT);

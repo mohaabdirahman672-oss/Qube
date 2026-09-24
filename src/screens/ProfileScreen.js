@@ -322,7 +322,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
                 <View style={styles.menuText}>
                   <Text style={styles.menuLabel}>Premium active</Text>
-                  <Text style={styles.menuSub}>No weekly limit, worked examples on flashcards</Text>
+                  <Text style={styles.menuSub}>Unlimited solves (fair use), worked examples on flashcards</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.menuRow} onPress={handleManageSubscription} activeOpacity={0.75}>
@@ -344,7 +344,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={styles.menuText}>
                 <Text style={styles.menuLabel}>Upgrade to Premium</Text>
                 <Text style={styles.menuSub}>
-                  {weeklyRemaining !== null ? `${weeklyLimit - weeklyRemaining} of ${weeklyLimit} free solves used this week` : 'No weekly limit, plus worked examples on flashcards'}
+                  {weeklyRemaining !== null ? `${weeklyLimit - weeklyRemaining} of ${weeklyLimit} free solves used this week` : 'Unlimited solves (fair use), plus worked examples on flashcards'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
@@ -560,7 +560,7 @@ export default function ProfileScreen({ navigation }) {
                 },
                 {
                   q: 'Is Qube free to use?',
-                  a: 'Yes — you get 20 free AI solves every week, no account required, plus flashcards and practice problems. Premium ($9.99/month or $79.99/year, with a 7-day free trial for new subscribers) removes the weekly limit and adds AI worked examples on every flashcard.',
+                  a: 'Yes — you get 20 free AI solves every week, no account required, plus flashcards and practice problems. Premium ($9.99/month or $79.99/year, with a 7-day free trial for new subscribers) adds unlimited solves (fair use) and AI worked examples on every flashcard.',
                 },
                 {
                   q: 'How accurate is the AI solver?',
