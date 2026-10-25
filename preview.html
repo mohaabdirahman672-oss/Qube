@@ -1434,7 +1434,21 @@
   }
 
   // ── Scan Feature ──────────────────────────────────────────────
-  const OPENAI_KEY = '';
+  // No API key is ever stored in this file (one was, and had to be scrubbed from
+  // git history on 2026-10-25). The scan demo asks for a key the first time it's
+  // used and keeps it only in this browser's localStorage. Use a separate,
+  // low-limit key for this — never the production key the solve function uses.
+  const OPENAI_KEY_STORAGE = 'qube_preview_openai_key';
+  function getOpenAIKey() {
+    let key = '';
+    try { key = localStorage.getItem(OPENAI_KEY_STORAGE) || ''; } catch (e) {}
+    if (!key) {
+      key = (window.prompt('Scan demo: paste an OpenAI API key (kept only in this browser).') || '').trim();
+      if (key) { try { localStorage.setItem(OPENAI_KEY_STORAGE, key); } catch (e) {} }
+    }
+    if (!key) throw new Error('The scan demo needs an OpenAI API key. The real app uses the server instead.');
+    return key;
+  }
 
   let scanMode = 'camera';
   let scanImageDataUrl = null;
@@ -1559,7 +1573,7 @@ Rules:
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + OPENAI_KEY
+          'Authorization': 'Bearer ' + getOpenAIKey()
         },
         body: JSON.stringify({ model: 'gpt-4o', max_tokens: 2000, messages })
       });
