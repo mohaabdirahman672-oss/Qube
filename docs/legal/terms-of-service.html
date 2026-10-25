@@ -1,0 +1,567 @@
+<title>Qube Terms of Service</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Source+Serif+4:ital,opsz,wght@1,8..60,500&display=swap">
+<style>
+  :root{
+    --bg:#06091A;
+    --surface:#0C1228;
+    --surface-2:#101a38;
+    --border:#1A2744;
+    --border-light:#243358;
+    --blue:#4F8EF7;
+    --blue-dim:#2563EB;
+    --gold:#F59E0B;
+    --text:#F0F4FF;
+    --text-sub:#94A3B8;
+    --text-muted:#5B6B8C;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --display: "Sora", -apple-system, "Segoe UI", sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+
+  a{color:var(--blue);}
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  .topbar{
+    position:sticky;
+    top:env(safe-area-inset-top, 0px);
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 20px;
+    padding-left:max(20px, calc(16px + env(safe-area-inset-left, 0px)));
+    padding-right:max(20px, calc(16px + env(safe-area-inset-right, 0px)));
+    background:rgba(6,9,26,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--display);
+    font-weight:700;
+    letter-spacing:0.2px;
+    font-size:15px;
+    color:var(--text);
+    text-decoration:none;
+  }
+  .brand-mark{
+    width:26px;height:26px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg, var(--blue), #1E3A8A);
+    color:#fff;font-weight:800;font-size:14px;
+    box-shadow:0 0 0 1px rgba(79,142,247,0.35);
+  }
+  .brand-sep{color:var(--text-muted);font-weight:500;}
+  .topbar-meta{
+    display:flex;align-items:center;gap:8px;
+  }
+  .date-pill{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.4px;
+    color:#1a1204;
+    background:var(--gold);
+    padding:4px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .hero{
+    max-width:960px;
+    margin:0 auto;
+    padding:56px 20px 28px;
+  }
+  .eyebrow{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin:0 0 14px;
+  }
+  h1.title{
+    font-family:var(--display);
+    font-size:clamp(30px, 5vw, 44px);
+    font-weight:800;
+    letter-spacing:-0.5px;
+    line-height:1.08;
+    margin:0 0 16px;
+    text-wrap:balance;
+  }
+  .dek{
+    font-family:var(--serif);
+    font-size:17px;
+    line-height:1.6;
+    color:var(--text-sub);
+    max-width:62ch;
+    margin:0;
+  }
+  .dek strong{color:var(--text);font-weight:600;}
+
+  .layout{
+    max-width:960px;
+    margin:0 auto;
+    padding:8px 20px 100px;
+    display:grid;
+    grid-template-columns:200px minmax(0,1fr);
+    gap:48px;
+    align-items:start;
+  }
+  @media (max-width: 760px){
+    .layout{grid-template-columns:1fr;}
+  }
+
+  nav.toc{
+    position:sticky;
+    top:calc(70px + env(safe-area-inset-top, 0px));
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  @media (max-width: 760px){
+    nav.toc{
+      position:static;
+      flex-direction:row;
+      flex-wrap:nowrap;
+      overflow-x:auto;
+      gap:8px;
+      padding-bottom:14px;
+      margin-bottom:8px;
+      border-bottom:1px solid var(--border);
+      -webkit-overflow-scrolling:touch;
+    }
+    nav.toc a{
+      flex:0 0 auto;
+      white-space:nowrap;
+      background:var(--surface);
+      border:1px solid var(--border);
+      padding:7px 12px;
+      border-radius:999px;
+    }
+    nav.toc a .toc-num{display:none;}
+  }
+  nav.toc a{
+    font-family:var(--display);
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text-sub);
+    text-decoration:none;
+    padding:7px 8px;
+    border-radius:7px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    transition:color .15s ease, background-color .15s ease;
+  }
+  nav.toc a:hover{color:var(--text);background:var(--surface);}
+  nav.toc a .toc-num{
+    font-variant-numeric:tabular-nums;
+    color:var(--text-muted);
+    font-size:11px;
+  }
+  .toc-title{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    margin:0 0 10px 8px;
+  }
+  @media (max-width: 760px){ .toc-title{display:none;} }
+
+  main{min-width:0;}
+  section.sec{
+    padding:34px 0;
+    border-bottom:1px solid var(--border);
+    scroll-margin-top:90px;
+  }
+  section.sec:first-child{padding-top:6px;}
+  section.sec:last-of-type{border-bottom:none;}
+
+  .sec-head{
+    display:grid;
+    grid-template-columns:44px minmax(0,1fr);
+    gap:16px;
+    align-items:baseline;
+    margin-bottom:14px;
+  }
+  .sec-num{
+    font-family:var(--display);
+    font-size:26px;
+    font-weight:700;
+    color:var(--blue);
+    font-variant-numeric:tabular-nums;
+    line-height:1;
+  }
+  h2{
+    font-family:var(--display);
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:-0.2px;
+    margin:0;
+    text-wrap:balance;
+  }
+  .sec-body{
+    grid-column:2 / -1;
+  }
+  @media (max-width: 480px){
+    .sec-head{grid-template-columns:30px minmax(0,1fr);}
+    .sec-num{font-size:20px;}
+  }
+
+  p{
+    font-size:15.5px;
+    line-height:1.7;
+    color:var(--text-sub);
+    margin:0 0 14px;
+    max-width:66ch;
+  }
+  p:last-child{margin-bottom:0;}
+  p strong, li strong{color:var(--text);font-weight:600;}
+  em{color:var(--text);font-style:italic;}
+
+  h3{
+    font-family:var(--display);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    color:var(--text);
+    margin:22px 0 8px;
+  }
+
+  ul, ol{
+    margin:0 0 14px;
+    padding-left:20px;
+    max-width:64ch;
+  }
+  li{
+    font-size:15.5px;
+    line-height:1.7;
+    color:var(--text-sub);
+    margin-bottom:6px;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px 18px;
+    margin:16px 0;
+  }
+  .card p{margin:0;}
+
+  .warn-card{
+    background:linear-gradient(160deg, rgba(245,158,11,0.10), rgba(245,158,11,0.03));
+    border:1px solid rgba(245,158,11,0.28);
+    border-radius:14px;
+    padding:16px 18px;
+    margin:16px 0;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .warn-card .warn-icon{
+    flex:0 0 auto;
+    width:22px;height:22px;
+    border-radius:6px;
+    background:rgba(245,158,11,0.18);
+    color:var(--gold);
+    font-family:var(--display);
+    font-weight:800;
+    font-size:13px;
+    display:flex;align-items:center;justify-content:center;
+    margin-top:2px;
+  }
+  .warn-card p{margin:0;color:var(--text-sub);}
+  .warn-card strong{color:var(--text);}
+
+  .sub-grid{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px 20px;
+    margin:16px 0;
+  }
+  .sub-row{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    padding:9px 0;
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .sub-row:last-child{border-bottom:none;}
+  .sub-row .k{color:var(--text-muted);font-family:var(--display);font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding-top:2px;}
+  .sub-row .v{color:var(--text);text-align:right;max-width:60%;}
+
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;}
+  .tag{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    color:var(--text-sub);
+    background:var(--surface-2);
+    border:1px solid var(--border-light);
+    padding:5px 10px;
+    border-radius:999px;
+  }
+
+  .contact-card{
+    background:linear-gradient(160deg, rgba(79,142,247,0.10), rgba(245,158,11,0.06));
+    border:1px solid var(--border-light);
+    border-radius:16px;
+    padding:24px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-top:8px;
+  }
+  .contact-card h3{margin:0 0 4px;font-size:15px;}
+  .contact-card p{margin:0;font-size:14px;}
+  .contact-link{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:14px;
+    color:#06091A;
+    background:var(--gold);
+    padding:11px 18px;
+    border-radius:10px;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+
+  footer{
+    max-width:960px;
+    margin:0 auto;
+    padding:28px 20px 48px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 18px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  footer p{
+    font-family:var(--display);
+    font-size:12px;
+    color:var(--text-muted);
+    margin:0;
+  }
+</style>
+
+<div class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-mark">Q</span>
+    <span>QUBE<span class="brand-sep">&nbsp;/&nbsp;</span><span style="color:var(--text-sub);font-weight:600;">Terms of Service</span></span>
+  </a>
+  <div class="topbar-meta">
+    <span class="date-pill">Effective Sep 23, 2026</span>
+  </div>
+</div>
+
+<div class="hero" id="top">
+  <p class="eyebrow">Legal · Terms of Use</p>
+  <h1 class="title">The rules for using Qube.</h1>
+  <p class="dek">Qube solves math problems from a photo or typed text using AI, with a free weekly tier and an optional Premium subscription. This page is the agreement between you and Qube for using the app — including, plainly stated, how the subscription billing actually works.</p>
+</div>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sections">
+    <p class="toc-title">Contents</p>
+    <a href="#accept"><span class="toc-num">01</span>Accepting these terms</a>
+    <a href="#service"><span class="toc-num">02</span>What Qube is (and isn't)</a>
+    <a href="#accounts"><span class="toc-num">03</span>Accounts &amp; eligibility</a>
+    <a href="#subscriptions"><span class="toc-num">04</span>Subscriptions &amp; billing</a>
+    <a href="#freetier"><span class="toc-num">05</span>Free tier &amp; fair use</a>
+    <a href="#conduct"><span class="toc-num">06</span>Your content &amp; conduct</a>
+    <a href="#ip"><span class="toc-num">07</span>Intellectual property</a>
+    <a href="#disclaimers"><span class="toc-num">08</span>Disclaimers &amp; liability</a>
+    <a href="#termination"><span class="toc-num">09</span>Termination</a>
+    <a href="#changes"><span class="toc-num">10</span>Changes &amp; governing law</a>
+    <a href="#contact"><span class="toc-num">11</span>Contact</a>
+  </nav>
+
+  <main>
+
+    <section class="sec" id="accept">
+      <div class="sec-head">
+        <span class="sec-num">01</span>
+        <h2>Accepting these terms</h2>
+      </div>
+      <div class="sec-body">
+        <p>By creating an account, subscribing to Premium, or simply using Qube as a guest, you agree to these Terms of Service and to our <a href="https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp">Privacy Policy</a>. If you don't agree, please don't use the app. We may update these terms occasionally — see <a href="#changes">Section 10</a>.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="service">
+      <div class="sec-head">
+        <span class="sec-num">02</span>
+        <h2>What Qube is (and isn't)</h2>
+      </div>
+      <div class="sec-body">
+        <p>Qube uses AI to generate step-by-step solutions to math problems you photograph or type. It's a study aid, not a certified tutor or textbook.</p>
+        <div class="warn-card">
+          <span class="warn-icon">!</span>
+          <p><strong>AI-generated answers can be wrong.</strong> Qube is right most of the time, but it can misread handwriting, misinterpret an ambiguous problem, or make a genuine reasoning error — like any AI system. Always check your work, especially before relying on an answer for graded work, an exam, or anything where being wrong actually matters.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="accounts">
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <h2>Accounts &amp; eligibility</h2>
+      </div>
+      <div class="sec-body">
+        <p>You can use Qube's free tier without an account. Creating an account (email, Google, or Apple) unlocks saving problems and custom flashcards, but — like the guest tier — is still subject to the weekly free-solve limit unless you're on Premium.</p>
+        <p>You're responsible for keeping your account credentials secure and for activity that happens under your account. Qube is intended for general audiences and is not knowingly directed at, or collecting data from, children under 13 without appropriate consent — see the Privacy Policy's Children's Privacy section for how we handle that.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="subscriptions">
+      <div class="sec-head">
+        <span class="sec-num">04</span>
+        <h2>Subscriptions &amp; billing</h2>
+      </div>
+      <div class="sec-body">
+        <p>Qube Premium is an auto-renewing subscription purchased through your Apple ID (App Store), on the terms below. This is the same disclosure shown before you subscribe in the app.</p>
+
+        <div class="sub-grid">
+          <div class="sub-row"><span class="k">Product</span><span class="v">Qube Premium — Monthly or Annual</span></div>
+          <div class="sub-row"><span class="k">Includes</span><span class="v">Unlimited AI solves (fair use — see <a href="#freetier">Section 05</a>) and AI worked examples on every flashcard</span></div>
+          <div class="sub-row"><span class="k">Price</span><span class="v">$9.99/month or $79.99/year, charged to your Apple ID</span></div>
+          <div class="sub-row"><span class="k">Free trial</span><span class="v">7 days on first subscription, where offered</span></div>
+          <div class="sub-row"><span class="k">Billing</span><span class="v">Payment is charged to your Apple ID account at confirmation of purchase</span></div>
+          <div class="sub-row"><span class="k">Auto-renewal</span><span class="v">Renews automatically unless auto-renew is turned off at least 24 hours before the end of the current period</span></div>
+          <div class="sub-row"><span class="k">Renewal charge</span><span class="v">Your account is charged for renewal within 24 hours before the current period ends</span></div>
+          <div class="sub-row"><span class="k">Manage / cancel</span><span class="v">In your device's Settings &gt; Apple ID &gt; Subscriptions, any time — takes effect at the end of the current paid period</span></div>
+        </div>
+
+        <p>If you start a free trial and cancel before it converts, you keep app access — you simply return to the free weekly tier, you don't lose the ability to use Qube. Refunds are handled by Apple under their standard App Store policies; we don't process payments or refunds directly.</p>
+        <p>We may change subscription pricing going forward; any change won't apply to an active billing period you've already paid for, and we'll give notice before it affects a renewal.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="freetier">
+      <div class="sec-head">
+        <span class="sec-num">05</span>
+        <h2>Free tier &amp; fair use</h2>
+      </div>
+      <div class="sec-body">
+        <p>The free tier includes a limited number of AI solves per week, which resets on a regular schedule shown in the app. We reserve the right to adjust the free-tier limit, and to rate-limit or suspend access for use that looks automated, scripted, or otherwise abusive of the AI solving feature — that's not aimed at normal studying, however heavy.</p>
+        <h3>Premium: unlimited, with fair use</h3>
+        <p>Premium includes <strong>unlimited AI solves, subject to fair use</strong>: currently up to <strong>100 solves per hour</strong>, far beyond normal study use. This ceiling exists only to stop automated or scripted use of the AI solver. If you reach it, you can solve again within the hour, and your weekly access is never affected.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="conduct">
+      <div class="sec-head">
+        <span class="sec-num">06</span>
+        <h2>Your content &amp; conduct</h2>
+      </div>
+      <div class="sec-body">
+        <p>You keep ownership of the photos and text you submit to Qube. By submitting them, you give us the limited right to process them (including sending them to our AI provider) solely to generate your solution, and to store solutions you choose to Save — see the Privacy Policy for how that data flows and what is kept.</p>
+        <h3>Please don't</h3>
+        <ul>
+          <li>Submit content that's illegal, abusive, or that you don't have the right to share</li>
+          <li>Attempt to reverse-engineer, scrape, or circumvent the app's rate limits or subscription gating</li>
+          <li>Use Qube to build a competing service on top of our AI proxy</li>
+          <li>Interfere with the app's operation or other users' access to it</li>
+        </ul>
+        <p>We may suspend or terminate access for accounts that violate this section.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="ip">
+      <div class="sec-head">
+        <span class="sec-num">07</span>
+        <h2>Intellectual property</h2>
+      </div>
+      <div class="sec-body">
+        <p>Qube's app, design, branding, and the static course/flashcard content in it are owned by us and protected by applicable intellectual property law. Your subscription gives you a personal, non-transferable license to use the app — it doesn't transfer ownership of anything in it to you.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="disclaimers">
+      <div class="sec-head">
+        <span class="sec-num">08</span>
+        <h2>Disclaimers &amp; liability</h2>
+      </div>
+      <div class="sec-body">
+        <p>Qube is provided "as is," without warranties of any kind, express or implied — including that it will be uninterrupted, error-free, or that its AI-generated answers will always be accurate (see <a href="#service">Section 02</a>).</p>
+        <p>To the fullest extent permitted by law, Qube and its team aren't liable for indirect, incidental, or consequential damages arising from your use of the app — including, without limitation, academic consequences from relying on an AI-generated answer without independently checking it.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="termination">
+      <div class="sec-head">
+        <span class="sec-num">09</span>
+        <h2>Termination</h2>
+      </div>
+      <div class="sec-body">
+        <p>You can stop using Qube and delete your account any time in the app from <em>Profile → Settings → Delete Account</em>, or by emailing us. We may suspend or terminate accounts that violate <a href="#conduct">Section 06</a>. Ending your account doesn't automatically cancel an active App Store subscription — cancel that separately in your Apple ID subscription settings.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="changes">
+      <div class="sec-head">
+        <span class="sec-num">10</span>
+        <h2>Changes &amp; governing law</h2>
+      </div>
+      <div class="sec-body">
+        <p>We may update these terms as Qube evolves. Material changes will be reflected by a new effective date above, and for significant changes we'll notify you in the app. Continuing to use Qube after a change means you accept the update.</p>
+        <p>These terms are governed by the laws of the United States, without regard to conflict-of-law rules, unless your local law requires otherwise.</p>
+        <div class="badge-row">
+          <span class="tag">v1.1</span>
+          <span class="tag">Effective Sep 23, 2026</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="contact" style="border-bottom:none;">
+      <div class="sec-head">
+        <span class="sec-num">11</span>
+        <h2>Contact</h2>
+      </div>
+      <div class="sec-body">
+        <p>Questions about these terms, your subscription, or your account? We read every email.</p>
+        <div class="contact-card">
+          <div>
+            <h3>Qube Support</h3>
+            <p>support@qubemath.app</p>
+          </div>
+          <a class="contact-link" href="mailto:support@qubemath.app?subject=Terms%20of%20Service%20Question">Email us →</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>© 2026 Qube. All rights reserved.</p>
+  <p>com.qube.mathapp</p>
+</footer>

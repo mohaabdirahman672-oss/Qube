@@ -1,0 +1,578 @@
+<title>Qube Privacy Policy</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=Source+Serif+4:ital,opsz,wght@1,8..60,500&display=swap">
+<style>
+  :root{
+    --bg:#06091A;
+    --surface:#0C1228;
+    --surface-2:#101a38;
+    --border:#1A2744;
+    --border-light:#243358;
+    --blue:#4F8EF7;
+    --blue-dim:#2563EB;
+    --gold:#F59E0B;
+    --text:#F0F4FF;
+    --text-sub:#94A3B8;
+    --text-muted:#5B6B8C;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --display: "Sora", -apple-system, "Segoe UI", sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;}
+  [hidden]{display:none!important;}
+
+  a{color:var(--blue);}
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;
+    top:env(safe-area-inset-top, 0px);
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 20px;
+    padding-left:max(20px, calc(16px + env(safe-area-inset-left, 0px)));
+    padding-right:max(20px, calc(16px + env(safe-area-inset-right, 0px)));
+    background:rgba(6,9,26,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--display);
+    font-weight:700;
+    letter-spacing:0.2px;
+    font-size:15px;
+    color:var(--text);
+    text-decoration:none;
+  }
+  .brand-mark{
+    width:26px;height:26px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg, var(--blue), #1E3A8A);
+    color:#fff;font-weight:800;font-size:14px;
+    box-shadow:0 0 0 1px rgba(79,142,247,0.35);
+  }
+  .brand-sep{color:var(--text-muted);font-weight:500;}
+  .topbar-meta{
+    font-family:var(--display);
+    font-size:12px;
+    color:var(--text-sub);
+    display:flex;align-items:center;gap:8px;
+  }
+  .date-pill{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.4px;
+    color:#1a1204;
+    background:var(--gold);
+    padding:4px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    max-width:960px;
+    margin:0 auto;
+    padding:56px 20px 28px;
+  }
+  .eyebrow{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin:0 0 14px;
+  }
+  h1.title{
+    font-family:var(--display);
+    font-size:clamp(30px, 5vw, 44px);
+    font-weight:800;
+    letter-spacing:-0.5px;
+    line-height:1.08;
+    margin:0 0 16px;
+    text-wrap:balance;
+  }
+  .dek{
+    font-family:var(--serif);
+    font-size:17px;
+    line-height:1.6;
+    color:var(--text-sub);
+    max-width:62ch;
+    margin:0;
+  }
+  .dek strong{color:var(--text);font-weight:600;}
+
+  /* ---------- layout ---------- */
+  .layout{
+    max-width:960px;
+    margin:0 auto;
+    padding:8px 20px 100px;
+    display:grid;
+    grid-template-columns:200px minmax(0,1fr);
+    gap:48px;
+    align-items:start;
+  }
+  @media (max-width: 760px){
+    .layout{grid-template-columns:1fr;}
+  }
+
+  /* ---------- toc ---------- */
+  nav.toc{
+    position:sticky;
+    top:calc(70px + env(safe-area-inset-top, 0px));
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  @media (max-width: 760px){
+    nav.toc{
+      position:static;
+      flex-direction:row;
+      flex-wrap:nowrap;
+      overflow-x:auto;
+      gap:8px;
+      padding-bottom:14px;
+      margin-bottom:8px;
+      border-bottom:1px solid var(--border);
+      -webkit-overflow-scrolling:touch;
+    }
+    nav.toc a{
+      flex:0 0 auto;
+      white-space:nowrap;
+      background:var(--surface);
+      border:1px solid var(--border);
+      padding:7px 12px;
+      border-radius:999px;
+    }
+    nav.toc a .toc-num{display:none;}
+  }
+  nav.toc a{
+    font-family:var(--display);
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--text-sub);
+    text-decoration:none;
+    padding:7px 8px;
+    border-radius:7px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    transition:color .15s ease, background-color .15s ease;
+  }
+  nav.toc a:hover{color:var(--text);background:var(--surface);}
+  nav.toc a .toc-num{
+    font-variant-numeric:tabular-nums;
+    color:var(--text-muted);
+    font-size:11px;
+  }
+  .toc-title{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    margin:0 0 10px 8px;
+  }
+  @media (max-width: 760px){ .toc-title{display:none;} }
+
+  /* ---------- sections ---------- */
+  main{min-width:0;}
+  section.sec{
+    padding:34px 0;
+    border-bottom:1px solid var(--border);
+    scroll-margin-top:90px;
+  }
+  section.sec:first-child{padding-top:6px;}
+  section.sec:last-of-type{border-bottom:none;}
+
+  .sec-head{
+    display:grid;
+    grid-template-columns:44px minmax(0,1fr);
+    gap:16px;
+    align-items:baseline;
+    margin-bottom:14px;
+  }
+  .sec-num{
+    font-family:var(--display);
+    font-size:26px;
+    font-weight:700;
+    color:var(--blue);
+    font-variant-numeric:tabular-nums;
+    line-height:1;
+  }
+  h2{
+    font-family:var(--display);
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:-0.2px;
+    margin:0;
+    text-wrap:balance;
+  }
+  .sec-body{
+    grid-column:2 / -1;
+  }
+  @media (max-width: 480px){
+    .sec-head{grid-template-columns:30px minmax(0,1fr);}
+    .sec-num{font-size:20px;}
+  }
+
+  p{
+    font-size:15.5px;
+    line-height:1.7;
+    color:var(--text-sub);
+    margin:0 0 14px;
+    max-width:66ch;
+  }
+  p:last-child{margin-bottom:0;}
+  p strong, li strong{color:var(--text);font-weight:600;}
+  em{color:var(--text);font-style:italic;}
+
+  h3{
+    font-family:var(--display);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    color:var(--text);
+    margin:22px 0 8px;
+  }
+
+  ul, ol{
+    margin:0 0 14px;
+    padding-left:20px;
+    max-width:64ch;
+  }
+  li{
+    font-size:15.5px;
+    line-height:1.7;
+    color:var(--text-sub);
+    margin-bottom:6px;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px 18px;
+    margin:16px 0;
+  }
+  .card p{margin:0;}
+
+  .grid-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin:16px 0 18px;
+  }
+  @media (max-width:560px){ .grid-2{grid-template-columns:1fr;} }
+  .service{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px 16px;
+  }
+  .service-name{
+    font-family:var(--display);
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:5px;
+  }
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex:0 0 auto;}
+  .service p{font-size:13.5px;margin:0;color:var(--text-sub);}
+
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0;}
+  .tag{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    color:var(--text-sub);
+    background:var(--surface-2);
+    border:1px solid var(--border-light);
+    padding:5px 10px;
+    border-radius:999px;
+  }
+
+  .contact-card{
+    background:linear-gradient(160deg, rgba(79,142,247,0.10), rgba(245,158,11,0.06));
+    border:1px solid var(--border-light);
+    border-radius:16px;
+    padding:24px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-top:8px;
+  }
+  .contact-card h3{margin:0 0 4px;font-size:15px;}
+  .contact-card p{margin:0;font-size:14px;}
+  .contact-link{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:14px;
+    color:#06091A;
+    background:var(--gold);
+    padding:11px 18px;
+    border-radius:10px;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+
+  footer{
+    max-width:960px;
+    margin:0 auto;
+    padding:28px 20px 48px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 18px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  footer p{
+    font-family:var(--display);
+    font-size:12px;
+    color:var(--text-muted);
+    margin:0;
+  }
+</style>
+
+<div class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-mark">Q</span>
+    <span>QUBE<span class="brand-sep">&nbsp;/&nbsp;</span><span style="color:var(--text-sub);font-weight:600;">Privacy Policy</span></span>
+  </a>
+  <div class="topbar-meta">
+    <span class="date-pill">Effective Sep 23, 2026</span>
+  </div>
+</div>
+
+<div class="hero" id="top">
+  <p class="eyebrow">Legal · Data Practices</p>
+  <h1 class="title">How Qube handles your data.</h1>
+  <p class="dek">Qube solves math problems from a photo or typed text using AI. This page explains, in plain terms, exactly <strong>what we collect, why, and who we share it with</strong> — whether you're signed in or trying it as a guest.</p>
+</div>
+
+<div class="layout">
+  <nav class="toc" aria-label="Sections">
+    <p class="toc-title">Contents</p>
+    <a href="#collect"><span class="toc-num">01</span>Information we collect</a>
+    <a href="#use"><span class="toc-num">02</span>How we use it</a>
+    <a href="#share"><span class="toc-num">03</span>Who we share it with</a>
+    <a href="#retain"><span class="toc-num">04</span>Retention</a>
+    <a href="#rights"><span class="toc-num">05</span>Your rights</a>
+    <a href="#children"><span class="toc-num">06</span>Children's privacy</a>
+    <a href="#security"><span class="toc-num">07</span>Security</a>
+    <a href="#international"><span class="toc-num">08</span>International users</a>
+    <a href="#changes"><span class="toc-num">09</span>Changes to this policy</a>
+    <a href="#contact"><span class="toc-num">10</span>Contact</a>
+  </nav>
+
+  <main>
+
+    <section class="sec" id="collect">
+      <div class="sec-head">
+        <span class="sec-num">01</span>
+        <h2>Information we collect</h2>
+      </div>
+      <div class="sec-body">
+        <p>Qube is built to work <strong>without an account</strong> — you can solve a limited number of problems as a guest before we ever ask you to sign in. What we collect depends on how you use the app.</p>
+
+        <h3>Account information</h3>
+        <p>If you create an account or sign in with Google or Apple, we (via our backend provider, Supabase) receive your <strong>email address</strong> and, if the provider shares it, your <strong>name and profile photo</strong>. Apple's "Hide My Email" relay is fully supported. We never see your Google or Apple password.</p>
+
+        <h3>Math problems, photos, and typed text</h3>
+        <p>When you scan or type a problem, the image or text is sent — through our own server, never directly from your device — to OpenAI's API to generate a step-by-step solution. <strong>We never store your problem photos.</strong> Problem text is not written to our database either, <strong>unless you choose to keep it</strong>: solutions you tap <em>Save</em> on, and flashcards you create, are stored with your account (see Retention).</p>
+
+        <h3>Guest device data</h3>
+        <p>If you use Qube without signing in, your device is assigned a random, anonymous identifier (not tied to your name, email, or Apple/Google ID). It's sent with each solve so our server can (a) count your free solves for the week and (b) apply a basic rate limit that prevents abuse of the free tier.</p>
+
+        <h3>Subscriptions</h3>
+        <p>If you subscribe to Qube Premium, <strong>Apple processes the payment</strong> — we never see your card or billing details. We receive your subscription status (for example: active, in a free trial, or expired) so we can unlock Premium features.</p>
+
+        <h3>Diagnostic and crash data</h3>
+        <p>We use crash and error reporting tooling to catch bugs before they affect more people. This can include device model, OS version, app version, and the state of the app when a crash occurred — never your problem content.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="use">
+      <div class="sec-head">
+        <span class="sec-num">02</span>
+        <h2>How we use it</h2>
+      </div>
+      <div class="sec-body">
+        <ul>
+          <li>To generate step-by-step math solutions from your photo or typed problem</li>
+          <li>To create and secure your account, and keep you signed in</li>
+          <li>To enforce free-tier and rate limits fairly, and prevent abuse</li>
+          <li>To diagnose crashes and fix bugs</li>
+          <li>To respond when you contact support</li>
+        </ul>
+        <p>We do <strong>not</strong> use your data for advertising, and we do not sell your data to anyone.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="share">
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <h2>Who we share it with</h2>
+      </div>
+      <div class="sec-body">
+        <p>We share the minimum needed with a small set of infrastructure providers who help run Qube. None of them are permitted to use your data for their own purposes.</p>
+
+        <div class="grid-2">
+          <div class="service">
+            <div class="service-name"><span class="dot" style="background:var(--gold);"></span>OpenAI</div>
+            <p>Receives your problem photo or text solely to generate a solution. Not used to train OpenAI's models under their API data usage policy.</p>
+          </div>
+          <div class="service">
+            <div class="service-name"><span class="dot"></span>Supabase</div>
+            <p>Our backend: hosts authentication, your account record, your saved problems and flashcards, weekly free-solve counts, and the server function that proxies solve requests.</p>
+          </div>
+          <div class="service">
+            <div class="service-name"><span class="dot"></span>Google Sign-In</div>
+            <p>Used only if you choose "Continue with Google." Governed by Google's own privacy policy.</p>
+          </div>
+          <div class="service">
+            <div class="service-name"><span class="dot"></span>Sign in with Apple</div>
+            <p>Used only if you choose "Continue with Apple." Governed by Apple's own privacy policy.</p>
+          </div>
+          <div class="service">
+            <div class="service-name"><span class="dot"></span>RevenueCat</div>
+            <p>Manages Premium subscription status: an anonymous app user ID and your purchase history with Apple. Used only if you subscribe or restore purchases.</p>
+          </div>
+          <div class="service">
+            <div class="service-name"><span class="dot"></span>Sentry</div>
+            <p>Receives crash and error reports so we can find and fix bugs. Never receives your problem content.</p>
+          </div>
+        </div>
+
+        <p>We may also disclose information if required by law, or to protect the rights, safety, and security of Qube, our users, or the public.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="retain">
+      <div class="sec-head">
+        <span class="sec-num">04</span>
+        <h2>Retention</h2>
+      </div>
+      <div class="sec-body">
+        <p>We keep your account information for as long as your account exists. Problem photos are <strong>never retained</strong> — they exist only for the moment it takes to generate your solution. Problem text is not retained on our servers unless you choose to keep it: solutions you <em>Save</em>, and flashcards you create, are stored with your account so they sync across your devices, until you delete them or your account.</p>
+
+        <h3>On your device only</h3>
+        <p>Your last few solutions (the problem text and the solution — never the photo) are kept locally on your device so you can revisit them from the Home screen. They are <strong>never uploaded</strong> and are cleared when you sign out.</p>
+
+        <h3>Free-solve counts</h3>
+        <p>Our server keeps a weekly count of free solves, tied to your anonymous device identifier (or to your account, once you're signed in). It starts over each Monday. The identifier itself stays on your device and is removed if you delete the app.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="rights">
+      <div class="sec-head">
+        <span class="sec-num">05</span>
+        <h2>Your rights</h2>
+      </div>
+      <div class="sec-body">
+        <p>Wherever you live, you can ask us to:</p>
+        <ul>
+          <li><strong>Access</strong> the personal data we hold about you</li>
+          <li><strong>Correct</strong> inaccurate account information</li>
+          <li><strong>Delete</strong> your account and associated data</li>
+        </ul>
+        <p>Delete your account any time in the app from <em>Profile → Settings → Delete Account</em>, or by emailing us directly (below). If you're in the EU/UK or California, you have specific rights under GDPR or the CCPA respectively — the same contact handles those requests.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="children">
+      <div class="sec-head">
+        <span class="sec-num">06</span>
+        <h2>Children's privacy</h2>
+      </div>
+      <div class="sec-body">
+        <p>Qube is a study tool and may be used by students of many ages under a parent's or school's supervision, but the account itself is not knowingly directed at, or collecting data from, children under 13 without appropriate consent. If you believe a child has created an account without proper consent, contact us and we'll remove it.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="security">
+      <div class="sec-head">
+        <span class="sec-num">07</span>
+        <h2>Security</h2>
+      </div>
+      <div class="sec-body">
+        <p>Data in transit between the app and our servers is encrypted (HTTPS/TLS). API keys for third-party AI services are kept server-side only and are never bundled into the app itself. No system is perfectly secure, but we design Qube so that a compromise of the app binary can't expose backend secrets.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="international">
+      <div class="sec-head">
+        <span class="sec-num">08</span>
+        <h2>International users</h2>
+      </div>
+      <div class="sec-body">
+        <p>Qube is operated from the United States. If you use Qube from outside the U.S., your information will be transferred to and processed in the U.S. and other countries where our providers operate, which may have different data protection laws than your home country.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="changes">
+      <div class="sec-head">
+        <span class="sec-num">09</span>
+        <h2>Changes to this policy</h2>
+      </div>
+      <div class="sec-body">
+        <p>If we make material changes to this policy, we'll update the effective date above and, for significant changes, notify you in the app. Continuing to use Qube after a change means you accept the updated policy.</p>
+        <div class="badge-row">
+          <span class="tag">v1.1</span>
+          <span class="tag">Effective Sep 23, 2026</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="contact" style="border-bottom:none;">
+      <div class="sec-head">
+        <span class="sec-num">10</span>
+        <h2>Contact</h2>
+      </div>
+      <div class="sec-body">
+        <p>Questions about this policy, or a request to access/delete your data? We read every email.</p>
+        <div class="contact-card">
+          <div>
+            <h3>Qube Support</h3>
+            <p>support@qubemath.app</p>
+          </div>
+          <a class="contact-link" href="mailto:support@qubemath.app?subject=Privacy%20Policy%20Question">Email us →</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <p>© 2026 Qube. All rights reserved.</p>
+  <p>com.qube.mathapp</p>
+</footer>

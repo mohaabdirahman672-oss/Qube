@@ -8,7 +8,9 @@
     "scheme": "qube",
     "userInterfaceStyle": "dark",
     "splash": {
-      "backgroundColor": "#06091A"
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#060D18"
     },
     "ios": {
       "supportsTablet": false,

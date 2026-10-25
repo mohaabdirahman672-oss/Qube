@@ -16,6 +16,8 @@ import PaywallScreen from './PaywallScreen';
 import { solveMathProblem } from '../services/solveApi';
 import { insertSavedProblem } from '../services/dbService';
 import { addRecentSolve } from '../lib/recentSolves';
+import { warmMath } from '../lib/mathjax';
+import { toPlainMath } from '../lib/plainMath';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
 import { resetDayName } from '../lib/weeklyUsage';
@@ -132,7 +134,12 @@ export default function SolveScreen({ navigation }) {
 
     console.log('[SolveScreen] solve() calling solveMathProblem', { mode, hasImage: !!input.imageBase64 });
     try {
-      const res = await solveMathProblem(input);
+      const pending = solveMathProblem(input);
+      // MathJax's one-time setup (a few hundred ms) runs now, while the network
+      // request is in flight, instead of stalling the first frame of the solution.
+      // setTimeout so the spinner gets painted first.
+      setTimeout(warmMath, 0);
+      const res = await pending;
       console.log('[SolveScreen] solve() got result', { hasMath: res?.hasMath });
       setLoading(false);
       if (!res.hasMath) {
@@ -171,7 +178,7 @@ export default function SolveScreen({ navigation }) {
     const { error } = await insertSavedProblem({
       userId:      user.id,
       type:        'scan',
-      title:       result.answer ? 'Answer: ' + result.answer : 'Solved Problem',
+      title:       result.answer ? 'Answer: ' + toPlainMath(result.answer) : 'Solved Problem',
       problemType: result.problemType,
       difficulty:  result.difficulty,
       steps:       result.steps,

@@ -20,6 +20,14 @@ export function updatePassword(password) {
   return supabase.auth.updateUser({ password });
 }
 
+// Server-side deletion (supabase/functions/delete-account). The access token is
+// attached automatically; the uid is resolved from it on the server.
+export function deleteAccountRemote({ appleAuthorizationCode } = {}) {
+  return supabase.functions.invoke('delete-account', {
+    body: appleAuthorizationCode ? { appleAuthorizationCode } : {},
+  });
+}
+
 export function getSession() {
   return supabase.auth.getSession();
 }

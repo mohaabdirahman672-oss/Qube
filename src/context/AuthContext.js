@@ -210,6 +210,54 @@ export function AuthProvider({ children }) {
     setPasswordRecovery(false);
   }
 
+  // ── Account deletion (docs/plans/account-deletion.md) ───────────────────
+  // Returns {} on success, { cancelled: true } if the user dismissed Apple's sheet,
+  // { appleUnavailable: true } if Apple re-auth couldn't run (caller may retry with
+  // skipAppleConfirm so nobody is blocked from deleting), or { error }.
+
+  async function deleteAccount({ skipAppleConfirm = false } = {}) {
+    if (!isSupabaseConfigured) return { error: 'Supabase not configured.' };
+
+    const providers = [
+      ...(user?.identities || []).map(i => i.provider),
+      ...(user?.app_metadata?.providers || []),
+    ];
+
+    // Apple needs a fresh, single-use authorization code (5-minute lifetime) for the
+    // server to revoke Qube's access — so it's requested right before the call.
+    let appleAuthorizationCode;
+    if (providers.includes('apple') && !skipAppleConfirm) {
+      try {
+        if (!(await AppleAuthentication.isAvailableAsync())) return { appleUnavailable: true };
+        const credential = await AppleAuthentication.signInAsync({ requestedScopes: [] });
+        appleAuthorizationCode = credential.authorizationCode;
+        if (!appleAuthorizationCode) return { appleUnavailable: true };
+      } catch (err) {
+        if (err?.code === 'ERR_REQUEST_CANCELED') return { cancelled: true };
+        console.log('[Auth] delete: Apple re-auth failed', err?.code, err?.message);
+        return { appleUnavailable: true };
+      }
+    }
+
+    const { data, error } = await authService.deleteAccountRemote({ appleAuthorizationCode });
+    if (error || !data?.ok) {
+      console.log('[Auth] delete: server failed', error?.message);
+      return { error: 'delete-failed' };
+    }
+    console.log('[Auth] delete: done', { appleRevoked: data.appleRevoked });
+
+    if (providers.includes('google')) {
+      try { await GoogleSignin.revokeAccess?.(); } catch {}
+    }
+    try { await GoogleSignin.signOut(); } catch {}
+    await clearRecentSolves();
+    setPasswordRecovery(false);
+    // 'local': the user no longer exists server-side, so don't make a logout call with
+    // their token. RevenueCat logOut follows from the session change (SubscriptionContext).
+    try { await supabase.auth.signOut({ scope: 'local' }); } catch {}
+    return {};
+  }
+
   // ── Google Sign-In (Supabase via native Google SDK) ─────────────────────
 
   async function signInWithGoogle() {
@@ -307,6 +355,7 @@ export function AuthProvider({ children }) {
       signUpEmail,
       signInEmail,
       signOut,
+      deleteAccount,
       sendPasswordReset,
       updateDisplayName,
       updatePassword,

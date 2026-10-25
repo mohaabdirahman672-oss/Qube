@@ -39,3 +39,16 @@ coverage/
 # Temporary
 *.tmp
 *.temp
+
+# Signing keys and credentials — NEVER commit these
+# (Apple .p8 keys live outside the repo; their values are Supabase/EAS secrets)
+*.p8
+*.p12
+*.pem
+*.key
+*.mobileprovision
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+supabase/.env*

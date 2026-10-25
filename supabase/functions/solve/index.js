@@ -122,35 +122,107 @@ async function isPremiumUser(userId) {
   return await response.json();
 }
 
-const SYSTEM_PROMPT = `You are Qube, an expert math tutor. Solve math problems step by step.
+// String.raw so the LaTeX examples reach the model exactly as written here
+// (\\frac stays \\frac — i.e. correctly JSON-escaped in the example output).
+// Field contract (docs/plans/latex-math-rendering.md): `math`, `answerLatex` and
+// `formula` are LaTeX and get typeset by the app; every other field is plain text
+// shown as-is in lists and titles, so it must never contain LaTeX or ^ notation.
+const SYSTEM_PROMPT = String.raw`You are Qube, an expert math tutor. Solve math problems step by step, laid out like a good textbook: each step is one short plain-English sentence followed by the math for that step.
 
 You handle: arithmetic, algebra, equations, inequalities, systems of equations, factoring, expanding, simplifying, functions, geometry, trigonometry, logarithms, exponents, calculus (derivatives, integrals, limits), probability, statistics, and word problems.
 
 Respond ONLY with a valid JSON object using this exact structure:
 {
   "hasMath": true,
-  "problem": "The problem exactly as given, restated in plain text (e.g. Solve 2x^2 + 7x - 15 = 0)",
+  "problem": "The problem as given, in plain text with Unicode symbols (e.g. Solve x² − 9 = 0)",
   "problemType": "Quadratic Equation",
   "difficulty": "Medium",
   "steps": [
-    { "title": "Verb-led title (3-6 words)", "body": "Full explanation of this step showing all work" }
+    {
+      "title": "Verb-led title (3-6 words)",
+      "explanation": "One or two plain-English sentences: what this step does and why.",
+      "math": "LaTeX for this step's working, e.g. \\frac{x^{2}}{3} = 12"
+    }
   ],
-  "answer": "Final answer (concise)",
+  "answer": "Final answer in plain text with Unicode, e.g. x = 3/2 or x = −5",
+  "answerLatex": "The same final answer in LaTeX, e.g. x = \\frac{3}{2} \\quad \\text{or} \\quad x = -5",
   "explanation": "One sentence summary of the method or technique used",
   "commonMistake": "The single most common error students make on this problem type",
-  "formula": "Key formula used — omit this field entirely if none applies",
-  "practiceQuestion": "A similar follow-up problem at the same difficulty for the student to try"
+  "formula": "LaTeX of the key formula used, e.g. x = \\frac{-b \\pm \\sqrt{b^{2} - 4ac}}{2a} (omit this field entirely if none applies)",
+  "practiceQuestion": "A similar follow-up problem at the same difficulty, in plain text with Unicode symbols"
 }
 
 If no math problem is found:
 { "hasMath": false, "message": "Brief description of what you see instead" }
 
-Rules:
-- Plain text only — no LaTeX, no markdown, no special symbols except standard math operators
+Rules for "math", "answerLatex" and "formula" (LaTeX, typeset by the app):
+- LaTeX only, no $ or \( \) delimiters, no markdown.
+- Use only standard LaTeX/AMS macros: \frac, \sqrt, \times, \div, \cdot, \pm, \le, \ge, \ne, \pi, \theta, \sin, \cos, \tan, \log, \ln, \lim, \int, \sum, \infty, \left( \right), \text{}, ^{}, _{}.
+- Always brace exponents and subscripts: a^{10}, x_{1}.
+- If the problem uses ÷ or ×, write \div and \times — don't silently rewrite them as fractions or dots. Use \frac for fractions you create yourself. Never write \/ or a bare / for division.
+- One step = one line of working. For a short chain of equalities in one step, use \begin{aligned} ... \end{aligned} with & alignment and \\ line breaks.
+- A step that is purely a statement may have "math": "".
+
+Rules for every other field (plain text, shown as-is):
+- Never use LaTeX or ^ notation. Use Unicode instead: superscripts (a², x¹⁰, aⁿ), subscripts (x₁), and symbols (÷ × − ± √ π θ ≤ ≥ ≠ °).
+- Step explanations: one or two short sentences of plain English describing what the step does and why. Keep math symbols out of them where possible — the math belongs in "math".
+
+Ambiguous notation:
+- The notation counts as ambiguous when ÷ or / is directly followed by an implied multiplication — a number or letter right before a bracket or variable, e.g. "÷ 2(b + c)", "÷ 2(a³ × a²)", "1/2x". Nothing else counts.
+- In that case use the standard textbook reading: the implied multiplication binds tighter, so 2(b + c) is ONE grouped term that the whole thing is divided by. Step 1's explanation must then begin with one short clause naming the reading, e.g. "Reading 2(a³ × a²) as one grouped term, ...".
+- If the problem is not ambiguous, never mention interpretation.
+
+Other rules:
 - difficulty must be exactly: Easy, Medium, Hard, or Advanced
 - Step titles: short (3-6 words), verb-led — e.g. "Identify the coefficients", "Apply the formula"
-- Step bodies: show every calculation clearly, educational tone
+- Show every calculation across the steps; don't skip work. Use as many steps as the problem needs (usually 3-6) — never collapse a whole solution into one step.
 - Always include practiceQuestion`;
+
+// The model's JSON sometimes single-escapes LaTeX ("\frac" instead of "\\frac").
+// Two failure modes, both fixed here:
+// 1. Invalid escapes like "\div", "\sqrt", "\left" make JSON.parse throw — those
+//    backslashes get doubled before parsing. Valid escape pairs ("\\", "\"", "\n",
+//    "²"…) are consumed as pairs first, so already-correct LaTeX is untouched.
+// 2. Escapes that happen to be valid JSON — "\frac" (\f), "\times" (\t), "\beta"
+//    (\b), "\rho" (\r), "\neq" (\n) — parse silently into control characters.
+//    Those are restored to backslash-letter in the LaTeX fields only; a control
+//    character never belongs in LaTeX, and a newline there is just whitespace.
+function repairJsonEscapes(raw) {
+  return raw.replace(/\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4})|\\/g, (m) => (m.length > 1 ? m : "\\\\"));
+}
+
+function restoreLatexEscapes(s) {
+  if (typeof s !== "string") return s;
+  return s
+    .replace(/\f/g, "\\f")
+    .replace(/\t/g, "\\t")
+    .replace(/\x08/g, "\\b")
+    .replace(/\r/g, "\\r")
+    .replace(/\n(?=[a-zA-Z])/g, "\\n");
+}
+
+// ÷ or / directly followed by an implied multiplication: "÷ 2(", "÷ 2x", "/ 2(", "/2x".
+// The prompt's ambiguity rule alone wasn't reliably followed (the model applied the
+// textbook reading but silently), so for typed problems — where we can see the text —
+// the server detects it and tells the model outright. Photos rely on the prompt rule.
+const AMBIGUOUS_DIVISION = /[÷/]\s*\d+(\.\d+)?\s*[(a-zA-Z]/;
+
+function solveUserMessage(text) {
+  const note = AMBIGUOUS_DIVISION.test(text)
+    ? "\n\nNote: this problem has an implied multiplication right after a division sign, so it is ambiguous. Use the textbook reading (the implied multiplication is one grouped term) and begin step 1's explanation with one short clause saying so. In every step's math, keep that grouped term together as the divisor — in brackets or as a fraction's denominator, e.g. 4a^{6} \\div \\left(2a^{5}\\right) or \\frac{4a^{6}}{2a^{5}} — never split it as \\div 2 \\times ..."
+    : "";
+  return "Solve this problem:\n\n" + text + note;
+}
+
+function fixLatexFields(result) {
+  if (!result || result.hasMath === false) return result;
+  if (Array.isArray(result.steps)) {
+    result.steps = result.steps.map((step) => ({ ...step, math: restoreLatexEscapes(step?.math ?? "") }));
+  }
+  result.answerLatex = restoreLatexEscapes(result.answerLatex);
+  result.formula = restoreLatexEscapes(result.formula);
+  return result;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -168,7 +240,10 @@ async function callOpenAI(messages, isRetry = false) {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + OPENAI_API_KEY,
       },
-      body: JSON.stringify({ model: "gpt-4o", max_tokens: 2000, messages }),
+      // json_object mode guarantees syntactically valid JSON, which LaTeX's
+      // backslashes otherwise regularly break. max_tokens raised from 2000: LaTeX
+      // working is more verbose than the old plain-text bodies.
+      body: JSON.stringify({ model: "gpt-4o", max_tokens: 2500, response_format: { type: "json_object" }, messages }),
     });
     clearTimeout(timeout);
     if (!response.ok) {
@@ -249,7 +324,7 @@ Deno.serve(async (req) => {
     if (text) {
       messages = [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: "Solve this problem:\n\n" + text },
+        { role: "user", content: solveUserMessage(text) },
       ];
     } else if (imageBase64) {
       const dataUrl = `data:${imageMimeType || "image/jpeg"};base64,${imageBase64}`;
@@ -274,7 +349,7 @@ Deno.serve(async (req) => {
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("Could not parse AI response. Please try again.");
 
-    const result = JSON.parse(jsonMatch[0]);
+    const result = fixLatexFields(JSON.parse(repairJsonEscapes(jsonMatch[0])));
 
     // Only charged here, after a real AI response came back (hasMath true or
     // false both count — the AI successfully answered either way; only a thrown

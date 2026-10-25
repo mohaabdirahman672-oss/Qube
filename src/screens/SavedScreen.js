@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import FloatingSymbols from '../components/FloatingSymbols';
+import { StepContent } from '../components/SolutionView';
+import { toPlainMath } from '../lib/plainMath';
 import { useAuth } from '../hooks/useAuth';
 import {
   fetchSavedProblems,
@@ -39,7 +41,7 @@ function SavedItem({ item, onDelete }) {
           {item.problem_type ? (
             <Text style={styles.cardType}>{item.problem_type.toUpperCase()}</Text>
           ) : null}
-          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.cardTitle} numberOfLines={2}>{toPlainMath(item.title)}</Text>
           <View style={styles.cardMeta}>
             {item.difficulty ? (
               <Text style={[styles.cardDiff, { color: diffColor }]}>{item.difficulty}</Text>
@@ -74,14 +76,14 @@ function SavedItem({ item, onDelete }) {
               </View>
               <View style={styles.stepBody}>
                 <Text style={styles.stepTitle}>{step.title}</Text>
-                <Text style={styles.stepContent}>{step.body}</Text>
+                <StepContent step={step} explanationStyle={styles.stepContent} />
               </View>
             </View>
           ))}
           {item.answer ? (
             <View style={styles.answerChip}>
               <Text style={styles.answerChipLabel}>Answer: </Text>
-              <Text style={styles.answerChipValue}>{item.answer}</Text>
+              <Text style={styles.answerChipValue}>{toPlainMath(item.answer)}</Text>
             </View>
           ) : null}
         </View>

@@ -29,7 +29,7 @@ export const PRIVACY_POLICY_SECTIONS = [
   },
   {
     heading: 'Your rights',
-    body: 'You can ask us to access, correct, or delete your data at any time. Delete your account from Profile → Contact Us, or by emailing us. If you’re in the EU/UK or California, you have specific rights under GDPR or the CCPA — the same contact handles those requests.',
+    body: 'You can ask us to access, correct, or delete your data at any time. Delete your account any time in the app from Profile → Settings → Delete Account, or by emailing us. If you’re in the EU/UK or California, you have specific rights under GDPR or the CCPA — the same contact handles those requests.',
   },
   {
     heading: 'Children’s privacy',
@@ -49,7 +49,7 @@ export const PRIVACY_POLICY_SECTIONS = [
   },
   {
     heading: 'Contact',
-    body: 'Questions about this policy, or a request to access/delete your data? Email support@qube.app — we read every one.',
+    body: 'Questions about this policy, or a request to access/delete your data? Email support@qubemath.app — we read every one.',
   },
 ];
 
@@ -88,7 +88,7 @@ export const TERMS_OF_SERVICE_SECTIONS = [
   },
   {
     heading: 'Termination',
-    body: 'You can stop using Qube and delete your account any time from Profile → Contact Us. We may suspend accounts that violate these terms. Deleting your account doesn’t automatically cancel an active App Store subscription — cancel that separately in your Apple ID settings.',
+    body: 'You can stop using Qube and delete your account any time in the app from Profile → Settings → Delete Account. We may suspend accounts that violate these terms. Deleting your account doesn’t automatically cancel an active App Store subscription — cancel that separately in your Apple ID settings.',
   },
   {
     heading: 'Changes & governing law',
@@ -96,6 +96,6 @@ export const TERMS_OF_SERVICE_SECTIONS = [
   },
   {
     heading: 'Contact',
-    body: 'Questions about these terms, your subscription, or your account? Email support@qube.app.',
+    body: 'Questions about these terms, your subscription, or your account? Email support@qubemath.app.',
   },
 ];

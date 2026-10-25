@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { toPlainMath } from './plainMath';
 
 // Home's "Recent" list — the last few solutions, exactly as Solve returned them.
 // On-device only and text only (never the photo): works for guests, never
@@ -32,6 +33,7 @@ export async function addRecentSolve({ result, source, typedText }) {
       explanation:      result.explanation,
       steps:            result.steps,
       answer:           result.answer,
+      answerLatex:      result.answerLatex,
       commonMistake:    result.commonMistake,
       formula:          result.formula,
       practiceQuestion: result.practiceQuestion,
@@ -51,6 +53,9 @@ export async function clearRecentSolves() {
   try { await AsyncStorage.removeItem(RECENT_SOLVES_KEY); } catch {}
 }
 
+// Plain-text title for lists — cleaned (a¹⁰ ÷ a⁴, never a^10 or \frac), since a
+// typed problem is the user's own caret notation and old entries predate the
+// Unicode-only rule (docs/plans/latex-math-rendering.md).
 export function recentSolveTitle(entry) {
-  return entry.problem || entry.result?.problemType || 'Solved problem';
+  return toPlainMath(entry.problem) || entry.result?.problemType || 'Solved problem';
 }

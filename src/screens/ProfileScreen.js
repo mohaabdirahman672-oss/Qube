@@ -48,11 +48,12 @@ const MENU = [
 ];
 
 export default function ProfileScreen({ navigation }) {
-  const { session, user, signOut, updateDisplayName, sendPasswordReset } = useAuth();
+  const { session, user, signOut, deleteAccount, updateDisplayName, sendPasswordReset } = useAuth();
   const { isPremium, weeklyRemaining, weeklyLimit, refresh: refreshSubscription } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
   const [legalDoc, setLegalDoc] = useState(null); // 'about' | 'privacy' | 'terms' | null
   const [restoring,   setRestoring]   = useState(false);
+  const [deleting,    setDeleting]    = useState(false);
   const [savedCount,      setSavedCount]      = useState(0);
   const [editNameVisible, setEditNameVisible] = useState(false);
   const [nameInput,       setNameInput]       = useState('');
@@ -175,12 +176,55 @@ export default function ProfileScreen({ navigation }) {
     );
   }
 
+  // docs/plans/account-deletion.md. The Premium warning is shown to everyone, not only
+  // current subscribers — the local subscription state can be stale.
   function handleDeleteAccount() {
+    if (deleting) return;
     Alert.alert(
-      'Delete Account',
-      'To permanently delete your account and all data, contact us at support@qube.app.\n\nThis action cannot be undone.',
-      [{ text: 'OK' }]
+      'Delete your account?',
+      'This permanently deletes your account, saved problems and flashcards. It can\'t be undone.\n\n' +
+        'Deleting your account doesn\'t cancel Premium. Cancel it in iPhone Settings → your name → Subscriptions.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => runDeleteAccount() },
+      ]
     );
+  }
+
+  async function runDeleteAccount({ skipAppleConfirm = false } = {}) {
+    setDeleting(true);
+    let result;
+    try {
+      result = await deleteAccount({ skipAppleConfirm });
+    } catch {
+      result = { error: 'delete-failed' };
+    }
+    setDeleting(false);
+
+    if (result?.cancelled) return;
+    if (result?.appleUnavailable) {
+      Alert.alert(
+        'Couldn\'t confirm with Apple',
+        'You can still delete your account. Qube may stay listed under Settings → your name → Sign in with Apple until you remove it there.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete Anyway', style: 'destructive', onPress: () => runDeleteAccount({ skipAppleConfirm: true }) },
+        ]
+      );
+      return;
+    }
+    if (result?.error) {
+      Alert.alert(
+        'Couldn\'t delete account',
+        'Check your connection and try again. If it keeps happening, email support@qubemath.app.'
+      );
+      return;
+    }
+    // Close Settings from the alert's button, not before it: an Alert raised while an
+    // iOS Modal is animating closed can be dropped.
+    Alert.alert('Account deleted', 'Your account and its data have been deleted.', [
+      { text: 'OK', onPress: () => setShowSettings(false) },
+    ]);
   }
 
   async function handleRestorePurchases() {
@@ -597,7 +641,7 @@ export default function ProfileScreen({ navigation }) {
 
               <TouchableOpacity
                 style={styles.contactRow}
-                onPress={() => Linking.openURL('mailto:support@qube.app?subject=Qube%20Support')}
+                onPress={() => Linking.openURL('mailto:support@qubemath.app?subject=Qube%20Support')}
                 activeOpacity={0.75}
               >
                 <View style={[styles.menuIcon, { backgroundColor: colors.blue + '18', borderColor: colors.blue + '30' }]}>
@@ -605,7 +649,7 @@ export default function ProfileScreen({ navigation }) {
                 </View>
                 <View style={styles.menuText}>
                   <Text style={styles.menuLabel}>Contact Us</Text>
-                  <Text style={styles.menuSub}>support@qube.app</Text>
+                  <Text style={styles.menuSub}>support@qubemath.app</Text>
                 </View>
                 <Ionicons name="open-outline" size={16} color={colors.textMuted} />
               </TouchableOpacity>
@@ -713,18 +757,31 @@ export default function ProfileScreen({ navigation }) {
               {!isGuest && <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />}
             </TouchableOpacity>
 
-            {/* Danger zone */}
-            <Text style={[styles.settingsSectionLabel, { marginTop: spacing.lg }]}>DANGER ZONE</Text>
-            <TouchableOpacity style={styles.settingsRow} onPress={handleDeleteAccount} activeOpacity={0.75}>
-              <View style={[styles.menuIcon, { backgroundColor: '#EF444418', borderColor: '#EF444430' }]}>
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
-              </View>
-              <View style={styles.menuText}>
-                <Text style={[styles.menuLabel, { color: '#EF4444' }]}>Delete Account</Text>
-                <Text style={styles.menuSub}>Permanently remove your account &amp; data</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-            </TouchableOpacity>
+            {/* Danger zone — signed-in only; guests have no account to delete */}
+            {!isGuest && (
+              <>
+                <Text style={[styles.settingsSectionLabel, { marginTop: spacing.lg }]}>DANGER ZONE</Text>
+                <TouchableOpacity
+                  style={styles.settingsRow}
+                  onPress={handleDeleteAccount}
+                  activeOpacity={0.75}
+                  disabled={deleting}
+                >
+                  <View style={[styles.menuIcon, { backgroundColor: '#EF444418', borderColor: '#EF444430' }]}>
+                    <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  </View>
+                  <View style={styles.menuText}>
+                    <Text style={[styles.menuLabel, { color: '#EF4444' }]}>
+                      {deleting ? 'Deleting account…' : 'Delete Account'}
+                    </Text>
+                    <Text style={styles.menuSub}>Permanently remove your account &amp; data</Text>
+                  </View>
+                  {deleting
+                    ? <ActivityIndicator size="small" color="#EF4444" />
+                    : <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </Modal>
@@ -955,7 +1012,7 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.aboutLinkRow}
-              onPress={() => Linking.openURL('mailto:support@qube.app?subject=Qube%20Support')}
+              onPress={() => Linking.openURL('mailto:support@qubemath.app?subject=Qube%20Support')}
               activeOpacity={0.75}
             >
               <Text style={styles.aboutLinkText}>Contact Us</Text>

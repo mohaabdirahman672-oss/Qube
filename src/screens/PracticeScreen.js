@@ -12,10 +12,12 @@ import { Ionicons } from '@expo/vector-icons';
 import FloatingSymbols from '../components/FloatingSymbols';
 import SoftAuthWall from '../components/SoftAuthWall';
 import LockedPreview from '../components/LockedPreview';
+import MathView from '../components/MathView';
 import PaywallScreen from './PaywallScreen';
 import { CATEGORIES, getCards, getProblems } from '../data/practiceData';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
+import { toPlainMath } from '../lib/plainMath';
 import { colors, spacing, radius, typography } from '../theme';
 
 const CARD_CATEGORIES  = CATEGORIES.filter(c => c !== 'All');
@@ -30,6 +32,32 @@ const TAG_COLOR  = {
 };
 
 // ── Flashcard ─────────────────────────────────────────────────────────────────
+
+// Premium worked example. v2 examples are [{ explanation, math }] lines, typeset
+// like solve steps; a string is an error message (or a pre-v2 plain-text example).
+function WorkedExample({ example }) {
+  if (!Array.isArray(example)) {
+    return <Text style={styles.workedExampleText}>{toPlainMath(example)}</Text>;
+  }
+  return (
+    <View style={styles.workedExampleLines}>
+      {example.map((line, i) => (
+        <View key={i} style={styles.workedExampleLine}>
+          {line.explanation ? (
+            <Text style={styles.workedExampleExplain}>{toPlainMath(line.explanation)}</Text>
+          ) : null}
+          {line.math ? (
+            <MathView latex={line.math} fontSize={16} align="center" color={i === example.length - 1 ? colors.gold : colors.textPrimary} />
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// Space held for a worked example while it loads, sized to a typical 3-line
+// example so the card doesn't visibly grow when the lines arrive.
+const WORKED_EXAMPLE_PLACEHOLDER_HEIGHT = 150;
 
 function Flashcard({ card, index, total, onDelete, onLockedPress }) {
   const { isPremium } = useSubscription();
@@ -84,16 +112,25 @@ function Flashcard({ card, index, total, onDelete, onLockedPress }) {
             <View style={[styles.cardTagPill, { borderColor: tagColor + '50', backgroundColor: tagColor + '18' }]}>
               <Text style={[styles.cardTagText, { color: tagColor }]}>{card.tag}</Text>
             </View>
-            <Text style={styles.cardFrontText}>{card.front}</Text>
+            <Text style={styles.cardFrontText}>{toPlainMath(card.front)}</Text>
             <View style={styles.tapHint}>
               <Ionicons name="repeat-outline" size={14} color={colors.textMuted} />
               <Text style={styles.tapHintText}>Tap to reveal answer</Text>
             </View>
           </Animated.View>
 
-          {/* Back */}
-          <Animated.View style={[styles.cardFace, styles.cardBack, { opacity: backOpacity }]}>
-            <Text style={styles.cardBackText}>{card.back}</Text>
+          {/* Back — in normal flow (the front is absolute over it), so the card is
+              always as tall as its answer and flipping never changes its size. */}
+          <Animated.View style={[styles.cardBackFace, styles.cardBack, { opacity: backOpacity }]}>
+            {card.backLatex ? (
+              <View style={styles.cardBackMath}>
+                <MathView latex={card.backLatex} fontSize={20} align="center" fallbackStyle={styles.cardBackText} />
+                {card.backNote ? <Text style={styles.cardBackNote}>{card.backNote}</Text> : null}
+              </View>
+            ) : (
+              // User-made cards: typed plain text, cleaned (x^2 → x²).
+              <Text style={styles.cardBackText}>{toPlainMath(card.back)}</Text>
+            )}
 
             <View style={styles.workedExampleWrap}>
               <Text style={styles.workedExampleLabel}>WORKED EXAMPLE</Text>
@@ -104,10 +141,12 @@ function Flashcard({ card, index, total, onDelete, onLockedPress }) {
                 minHeight={64}
               >
                 {isPremium ? (
-                  loadingExample ? (
-                    <ActivityIndicator color={colors.blue} style={{ marginTop: spacing.sm }} />
+                  loadingExample || !workedExample ? (
+                    <View style={styles.workedExamplePlaceholder}>
+                      <ActivityIndicator color={colors.blue} />
+                    </View>
                   ) : (
-                    <Text style={styles.workedExampleText}>{workedExample}</Text>
+                    <WorkedExample example={workedExample} />
                   )
                 ) : (
                   <Text style={styles.workedExampleText}>
@@ -557,6 +596,9 @@ const styles = StyleSheet.create({
 
   cardWrap:     { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, minHeight: 180, overflow: 'hidden' },
   cardFace:     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
+  cardBackFace: { minHeight: 180, alignItems: 'center', justifyContent: 'center', padding: spacing.lg, paddingBottom: spacing.xl + spacing.lg },
+  cardBackMath: { alignSelf: 'stretch', alignItems: 'center', marginBottom: spacing.lg },
+  cardBackNote: { ...typography.caption, color: colors.textSub, textAlign: 'center', marginTop: spacing.sm },
   cardFront:    {},
   cardBack:     { backgroundColor: colors.surfaceHigh },
   cardTagPill:  { borderRadius: radius.full, paddingHorizontal: spacing.sm + 2, paddingVertical: 2, borderWidth: 1, marginBottom: spacing.md },
@@ -566,6 +608,10 @@ const styles = StyleSheet.create({
   workedExampleWrap: { width: '100%', marginBottom: spacing.md },
   workedExampleLabel: { ...typography.label, color: colors.textMuted, marginBottom: spacing.xs, textAlign: 'center' },
   workedExampleText: { ...typography.caption, color: colors.textSub, textAlign: 'center', lineHeight: 18, padding: spacing.sm },
+  workedExamplePlaceholder: { height: WORKED_EXAMPLE_PLACEHOLDER_HEIGHT, alignItems: 'center', justifyContent: 'center' },
+  workedExampleLines:   { gap: spacing.sm + 2, paddingVertical: spacing.sm },
+  workedExampleLine:    { alignItems: 'center', gap: 4 },
+  workedExampleExplain: { ...typography.caption, color: colors.textSub, textAlign: 'center', lineHeight: 18 },
   tapHint:      { flexDirection: 'row', alignItems: 'center', gap: 4, position: 'absolute', bottom: spacing.md },
   tapHintText:  { ...typography.caption, color: colors.textMuted },
 

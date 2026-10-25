@@ -1,0 +1,373 @@
+<title>Qube Support</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap">
+<style>
+  /* Layout: same single-column reading page and dark navy/gold identity as the Privacy Policy and Terms.
+     Deliberately single-theme (dark) to match the app and the two legal pages. */
+  :root{
+    --bg:#06091A;
+    --surface:#0C1228;
+    --surface-2:#101a38;
+    --border:#1A2744;
+    --border-light:#243358;
+    --blue:#4F8EF7;
+    --gold:#F59E0B;
+    --text:#F0F4FF;
+    --text-sub:#94A3B8;
+    --text-muted:#5B6B8C;
+    --on-gold:#06091A;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --display: "Sora", -apple-system, "Segoe UI", sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--blue);}
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:3px;
+    border-radius:4px;
+  }
+
+  .topbar{
+    position:sticky;
+    top:env(safe-area-inset-top, 0px);
+    z-index:20;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 20px;
+    padding-left:max(20px, calc(16px + env(safe-area-inset-left, 0px)));
+    padding-right:max(20px, calc(16px + env(safe-area-inset-right, 0px)));
+    background:rgba(6,9,26,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--display);
+    font-weight:700;
+    letter-spacing:0.2px;
+    font-size:15px;
+    color:var(--text);
+    text-decoration:none;
+  }
+  .brand-mark{
+    width:26px;height:26px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg, var(--blue), #1E3A8A);
+    color:#fff;font-weight:800;font-size:14px;
+    box-shadow:0 0 0 1px rgba(79,142,247,0.35);
+  }
+  .brand-sep{color:var(--text-muted);font-weight:500;}
+  .brand-page{color:var(--text-sub);font-weight:600;}
+  .topbar-links{
+    display:flex;
+    gap:14px;
+    font-family:var(--display);
+    font-size:12px;
+    font-weight:600;
+  }
+  .topbar-links a{color:var(--text-sub);text-decoration:none;}
+  .topbar-links a:hover{color:var(--text);}
+  @media (max-width:480px){ .topbar-links{display:none;} }
+
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding-inline:20px;
+  }
+
+  .hero{padding-block:52px 28px;}
+  .eyebrow{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+    color:var(--blue);
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:var(--display);
+    font-size:clamp(30px, 5vw, 42px);
+    font-weight:800;
+    letter-spacing:-0.5px;
+    line-height:1.1;
+    margin:0 0 14px;
+    text-wrap:balance;
+  }
+  .dek{
+    font-size:17px;
+    line-height:1.6;
+    color:var(--text-sub);
+    max-width:60ch;
+    margin:0;
+  }
+
+  /* contact */
+  .contact{
+    background:linear-gradient(160deg, rgba(79,142,247,0.10), rgba(245,158,11,0.06));
+    border:1px solid var(--border-light);
+    border-radius:16px;
+    padding:24px;
+    display:grid;
+    gap:18px;
+  }
+  .contact-label{
+    font-family:var(--display);
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.2px;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    margin:0 0 6px;
+  }
+  .email{
+    font-family:var(--display);
+    font-size:clamp(20px, 4.5vw, 26px);
+    font-weight:700;
+    color:var(--text);
+    user-select:all;
+    overflow-wrap:anywhere;
+    margin:0;
+  }
+  .contact-actions{display:flex;flex-wrap:wrap;gap:10px;}
+  .btn{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:14px;
+    padding:11px 18px;
+    border-radius:10px;
+    text-decoration:none;
+    cursor:pointer;
+    border:1px solid transparent;
+  }
+  .btn-gold{background:var(--gold);color:var(--on-gold);}
+  .btn-ghost{background:var(--surface);color:var(--text);border-color:var(--border-light);}
+  .include{
+    border-top:1px solid var(--border-light);
+    padding-top:16px;
+  }
+  .include p{margin:0 0 8px;font-size:14.5px;color:var(--text-sub);}
+  .include ul{margin:0;padding-left:20px;}
+  .include li{font-size:14.5px;line-height:1.6;color:var(--text-sub);}
+
+  /* faq */
+  .group{padding-block:36px 4px;}
+  h2{
+    font-family:var(--display);
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:1.4px;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 6px;
+  }
+  .qa{
+    padding-block:18px;
+    border-bottom:1px solid var(--border);
+  }
+  .qa:last-child{border-bottom:none;}
+  h3{
+    font-family:var(--display);
+    font-size:16px;
+    font-weight:700;
+    color:var(--text);
+    margin:0 0 6px;
+    text-wrap:balance;
+  }
+  .qa p{
+    font-size:15.5px;
+    line-height:1.7;
+    color:var(--text-sub);
+    margin:0;
+    max-width:66ch;
+  }
+  .qa strong{color:var(--text);font-weight:600;}
+  .path{
+    font-family:var(--display);
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--text);
+    white-space:nowrap;
+  }
+
+  .legal{
+    margin-block:36px 0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  @media (max-width:520px){ .legal{grid-template-columns:1fr;} }
+  .legal a{
+    display:block;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    text-decoration:none;
+    color:var(--text);
+    font-family:var(--display);
+    font-weight:700;
+    font-size:14px;
+  }
+  .legal a span{
+    display:block;
+    margin-top:4px;
+    font-family:var(--serif);
+    font-weight:400;
+    font-size:13.5px;
+    color:var(--text-sub);
+  }
+  .legal a:hover{border-color:var(--border-light);}
+
+  footer{
+    padding-block:40px 48px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 18px;
+    justify-content:space-between;
+    font-family:var(--display);
+    font-size:12px;
+    color:var(--text-muted);
+  }
+  footer p{margin:0;}
+</style>
+
+<div class="topbar">
+  <a class="brand" href="#top">
+    <span class="brand-mark">Q</span>
+    <span>QUBE<span class="brand-sep">&nbsp;/&nbsp;</span><span class="brand-page">Support</span></span>
+  </a>
+  <nav class="topbar-links" aria-label="Legal">
+    <a href="https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp">Privacy</a>
+    <a href="https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS">Terms</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <header class="hero" id="top">
+    <p class="eyebrow">Help · Contact</p>
+    <h1>Get help with Qube.</h1>
+    <p class="dek">Qube solves math problems step by step from a photo or typed text. If something isn't working, or you have a question about your account or subscription, email us. A person reads every message.</p>
+  </header>
+
+  <section class="contact" aria-labelledby="contact-label">
+    <div>
+      <p class="contact-label" id="contact-label">Email support</p>
+      <p class="email" id="email">support@qubemath.app</p>
+    </div>
+    <div class="contact-actions">
+      <button class="btn btn-gold" id="copy-btn" type="button">Copy address</button>
+      <a class="btn btn-ghost" href="mailto:support@qubemath.app?subject=Qube%20Support">Open in Mail</a>
+    </div>
+    <div class="include">
+      <p>To help us fix it faster, include:</p>
+      <ul>
+        <li>Your iPhone model and iOS version (Settings → General → About)</li>
+        <li>What you tapped, and what happened instead</li>
+        <li>A screenshot, if you have one</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="g-using">
+    <h2 id="g-using">Using Qube</h2>
+    <div class="qa">
+      <h3>How do I scan a math problem?</h3>
+      <p>Open the <span class="path">Scan</span> tab and choose Camera. Point it at a printed or handwritten problem and Qube solves it step by step. You can also upload a photo or type the problem.</p>
+    </div>
+    <div class="qa">
+      <h3>The answer looks wrong. What should I do?</h3>
+      <p>Qube is accurate on standard arithmetic, algebra, trigonometry and calculus, but it can misread handwriting or a blurry photo. Try a sharper, well-lit photo, or type the problem instead. Always check the steps before relying on an answer for graded work. If it keeps getting one wrong, email us the problem.</p>
+    </div>
+    <div class="qa">
+      <h3>Why isn't my saved problem showing up?</h3>
+      <p>Saved problems are stored with your account, so you need to be signed in. Guests can't save. Sign in, then open the <span class="path">Saved</span> tab.</p>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="g-plans">
+    <h2 id="g-plans">Free solves &amp; Premium</h2>
+    <div class="qa">
+      <h3>How many free solves do I get?</h3>
+      <p><strong>20 AI solves every week</strong>, with or without an account. The count starts over each Monday. Flashcards and practice problems are always free.</p>
+    </div>
+    <div class="qa">
+      <h3>What does Premium include?</h3>
+      <p>Unlimited solves (fair use, up to 100 an hour) and AI worked examples on every flashcard. It's <strong>$9.99 a month or $79.99 a year</strong>, with a 7-day free trial for new subscribers.</p>
+    </div>
+    <div class="qa">
+      <h3>How do I cancel Premium?</h3>
+      <p>Apple manages the subscription. On your iPhone, go to <span class="path">Settings → your name → Subscriptions → Qube</span> and tap Cancel. You keep Premium until the end of the period you paid for, then return to the free tier.</p>
+    </div>
+    <div class="qa">
+      <h3>I paid, but Premium isn't showing.</h3>
+      <p>Make sure you're signed in to the same Qube account, then go to <span class="path">Profile → Restore Purchases</span>. If it still doesn't show, email us with the date of the purchase.</p>
+    </div>
+    <div class="qa">
+      <h3>Can I get a refund?</h3>
+      <p>Apple handles all payments and refunds. Request one at <a href="https://reportaproblem.apple.com">reportaproblem.apple.com</a>.</p>
+    </div>
+  </section>
+
+  <section class="group" aria-labelledby="g-account">
+    <h2 id="g-account">Your account</h2>
+    <div class="qa">
+      <h3>How do I reset my password?</h3>
+      <p>On the sign-in screen, tap <span class="path">Forgot password</span>, or go to <span class="path">Profile → Settings → Change Password</span>. We'll email you a reset link. Check your spam folder if it doesn't arrive within a few minutes.</p>
+    </div>
+    <div class="qa">
+      <h3>How do I delete my account?</h3>
+      <p>In the app, go to <span class="path">Profile → Settings → Delete Account</span> and confirm. Your account and everything saved with it are deleted right away. If you signed in with Apple, you'll confirm with Apple once more. Deleting your account doesn't cancel a Premium subscription, so cancel that in iPhone Settings first.</p>
+    </div>
+  </section>
+
+  <nav class="legal" aria-label="Legal documents">
+    <a href="https://claude.ai/artifact/BJD7cQeJe1ebUFRH9paBPp">Privacy Policy<span>What we collect and who we share it with</span></a>
+    <a href="https://claude.ai/artifact/YZ2QSANyCGUqDwRo1VsvuS">Terms of Service<span>Subscriptions, fair use and your content</span></a>
+  </nav>
+
+  <footer>
+    <p>© 2026 Qube. All rights reserved.</p>
+    <p>com.qube.mathapp</p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById('copy-btn');
+    var email = document.getElementById('email');
+    function selectEmail() {
+      var range = document.createRange();
+      range.selectNodeContents(email);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    btn.addEventListener('click', function () {
+      var done = function () {
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = 'Copy address'; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email.textContent).then(done, function () {
+          selectEmail();
+          btn.textContent = 'Press ⌘C to copy';
+        });
+      } else {
+        selectEmail();
+        btn.textContent = 'Press ⌘C to copy';
+      }
+    });
+  })();
+</script>

@@ -71,6 +71,40 @@ async function setCached(cardKey, workedExample) {
   });
 }
 
+// Same field contract as solve's steps (docs/plans/latex-math-rendering.md):
+// "explanation" is plain English, "math" is LaTeX the app typesets.
+const SYSTEM_PROMPT = String.raw`You write one short worked example for a math flashcard: the card's formula used with real, specific numbers, solved to a final answer, laid out like a textbook.
+
+Respond ONLY with a JSON object:
+{
+  "lines": [
+    { "explanation": "Start with the formula and substitute r = 3.", "math": "A = \\pi r^{2} = \\pi (3)^{2}" },
+    { "explanation": "Square the radius.", "math": "A = 9\\pi" },
+    { "explanation": "Give a decimal approximation.", "math": "A \\approx 28.27" }
+  ]
+}
+
+Rules:
+- 2 to 4 lines. The last line's math is the final answer.
+- "explanation": one short plain-English sentence, no LaTeX, no ^ notation; keep math symbols out of it where possible.
+- "math": LaTeX only, no $ delimiters, standard LaTeX/AMS macros only (\frac, \sqrt, \times, \div, \cdot, \pm, \pi, \theta, \sin, \cos, \approx, \text{}, ^{}, _{}). Always brace exponents and subscripts.`;
+
+// See solve/index.js repairJsonEscapes/restoreLatexEscapes — same two LaTeX-in-JSON
+// failure modes, same fix.
+function repairJsonEscapes(raw) {
+  return raw.replace(/\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4})|\\/g, (m) => (m.length > 1 ? m : "\\\\"));
+}
+
+function restoreLatexEscapes(s) {
+  if (typeof s !== "string") return "";
+  return s
+    .replace(/\f/g, "\\f")
+    .replace(/\t/g, "\\t")
+    .replace(/\x08/g, "\\b")
+    .replace(/\r/g, "\\r")
+    .replace(/\n(?=[a-zA-Z])/g, "\\n");
+}
+
 async function generateWorkedExample(front, back, tag) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
@@ -84,12 +118,10 @@ async function generateWorkedExample(front, back, tag) {
       },
       body: JSON.stringify({
         model: "gpt-4o",
-        max_tokens: 300,
+        max_tokens: 500,
+        response_format: { type: "json_object" },
         messages: [
-          {
-            role: "system",
-            content: `You write one short worked example for a math flashcard, showing the formula used with real substituted numbers, solved to a final answer. Plain text only, no LaTeX/markdown. 3-5 lines. Respond with ONLY the worked example text, no preamble.`,
-          },
+          { role: "system", content: SYSTEM_PROMPT },
           {
             role: "user",
             content: `Card: "${front}" (${tag})\nFormula: ${back}\n\nWrite one concrete worked example using this formula with specific numbers.`,
@@ -102,7 +134,12 @@ async function generateWorkedExample(front, back, tag) {
     const data = await response.json();
     const text = data?.choices?.[0]?.message?.content?.trim();
     if (!text) throw new Error("Empty response from AI.");
-    return text;
+    const parsed = JSON.parse(repairJsonEscapes(text));
+    const lines = (Array.isArray(parsed?.lines) ? parsed.lines : [])
+      .map((l) => ({ explanation: String(l?.explanation ?? "").trim(), math: restoreLatexEscapes(l?.math).trim() }))
+      .filter((l) => l.explanation || l.math);
+    if (!lines.length) throw new Error("Empty worked example from AI.");
+    return lines;
   } finally {
     clearTimeout(timeout);
   }
@@ -140,17 +177,25 @@ Deno.serve(async (req) => {
     // Keyed by the card's own content, not a category — front text is unique across
     // the current static card set (src/data/practiceData.js) and this only needs to
     // dedupe, not be a true foreign key.
-    const cardKey = `${slugify(front)}__${slugify(back).slice(0, 40)}`;
+    // "v2__" = structured [{ explanation, math }] examples (docs/plans/latex-math-rendering.md).
+    // Old plain-text rows under the unprefixed key are left in place but no longer
+    // read, so every card regenerates once in the new typeset format. The column is
+    // text, so the lines are stored as a JSON string — no schema change.
+    const cardKey = `v2__${slugify(front)}__${slugify(back).slice(0, 40)}`;
 
     const cached = await getCached(cardKey);
     if (cached) {
-      return new Response(JSON.stringify({ workedExample: cached, cached: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      let lines = null;
+      try { lines = JSON.parse(cached); } catch { /* not v2 JSON — regenerate below */ }
+      if (Array.isArray(lines) && lines.length) {
+        return new Response(JSON.stringify({ workedExample: lines, cached: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const workedExample = await generateWorkedExample(front, back, tag);
-    await setCached(cardKey, workedExample);
+    await setCached(cardKey, JSON.stringify(workedExample));
 
     return new Response(JSON.stringify({ workedExample, cached: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

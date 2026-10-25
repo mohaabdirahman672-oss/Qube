@@ -87,15 +87,20 @@ Paste into App Store Connect → your build → App Review Information → Notes
 > device they sign in on, alongside their synced saved problems and
 > flashcards. Sign in with Apple is offered, so this takes one tap. Everything
 > else, including the core solve feature, works without an account.
+>
+> Account deletion is in the app: Profile → Settings → Delete Account. It
+> deletes the account and all its data immediately, and for Sign in with Apple
+> accounts it also revokes the app's Apple token. To test it, please create a
+> new account rather than deleting the demo account below.
 
 **Demo account**: with the login gate removed, a demo account is no longer
 strictly required to reach the app's main feature (this alone was the single
 most common rejection reason for this category of app — see
 `docs/plans/launch-daily-checklist.md`). Still worth providing one so the
 reviewer can see Saved Problems, custom flashcards, and Premium/subscription
-management. **Create a real test account** (a real email you control, e.g.
-`qube.reviewer+appstore@<your domain>`) and list its email/password here —
-don't reuse your own personal account. Not yet created as of 2026-09-23.
+management.
+
+✅ **Created 2026-10-25:** **`reviewer@qubemath.app`** (Cloudflare forward to the owner's Gmail). It has saved problems and a flashcard, and is not Premium. **The password is deliberately not stored in this repo.** The owner types it directly into App Store Connect → App Review Information → Sign-in required.
 
 **Attach-Purchase note**: if the reviewer needs to test the subscription
 itself, mention that Apple's own Sandbox Tester accounts are the intended path
@@ -133,5 +138,4 @@ places:
 - **KI-08**: RevenueCat/App Store Connect subscription products must exist
   before the "Purchase History" row above is fully accurate and before a
   reviewer can actually test the trial.
-- **Reviewer demo account**: not created yet — do this alongside filling out
-  the notes above, not after.
+- ~~**Reviewer demo account**~~: done 2026-10-25 (`reviewer@qubemath.app`, see §3).

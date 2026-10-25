@@ -2,9 +2,38 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import MathView from './MathView';
+import { toPlainMath } from '../lib/plainMath';
 import { colors, spacing, radius, typography } from '../theme';
 
 const DIFF_COLOR = { Easy: colors.green, Medium: colors.gold, Hard: '#EF4444', Advanced: colors.purple };
+
+// Typeset results (docs/plans/latex-math-rendering.md) have steps shaped
+// { title, explanation, math } plus answerLatex, and `formula` is LaTeX. Older
+// results — saved problems and Recent solves from before the change — have
+// { title, body } steps and a plain-text formula, so they render as cleaned text.
+export function isTypesetResult(result) {
+  return !!result?.answerLatex || (result?.steps || []).some(s => s && 'math' in s);
+}
+
+// One step's content, either shape. Shared with SavedScreen's expanded view.
+export function StepContent({ step, explanationStyle }) {
+  if (step && ('math' in step || 'explanation' in step)) {
+    return (
+      <>
+        {step.explanation ? (
+          <Text style={[styles.stepContent, explanationStyle]}>{toPlainMath(step.explanation)}</Text>
+        ) : null}
+        {step.math ? (
+          <View style={styles.stepMath}>
+            <MathView latex={step.math} />
+          </View>
+        ) : null}
+      </>
+    );
+  }
+  return step?.body ? <Text style={[styles.stepContent, explanationStyle]}>{toPlainMath(step.body)}</Text> : null;
+}
 
 // Everything the solve function told the user, in one place — rendered live by
 // SolveScreen and replayed from history by RecentSolveModal, so the two can't
@@ -12,6 +41,7 @@ const DIFF_COLOR = { Easy: colors.green, Medium: colors.gold, Hard: '#EF4444', A
 // meant to sit inside a container with `gap` spacing like SolveScreen's card.
 // onTryNext is optional: without it, "Try this next" shows the question only.
 export default function SolutionView({ result, onTryNext }) {
+  const typeset = isTypesetResult(result);
   return (
     <>
       {/* Type + difficulty */}
@@ -35,7 +65,7 @@ export default function SolutionView({ result, onTryNext }) {
       {/* Method explanation */}
       {result.explanation ? (
         <View style={styles.explanationBox}>
-          <Text style={styles.explanationText}>{result.explanation}</Text>
+          <Text style={styles.explanationText}>{toPlainMath(result.explanation)}</Text>
         </View>
       ) : null}
 
@@ -49,14 +79,14 @@ export default function SolutionView({ result, onTryNext }) {
             </View>
             <View style={styles.stepBody}>
               <Text style={styles.stepTitle}>{step.title}</Text>
-              <Text style={styles.stepContent}>{step.body}</Text>
+              <StepContent step={step} />
             </View>
           </View>
         </View>
       ))}
 
       {/* Answer */}
-      {result.answer ? (
+      {result.answerLatex || result.answer ? (
         <LinearGradient
           colors={[colors.goldDark + '22', colors.gold + '11']}
           style={styles.answerBox}
@@ -64,7 +94,19 @@ export default function SolutionView({ result, onTryNext }) {
           end={{ x: 1, y: 1 }}
         >
           <Text style={styles.answerLabel}>ANSWER</Text>
-          <Text style={styles.answerValue}>{result.answer}</Text>
+          {result.answerLatex ? (
+            <View style={styles.answerMath}>
+              <MathView
+                latex={result.answerLatex}
+                color={colors.gold}
+                fontSize={22}
+                align="center"
+                fallbackStyle={styles.answerValue}
+              />
+            </View>
+          ) : (
+            <Text style={styles.answerValue}>{toPlainMath(result.answer)}</Text>
+          )}
         </LinearGradient>
       ) : null}
 
@@ -74,7 +116,7 @@ export default function SolutionView({ result, onTryNext }) {
           <Ionicons name="warning-outline" size={16} color={colors.gold} />
           <View style={styles.mistakeTextWrap}>
             <Text style={styles.mistakeLabel}>Common Mistake</Text>
-            <Text style={styles.mistakeText}>{result.commonMistake}</Text>
+            <Text style={styles.mistakeText}>{toPlainMath(result.commonMistake)}</Text>
           </View>
         </View>
       ) : null}
@@ -83,7 +125,13 @@ export default function SolutionView({ result, onTryNext }) {
       {result.formula ? (
         <View style={styles.formulaChip}>
           <Ionicons name="flask-outline" size={14} color={colors.blue} />
-          <Text style={styles.formulaText}>{result.formula}</Text>
+          {typeset ? (
+            <View style={styles.formulaMath}>
+              <MathView latex={result.formula} color={colors.blue} fontSize={15} fallbackStyle={styles.formulaText} />
+            </View>
+          ) : (
+            <Text style={styles.formulaText}>{toPlainMath(result.formula)}</Text>
+          )}
         </View>
       ) : null}
 
@@ -91,7 +139,7 @@ export default function SolutionView({ result, onTryNext }) {
       {result.practiceQuestion ? (
         <View style={styles.practiceNextCard}>
           <Text style={styles.practiceNextLabel}>TRY THIS NEXT</Text>
-          <Text style={[styles.practiceNextQ, !onTryNext && { marginBottom: 0 }]}>{result.practiceQuestion}</Text>
+          <Text style={[styles.practiceNextQ, !onTryNext && { marginBottom: 0 }]}>{toPlainMath(result.practiceQuestion)}</Text>
           {onTryNext ? (
             <TouchableOpacity style={styles.practiceNextBtn} onPress={onTryNext} activeOpacity={0.8}>
               <Text style={styles.practiceNextBtnText}>Solve This →</Text>
@@ -120,8 +168,10 @@ const styles = StyleSheet.create({
   stepBody:    { flex: 1 },
   stepTitle:   { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
   stepContent: { ...typography.body, color: colors.textSub, lineHeight: 22 },
+  stepMath:    { marginTop: spacing.sm, paddingVertical: spacing.xs },
 
   answerBox:   { borderRadius: radius.lg, padding: spacing.md, alignItems: 'center', borderWidth: 1, borderColor: colors.gold + '30' },
+  answerMath:  { alignSelf: 'stretch', marginTop: spacing.xs },
   answerLabel: { fontSize: 9, fontWeight: '800', color: colors.gold, letterSpacing: 1.5, marginBottom: 4 },
   answerValue: { fontSize: 20, fontWeight: '800', color: colors.gold, letterSpacing: -0.3 },
 
@@ -132,6 +182,7 @@ const styles = StyleSheet.create({
 
   formulaChip: { flexDirection: 'row', gap: spacing.xs + 2, alignItems: 'center', backgroundColor: colors.blue + '0E', borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderWidth: 1, borderColor: colors.blue + '20' },
   formulaText: { ...typography.caption, color: colors.blue, fontWeight: '600', flex: 1 },
+  formulaMath: { flex: 1 },
 
   practiceNextCard:    { backgroundColor: colors.surfaceHigh, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.purple + '30' },
   practiceNextLabel:   { fontSize: 9, fontWeight: '800', color: colors.purple, letterSpacing: 1.5, marginBottom: spacing.sm },

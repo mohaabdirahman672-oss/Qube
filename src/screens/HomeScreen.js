@@ -7,6 +7,7 @@ import {
   Animated,
   ScrollView,
   StatusBar,
+  InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,8 @@ import FloatingSymbols from '../components/FloatingSymbols';
 import SoftAuthWall from '../components/SoftAuthWall';
 import RecentSolveModal, { formatSolvedAt } from '../components/RecentSolveModal';
 import { getRecentSolves, recentSolveTitle } from '../lib/recentSolves';
+import { toPlainMath } from '../lib/plainMath';
+import { warmMath } from '../lib/mathjax';
 import { useAuth } from '../hooks/useAuth';
 import { colors, spacing, radius, typography } from '../theme';
 
@@ -247,6 +250,17 @@ export default function HomeScreen({ navigation }) {
       .catch(() => {});
   }, [entranceDone, authLoading, session]);
 
+  // MathJax's one-time setup (a few hundred ms of JS) — done here, once the
+  // entrance animation has finished and the app is idle, so it never touches
+  // launch, and the first Practice card or solution is already warm. Home's
+  // animations are all native-driven, so this can't make them stutter.
+  // (docs/plans/latex-math-rendering.md)
+  useEffect(() => {
+    if (!entranceDone) return;
+    const t = setTimeout(() => InteractionManager.runAfterInteractions(warmMath), 1500);
+    return () => clearTimeout(t);
+  }, [entranceDone]);
+
   const dismissWelcomePrompt = () => {
     setShowWelcomePrompt(false);
     AsyncStorage.setItem(WELCOME_PROMPT_SEEN_KEY, '1').catch(() => {});
@@ -446,7 +460,7 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.recentText}>
                     <Text style={styles.recentTitle} numberOfLines={2}>{recentSolveTitle(entry)}</Text>
                     <Text style={styles.recentMeta} numberOfLines={1}>
-                      {entry.result?.answer ? `${entry.result.answer} · ` : ''}{formatSolvedAt(entry.solvedAt)}
+                      {entry.result?.answer ? `${toPlainMath(entry.result.answer)} · ` : ''}{formatSolvedAt(entry.solvedAt)}
                     </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
