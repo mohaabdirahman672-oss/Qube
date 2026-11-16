@@ -7,7 +7,10 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "preview": "start preview.html"
+    "preview": "start preview.html",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"tests/unit/*.test.mjs\" \"tests/server/*.test.mjs\"",
+    "test:web": "npm --prefix tests/web test",
+    "build:mathfield": "node scripts/build-mathfield-html.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.5",
@@ -27,6 +30,7 @@
     "expo-crypto": "~14.1.5",
     "expo-dev-client": "~5.2.4",
     "expo-font": "~13.3.2",
+    "expo-haptics": "~14.1.4",
     "expo-image-picker": "~16.1.4",
     "expo-linear-gradient": "~14.1.5",
     "expo-status-bar": "~2.2.3",
@@ -39,11 +43,14 @@
     "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
     "react-native-url-polyfill": "^3.0.0",
-    "react-native-web": "^0.20.0"
+    "react-native-web": "^0.20.0",
+    "react-native-webview": "13.13.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",
     "babel-preset-expo": "~13.0.0",
+    "mathjs": "15.2.0",
+    "mathlive": "0.111.1",
     "react-refresh": "^0.18.0"
   },
   "expo": {

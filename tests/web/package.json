@@ -1,0 +1,12 @@
+{
+  "name": "qube-web-e2e",
+  "private": true,
+  "type": "module",
+  "description": "Browser tests against expo start --web. Every Supabase call is mocked and OpenAI is blocked: no cost, no production data. See tests/README.md.",
+  "scripts": {
+    "test": "node keyboard.e2e.mjs && node auth.e2e.mjs && node limits.e2e.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "23.11.1"
+  }
+}

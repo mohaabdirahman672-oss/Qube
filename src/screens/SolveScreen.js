@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, Pressable, StyleSheet,
   ScrollView, ActivityIndicator, Image, KeyboardAvoidingView,
   Platform, Alert,
 } from 'react-native';
@@ -21,12 +21,26 @@ import { toPlainMath } from '../lib/plainMath';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscription } from '../context/SubscriptionContext';
 import { resetDayName } from '../lib/weeklyUsage';
+import MathInput, { MATH_INPUT_AVAILABLE } from '../components/mathKeyboard/MathInput';
+import MathKeypad from '../components/mathKeyboard/MathKeypad';
+import { getTypedHistory, addTypedHistory } from '../lib/typedHistory';
+import { hasEmptySlot, latexForSolve, plainToLatex, looksLikeWords, readProblemToLatex } from '../lib/mathFieldText';
+import MathView from '../components/MathView';
 import { colors, spacing, radius, typography } from '../theme';
 
 // Below this many remaining, the pill switches to a more urgent "N remaining"
 // framing instead of the default "X of Y used" — still just a pill, never a
 // blocking interruption (that only happens at 0, via the paywall).
 const LOW_BALANCE_THRESHOLD = 5;
+
+// Loading copy that moves on while a solve runs, so a slow one (big photo, busy
+// network) reads as progress rather than a hang. [seconds elapsed, text].
+const LOADING_STAGES = [
+  [0, 'Reading your problem…'],
+  [4, 'Working through the steps…'],
+  [12, 'Checking the answer…'],
+  [25, 'Still working — hard ones take a little longer…'],
+];
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -72,9 +86,43 @@ export default function SolveScreen({ navigation }) {
   const [error, setError]             = useState(null);
   const [result, setResult]           = useState(null);
   const [saved, setSaved]             = useState(false);
+  // Where the current result came from — photo results get the "We read…" card.
+  const [resultSource, setResultSource] = useState(null);
+
+  // Math keypad (docs/plans/math-keyboard.md). inputMode 'math' = MathLive field +
+  // keypad; 'text' = the plain TextInput with the iOS keyboard (ABC, for word
+  // problems — and the only mode on builds without the WebView native module).
+  const [inputMode, setInputMode]     = useState(MATH_INPUT_AVAILABLE ? 'math' : 'text');
+  const [mathLatex, setMathLatex]     = useState('');
+  const [keypadOpen, setKeypadOpen]   = useState(false);
+  const [history, setHistory]         = useState([]);
+  const mathRef = useRef(null);
 
   const scrollRef      = useRef(null);
   const solutionOffset = useRef(0);
+
+  const keypadShown = mode === 'type' && inputMode === 'math' && keypadOpen && !loading;
+
+  const [loadingStage, setLoadingStage] = useState(0);
+  useEffect(() => {
+    if (!loading) { setLoadingStage(0); return undefined; }
+    const timers = LOADING_STAGES.slice(1).map(([sec], i) => setTimeout(() => setLoadingStage(i + 1), sec * 1000));
+    return () => timers.forEach(clearTimeout);
+  }, [loading]);
+
+  useEffect(() => { getTypedHistory().then(setHistory); }, []);
+
+  // The keypad stands in for the iOS keyboard, which covers the tab bar; do the
+  // same so the keypad gets the full width and height at the bottom.
+  useEffect(() => {
+    navigation?.setOptions?.({ tabBarVisible: !keypadShown });
+  }, [keypadShown, navigation]);
+
+  function clearInputs() {
+    setTypeText('');
+    setMathLatex('');
+    mathRef.current?.clear();
+  }
 
   // ── mode switch ──────────────────────────────────────────────────────────
 
@@ -85,7 +133,20 @@ export default function SolveScreen({ navigation }) {
     setSaved(false);
     setImageUri(null);
     setImageBase64(null);
-    setTypeText('');
+    setKeypadOpen(false);
+    clearInputs();
+  }
+
+  function switchToText() {
+    // Carry anything already typed over as readable text.
+    if (!typeText && mathLatex) setTypeText(toPlainMath(mathLatex));
+    setKeypadOpen(false);
+    setInputMode('text');
+  }
+
+  function switchToMath() {
+    setInputMode('math');
+    setKeypadOpen(true);
   }
 
   // ── image selection ──────────────────────────────────────────────────────
@@ -117,20 +178,28 @@ export default function SolveScreen({ navigation }) {
       setShowPaywall(true);
       return;
     }
+    const typedMath = mode === 'type' && !overrides && inputMode === 'math';
+    if (mode === 'type' && !overrides) {
+      const empty = typedMath ? !latexForSolve(mathLatex) : !typeText.trim();
+      if (empty) {
+        setError('Please type your math problem first.');
+        return;
+      }
+      if (typedMath && hasEmptySlot(mathLatex)) {
+        setError('Fill in the empty boxes first, or delete them.');
+        return;
+      }
+    }
+
     setError(null);
     setResult(null);
     setSaved(false);
+    setKeypadOpen(false);
     setLoading(true);
 
     const input = overrides || (mode === 'type'
-      ? { text: typeText.trim() }
+      ? { text: typedMath ? latexForSolve(mathLatex) : typeText.trim() }
       : { imageBase64, imageMimeType: imageMime });
-
-    if (mode === 'type' && !overrides && !typeText.trim()) {
-      setError('Please type your math problem first.');
-      setLoading(false);
-      return;
-    }
 
     console.log('[SolveScreen] solve() calling solveMathProblem', { mode, hasImage: !!input.imageBase64 });
     try {
@@ -150,8 +219,11 @@ export default function SolveScreen({ navigation }) {
       // (supabase/functions/solve) — re-fetch to reflect it, no local increment.
       if (!isPremium) refreshUsage();
       setResult(res);
+      setResultSource(input.text ? 'type' : 'photo');
       // Feeds Home's "Recent" list (on-device only, fire-and-forget).
       addRecentSolve({ result: res, source: input.text ? 'type' : mode, typedText: input.text });
+      // The keypad's History tab keeps the field's own LaTeX so it reloads as math.
+      if (typedMath) addTypedHistory(mathLatex).then(setHistory);
       setTimeout(() => {
         scrollRef.current?.scrollTo({ y: solutionOffset.current - 16, animated: true });
       }, 100);
@@ -178,7 +250,8 @@ export default function SolveScreen({ navigation }) {
     const { error } = await insertSavedProblem({
       userId:      user.id,
       type:        'scan',
-      title:       result.answer ? 'Answer: ' + toPlainMath(result.answer) : 'Solved Problem',
+      title:       result.status === 'partial' ? 'Unfinished: ' + toPlainMath(result.problem || 'problem')
+                 : result.answer ? 'Answer: ' + toPlainMath(result.answer) : 'Solved Problem',
       problemType: result.problemType,
       difficulty:  result.difficulty,
       steps:       result.steps,
@@ -194,11 +267,46 @@ export default function SolveScreen({ navigation }) {
 
   // ── try next ──────────────────────────────────────────────────────────────
 
+  // Scan correction (math keyboard session 6): load what the AI read from the
+  // photo into Type mode so the user can fix a misread and solve again.
+  function editReadProblem() {
+    if (!result) return;
+    const problem = result.problem || '';
+    setMode('type');
+    setResult(null);
+    setError(null);
+    setSaved(false);
+    setImageUri(null);
+    setImageBase64(null);
+    if (MATH_INPUT_AVAILABLE && !looksLikeWords(problem)) {
+      const latex = readProblemToLatex(result);
+      setInputMode('math');
+      setTypeText('');
+      setMathLatex(latex);
+      mathRef.current?.setValue(latex);
+      setKeypadOpen(true);
+    } else {
+      setInputMode('text');
+      setTypeText(toPlainMath(problem));
+    }
+  }
+
   function tryNext() {
     const q = result?.practiceQuestion;
     if (!q) return;
     setMode('type');
-    setTypeText(q);
+    // Expressions go into the math field as editable math; word problems into the
+    // text box. Either way the question itself is what gets solved.
+    if (MATH_INPUT_AVAILABLE && !looksLikeWords(q)) {
+      const latex = plainToLatex(q);
+      setInputMode('math');
+      setMathLatex(latex);
+      setTypeText('');
+      mathRef.current?.setValue(latex);
+    } else {
+      setInputMode('text');
+      setTypeText(q);
+    }
     setResult(null);
     setError(null);
     setSaved(false);
@@ -326,23 +434,68 @@ export default function SolveScreen({ navigation }) {
               </View>
             )}
 
+            {/* ── Type mode: math field ──
+                Mounted for the screen's lifetime (hidden when unused) so the
+                WebView's start-up cost is paid once, not on every switch. */}
+            {MATH_INPUT_AVAILABLE ? (
+              <View style={mode === 'type' && inputMode === 'math' ? null : styles.hidden}>
+                <Pressable
+                  style={[styles.mathBox, keypadShown && styles.mathBoxActive]}
+                  onPress={() => setKeypadOpen(true)}
+                  accessibilityLabel="Math problem. Double tap to open the math keypad."
+                >
+                  <MathInput
+                    ref={mathRef}
+                    onChange={(l) => { setMathLatex(l); if (error) setError(null); }}
+                    onFocus={() => setKeypadOpen(true)}
+                    minHeight={56}
+                  />
+                  <View style={styles.mathBoxFooter}>
+                    <TouchableOpacity onPress={switchToText} style={styles.mathBoxLink} accessibilityRole="button" accessibilityLabel="Type a word problem instead" testID="switch-to-text">
+                      <Ionicons name="text-outline" size={14} color={colors.textSub} />
+                      <Text style={styles.mathBoxLinkText}>Word problem</Text>
+                    </TouchableOpacity>
+                    {mathLatex ? (
+                      <TouchableOpacity onPress={clearInputs} style={styles.mathBoxLink} accessibilityRole="button" accessibilityLabel="Clear" testID="clear-math">
+                        <Ionicons name="close-circle" size={15} color={colors.textMuted} />
+                        <Text style={styles.mathBoxLinkText}>Clear</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+                </Pressable>
+              </View>
+            ) : null}
+
             {/* ── Type mode ── */}
             {mode === 'type' && (
               <View>
-                <View style={styles.typeBox}>
-                  <TextInput
-                    style={styles.typeInput}
-                    placeholder="e.g.  2x² + 7x − 15 = 0"
-                    placeholderTextColor={colors.textMuted}
-                    value={typeText}
-                    onChangeText={setTypeText}
-                    multiline
-                    textAlignVertical="top"
-                    returnKeyType="done"
-                    blurOnSubmit
-                  />
-                  <Text style={styles.charCount}>{typeText.length}</Text>
-                </View>
+                {inputMode === 'text' ? (
+                  <View style={styles.typeBox}>
+                    <TextInput
+                      style={styles.typeInput}
+                      placeholder={MATH_INPUT_AVAILABLE ? 'Type a word problem…' : 'e.g.  2x² + 7x − 15 = 0'}
+                      placeholderTextColor={colors.textMuted}
+                      value={typeText}
+                      onChangeText={setTypeText}
+                      autoFocus={MATH_INPUT_AVAILABLE}
+                      multiline
+                      textAlignVertical="top"
+                      returnKeyType="done"
+                      blurOnSubmit
+                      testID="type-text-input"
+                    />
+                    <View style={styles.typeFooter}>
+                      {MATH_INPUT_AVAILABLE ? (
+                        <TouchableOpacity onPress={switchToMath} style={styles.mathBoxLink} accessibilityRole="button" accessibilityLabel="Use the math keypad" testID="switch-to-math">
+                          <Ionicons name="calculator-outline" size={14} color={colors.gold} />
+                          <Text style={[styles.mathBoxLinkText, { color: colors.gold }]}>Math keypad</Text>
+                        </TouchableOpacity>
+                      ) : <View />}
+                      <Text style={styles.charCount}>{typeText.length}</Text>
+                    </View>
+                  </View>
+                ) : null}
+                {keypadShown ? null : (
                 <TouchableOpacity
                   style={[styles.solveBtn, loading && styles.solveBtnDisabled]}
                   onPress={() => solve()}
@@ -359,6 +512,7 @@ export default function SolveScreen({ navigation }) {
                     <Ionicons name="arrow-forward" size={18} color={colors.black} />
                   </LinearGradient>
                 </TouchableOpacity>
+                )}
               </View>
             )}
 
@@ -374,7 +528,7 @@ export default function SolveScreen({ navigation }) {
             {loading ? (
               <View style={styles.loadingWrap}>
                 <ActivityIndicator size="large" color={colors.gold} />
-                <Text style={styles.loadingText}>Analyzing your problem…</Text>
+                <Text style={styles.loadingText} accessibilityLiveRegion="polite">{LOADING_STAGES[loadingStage][1]}</Text>
               </View>
             ) : null}
 
@@ -384,6 +538,20 @@ export default function SolveScreen({ navigation }) {
                 onLayout={e => { solutionOffset.current = e.nativeEvent.layout.y; }}
                 style={styles.solutionCard}
               >
+                {resultSource === 'photo' && (result.problem || result.problemLatex) ? (
+                  <View style={styles.readCard}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.readLabel}>WE READ</Text>
+                      {result.problemLatex
+                        ? <MathView latex={result.problemLatex} fontSize={16} />
+                        : <Text style={styles.readText}>{toPlainMath(result.problem)}</Text>}
+                    </View>
+                    <TouchableOpacity onPress={editReadProblem} style={styles.readEdit} accessibilityRole="button" accessibilityLabel="Edit the problem we read and solve again" testID="edit-read-problem">
+                      <Ionicons name="create-outline" size={15} color={colors.gold} />
+                      <Text style={styles.readEditText}>Edit</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
                 <SolutionView result={result} onTryNext={tryNext} />
 
                 {/* Similar-question generation — stubbed for launch (spec decision 4):
@@ -441,7 +609,7 @@ export default function SolveScreen({ navigation }) {
 
                   <TouchableOpacity
                     style={styles.actionBtnSecondary}
-                    onPress={() => { setResult(null); setError(null); setTypeText(''); setImageUri(null); setImageBase64(null); setSaved(false); }}
+                    onPress={() => { setResult(null); setError(null); clearInputs(); setImageUri(null); setImageBase64(null); setSaved(false); if (mode === 'type' && inputMode === 'math') setKeypadOpen(true); }}
                     activeOpacity={0.8}
                   >
                     <Ionicons name="refresh-outline" size={16} color={colors.textSub} />
@@ -451,8 +619,21 @@ export default function SolveScreen({ navigation }) {
               </View>
             ) : null}
 
-            <View style={{ height: 120 }} />
+            <View style={{ height: keypadShown ? spacing.lg : 120 }} />
           </ScrollView>
+
+          {keypadShown ? (
+            <MathKeypad
+              onInsert={(latex) => mathRef.current?.insert(latex)}
+              onCommand={(name) => mathRef.current?.command(name)}
+              onSolve={() => solve()}
+              onAbc={switchToText}
+              onDismiss={() => setKeypadOpen(false)}
+              history={history}
+              onPickHistory={(latex) => { setMathLatex(latex); mathRef.current?.setValue(latex); }}
+              solveDisabled={loading}
+            />
+          ) : null}
         </KeyboardAvoidingView>
       </SafeAreaView>
 
@@ -512,6 +693,19 @@ const styles = StyleSheet.create({
   typeBox:       { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, marginBottom: spacing.md, minHeight: 110 },
   typeInput:     { ...typography.body, color: colors.textPrimary, minHeight: 80, textAlignVertical: 'top' },
   charCount:     { ...typography.caption, color: colors.textMuted, textAlign: 'right', marginTop: spacing.xs },
+  typeFooter:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+
+  hidden:          { display: 'none' },
+  readCard:        { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surfaceHigh, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, padding: spacing.sm + 4 },
+  readLabel:       { ...typography.label, color: colors.textMuted, marginBottom: 4 },
+  readText:        { ...typography.body, color: colors.textPrimary },
+  readEdit:        { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm + 2, paddingVertical: spacing.xs + 2, borderRadius: radius.full, backgroundColor: colors.gold + '18', borderWidth: 1, borderColor: colors.gold + '40', minHeight: 32 },
+  readEditText:    { fontSize: 13, fontWeight: '700', color: colors.gold },
+  mathBox:         { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, paddingHorizontal: spacing.sm, paddingTop: spacing.xs, paddingBottom: spacing.sm, marginBottom: spacing.md },
+  mathBoxActive:   { borderColor: colors.gold + '80' },
+  mathBoxFooter:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xs },
+  mathBoxLink:     { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: spacing.xs, minHeight: 32 },
+  mathBoxLinkText: { ...typography.caption, color: colors.textSub, fontWeight: '600' },
 
   solveBtn:         { borderRadius: radius.lg, overflow: 'hidden', marginBottom: spacing.md },
   solveBtnDisabled: { opacity: 0.5 },
@@ -522,7 +716,7 @@ const styles = StyleSheet.create({
   errorText: { ...typography.caption, color: colors.gold, flex: 1, lineHeight: 18 },
 
   loadingWrap: { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.md },
-  loadingText: { ...typography.body, color: colors.textSub },
+  loadingText: { ...typography.body, color: colors.textSub, textAlign: 'center', paddingHorizontal: spacing.lg },
 
   solutionCard: { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: spacing.md, marginBottom: spacing.md },
 

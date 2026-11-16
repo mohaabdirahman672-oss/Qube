@@ -67,8 +67,13 @@ function TabItem({ tab, isActive, onPress }) {
 
 // Accepts either React Navigation tabBar props (state, navigation)
 // or legacy standalone props (activeTab, onTabPress)
-export default function BottomNav({ state, navigation, activeTab: activeProp, onTabPress }) {
+export default function BottomNav({ state, descriptors, navigation, activeTab: activeProp, onTabPress }) {
   const insets = useSafeAreaInsets();
+
+  // A screen can hide the bar while it shows its own bottom panel (Solve's math
+  // keypad sets tabBarVisible: false, the way the iOS keyboard covers the bar).
+  const focusedKey = state?.routes[state.index]?.key;
+  if (focusedKey && descriptors?.[focusedKey]?.options?.tabBarVisible === false) return null;
 
   const activeTab = state
     ? (state.routes[state.index]?.name ?? 'home')

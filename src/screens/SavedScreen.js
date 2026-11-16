@@ -92,7 +92,7 @@ function SavedItem({ item, onDelete }) {
   );
 }
 
-export default function SavedScreen() {
+export default function SavedScreen({ navigation }) {
   const { session, user } = useAuth();
   const [items,     setItems]     = useState([]);
   // Starts true when signed in so the first frame is the spinner, not a
@@ -161,8 +161,10 @@ export default function SavedScreen() {
         <View style={styles.bgGlow} />
         <SafeAreaView style={styles.safe} edges={['top']}>
           <View style={styles.header}>
-            <Text style={styles.title}>Saved</Text>
-            <Text style={styles.subtitle}>Your saved problems</Text>
+            <View>
+              <Text style={styles.title}>Saved</Text>
+              <Text style={styles.subtitle}>Your saved problems</Text>
+            </View>
           </View>
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
@@ -172,6 +174,12 @@ export default function SavedScreen() {
             <Text style={styles.emptyText}>
               Create a free account to save and sync your solved problems across devices.
             </Text>
+            <TouchableOpacity style={styles.primaryBtn} onPress={() => navigation?.navigate('SignUp')} activeOpacity={0.85} accessibilityRole="button">
+              <Text style={styles.primaryBtnText}>Create free account</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.linkBtn} onPress={() => navigation?.navigate('Login')} activeOpacity={0.7} accessibilityRole="button">
+              <Text style={styles.linkBtnText}>I already have an account</Text>
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </View>
@@ -224,6 +232,9 @@ export default function SavedScreen() {
             <Text style={styles.emptyText}>
               Solve a problem and tap <Text style={{ color: colors.blue }}>Save</Text> to keep it here.
             </Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => navigation?.navigate('scan')} activeOpacity={0.8} accessibilityRole="button">
+              <Text style={styles.retryBtnText}>Solve a problem</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <FlatList
@@ -282,4 +293,8 @@ const styles = StyleSheet.create({
   emptyText:  { ...typography.body, color: colors.textSub, textAlign: 'center', lineHeight: 22 },
   retryBtn:     { marginTop: spacing.lg, backgroundColor: colors.surface, borderRadius: radius.md, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm + 2, borderWidth: 1, borderColor: colors.border },
   retryBtnText: { fontSize: 14, fontWeight: '600', color: colors.blue },
+  primaryBtn:     { marginTop: spacing.lg, backgroundColor: colors.gold, borderRadius: radius.lg, paddingHorizontal: spacing.xl, paddingVertical: spacing.sm + 6, minWidth: 220, alignItems: 'center' },
+  primaryBtnText: { fontSize: 15, fontWeight: '700', color: colors.black },
+  linkBtn:        { marginTop: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  linkBtnText:    { fontSize: 14, fontWeight: '600', color: colors.blue },
 });

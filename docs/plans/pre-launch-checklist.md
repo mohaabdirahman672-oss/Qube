@@ -4,13 +4,15 @@
 > Written 2026-09-26. Supersedes the date-by-date `launch-daily-checklist.md` for what's *left*; that file stays as history.
 > Numbers in brackets like **[#3]** match the original short list.
 
+> **Latest status: `docs/reviews/launch-readiness-2026-11-14.md`** (what's done, what's open, App Store requirements, and the **deferred-cost checklist**: paid items paused until approved).
+
 ## 📅 Timeline (updated 2026-10-25)
 - **Submit to Apple by:** mid-December 2026 (aim for **Dec 15**, which leaves room for one rejection and resubmit)
 - **Launch:** **January 1, 2027**, with marketing as spring semester starts
 - **Pace:** about 1 hour a day. Claude's code sessions are sized to that, and while a build runs you do a checklist item.
 - **Biggest schedule risk:** A1. Subscriptions can't be sandbox-tested (C6) or sold until it's Active. Check on Apple's progress weekly.
 
-**Order of work:** ✅ math rendering (Part G1) → math keyboard (Part G2) → Part H before submitting. Part A/C/E items fill the time while builds run.
+**Order of work:** ✅ math rendering (G1) → **solve quality (G3, ~3 sessions)** → math keyboard + scan correction (G2, ~7 sessions) → Part H before submitting. That's about 10 one-hour sessions, done around mid-November, well before Dec 15. Part A/C/E items fill the time while builds run.
 
 ---
 
@@ -55,7 +57,7 @@ Nothing can be sold, not even a free trial, until this says **Active**.
 ## Part B: Code work (Claude does these once you say go)
 
 ### B1. In-app account deletion [#1, KI-15]
-> **Status (2026-09-29):** built (`docs/reviews/account-deletion.md`). Still needed: deploy `delete-account`, the Apple key below, and the on-device test.
+> **Status (2026-11-14):** built, **deployed** (confirmed live 2026-11-14), and the **Apple key is done** (key `XY2XK3W779`, secrets set 2026-09-29). See `docs/reviews/account-deletion.md`. **Only the on-device test is left** (D1's "Delete account" row): throwaway email, Apple (including cancel), and Google accounts. Then close KI-15. The "You do" steps below are already done.
 
 Apple rejects apps where deletion is "email us" (guideline 5.1.1(v)).
 **Claude builds:**
@@ -229,13 +231,37 @@ Claude drafts all of this for you to paste. Where it goes, on **Apps → Qube �
 Typeset steps, Answer box, formula chip, flashcards and worked examples. Confirmed on the phone (`docs/reviews/latex-math-rendering.md`).
 - [ ] Still to check: a Premium worked example, which needs a Premium account (after C6).
 
-### G2. Math keyboard (next)
+### G3. Solve quality (next, before the keyboard)
+Found 2026-10-25: `2(x + 1/x)² = 10 − x − 1/x` gave a wrong step and a non-answer for you, and a confidently wrong answer in 1 of 3 of my live runs. Causes:
+- gpt-4o at the default (random) temperature
+- a model that solves in one pass without reasoning
+- no "couldn't finish" option
+- no answer checking
+
+Plan: `docs/plans/solve-quality.md` (**approved 2026-11-14**: eval key yes, hybrid OK, partial results free).
+- [x] **Q1:** a ~22-problem test set and eval runner, a baseline report, and a model comparison with a recommendation. *2026-11-15: 7 configs compared (`evals/solve/README.md`). **Recommendation: gpt-5.4 at low effort**: 100% (105/105 including a stress test), 0 wrong, p90 ≈ 10 s, ≈ $0.012/solve (about 1.5× today). Owner approved 2026-11-15.*
+- [ ] **Q2:** honest `partial` results, server-side substitution check (mathjs) with one retry, an "unverified" note, the chosen model, longer timeouts, `problemLatex`; deploy. *2026-11-15: **built and tested**. Eval 75/75 with 0 wrong; scan OK; `npm test` 45/45 (`docs/reviews/solve-quality.md`). Owner approved gpt-5.4. **Deployed 2026-11-15**, live smoke test passed. Only the phone check is left (KI-18).*
+- [ ] **Q3** (buffer): prompt tuning until the target is met (≥95% pass, 0 confident-wrong)
+- ✅ **You:** low-limit **"qube-eval"** OpenAI key in `.env.local` (done 2026-11-14; confirmed gitignored and never committed)
+
+### G2. Math keyboard (after G3)
 A custom tabbed math keypad on Solve's "type a problem" field, replacing the iOS keyboard:
 - **Tabs:** History, 123, Functions, Calculus, Symbols.
-- **Bottom row:** ABC (iOS keyboard for word problems), ← →, backspace, Solve.
+- **Bottom row:** ABC, ← →, backspace, Solve.
 - Templates with empty slots, plus long-press alternates.
 
-Plan and session breakdown: `docs/plans/math-keyboard.md`. **Adds a native module, so a new dev build is needed.**
+Plan: `docs/plans/math-keyboard.md` (**approved 2026-10-25**). Decisions:
+- MathLive in a WebView + native keypad (**Session 1 needs a new dev build**).
+- ABC tries words + math in one field, **timeboxed to one session** (Session 5), else a plain text box.
+- History stays on the phone.
+- **Scan correction** is included before launch (Session 6, about 1 session): show what was read, with Edit → keypad → re-solve.
+
+- [x] S1–S6 built and tested on web 2026-11-14 (`docs/reviews/math-keyboard.md`): keypad, templates, all tabs, long-press, History, ABC (Plan B), scan correction.
+- [ ] **Dev build + on-device pass** (free EAS tier, needs your go-ahead)
+- [ ] S7 polish, BETA/logo (Part H), **production build (D2)**
+
+### Security note: OpenAI key rotation ✅ Done 2026-10-25
+The old OpenAI key had been hard-coded in `preview.html` since June. It was found when GitHub blocked the push, scrubbed from all git history before anything was published, rotated in Supabase, and revoked (confirmed dead: HTTP 401). The local backup branch is deleted and its objects purged. `.gitignore` now blocks key files (`*.p8`, `*.pem`, …).
 
 ---
 

@@ -19,6 +19,7 @@ import { useSubscription } from '../context/SubscriptionContext';
 import { restorePurchases } from '../lib/iap';
 import PaywallScreen from './PaywallScreen';
 import { fetchSavedProblems, clearSavedProblems, fetchCustomCards } from '../services/dbService';
+import BrandLogo from '../components/BrandLogo';
 import { colors, spacing, radius, typography } from '../theme';
 
 const STATS = [
@@ -671,14 +672,7 @@ export default function ProfileScreen({ navigation }) {
 
               {/* Version footer */}
               <View style={styles.versionFooter}>
-                <LinearGradient
-                  colors={[colors.blue, colors.blueDark]}
-                  style={styles.versionLogo}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Text style={styles.versionLogoText}>Q</Text>
-                </LinearGradient>
+                <BrandLogo size={44} style={{ marginBottom: spacing.sm }} />
                 <Text style={styles.versionName}>Qube</Text>
                 <Text style={styles.versionNumber}>Version 1.0.0 · Beta</Text>
                 <Text style={styles.versionTagline}>Math. Every Dimension.</Text>
@@ -1099,8 +1093,6 @@ const styles = StyleSheet.create({
   faqAnswer:       { fontSize: 13, color: colors.textSub, lineHeight: 20, marginTop: spacing.sm },
   contactRow:      { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.bg, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border },
   versionFooter:   { alignItems: 'center', paddingVertical: spacing.xl, gap: spacing.xs },
-  versionLogo:     { width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.sm },
-  versionLogoText: { fontSize: 22, fontWeight: '900', color: colors.white },
   versionName:     { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   versionNumber:   { fontSize: 12, color: colors.textMuted },
   versionTagline:  { fontSize: 11, color: colors.textMuted, fontStyle: 'italic', marginTop: 2 },

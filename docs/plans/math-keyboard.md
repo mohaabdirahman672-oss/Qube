@@ -1,6 +1,11 @@
 # Plan: Math keyboard on Solve
 
-> Status: **awaiting approval**. Written 2026-10-25. Checklist item G2 (`docs/plans/pre-launch-checklist.md`).
+> Status: **sessions 1–6 built 2026-11-14** (see `docs/reviews/math-keyboard.md`): tested on web, 29/29 checks pass, and it needs a dev build for the on-device pass. Approved 2026-10-25. Starts **after** solve quality (G3, `docs/plans/solve-quality.md`). Checklist item G2 (`docs/plans/pre-launch-checklist.md`).
+> Owner decisions:
+> 1. **MathLive in a WebView + native keypad** is approved, including the dev build in Session 1.
+> 2. **ABC:** try words + math in one field (Plan A), **timeboxed to Session 5**. If it isn't clean by the end of that session, fall back to the plain text box (Plan B).
+> 3. **History stays on the phone** for launch, like Recent.
+> 4. **Scan correction:** not possible today (scans solve immediately and the read problem is never shown). Estimated at **about one session** once the keyboard field exists, so it's **included before launch** as **Session 6** (before polish and the production build, so the build includes it). G3 adds `problemLatex` to `solve` in advance.
 > Reference: the Symbolab keypad screenshots the owner shared on 2026-10-25, used for layout and key behaviour only. Colours are Qube's.
 
 ## Feature
@@ -81,23 +86,22 @@ SolveScreen
 
 | # | Session | You can test | Build to start | Checklist item while it runs |
 |---|---|---|---|---|
-| **1** | **Prove the core.** Install `react-native-webview` + MathLive. Build the offline dark-themed math-field page. Check that templates, slots and arrows work and the iOS keyboard stays hidden, served on your Wi-Fi. Add the guarded `MathInput` component. | Open the test page in **Safari on your phone**: type with the on-screen test buttons, insert a fraction, move between slots, confirm no iOS keyboard. | **Dev build** (adds the WebView) | **Restore/check Supabase** (H), then **A3** reviewer account |
-| **2** | **Field in Solve + 123 tab.** `MathInput` replaces the type box, plus the bridge, the bottom row (← → ⌫ Solve) and the full 123 tab. Solve sends LaTeX; deploy the `solve` regex update. | On the new dev build: type and solve `4(a^10 ÷ a^4) ÷ 2(a^3 × a^2) − 3a^0` using only the keypad. | none (JS over Metro) | **C1** create both subscriptions |
-| **3** | **Templates + Functions tab.** Fraction, `x²`, `xⁿ`, `√`, `ⁿ√`, `|x|`, `eˣ`, `f(x)` with slots; the Functions tab; slot-aware arrows. | Build `√(x²+1)/2`, `log₂ 8`, `sin²θ` from the keypad. | none | **C2** In-App Purchase key |
-| **4** | **Calculus + Symbols tabs + long-press.** ∫, definite ∫, d/dx, lim, Σ, ∞; the Symbols tab; the long-press popover with alternates and haptics. | Solve `∫₀¹ x² dx` and `lim x→0 sin x / x`; long-press `sin`, `(`, `x²`. | none | **C3** RevenueCat setup (send me the `appl_` key) |
-| **5** | **History + ABC.** The History tab (typeset, tap to reuse), typed history on-device and cleared on sign-out, ABC mode (Plan A, else B). | Solve a word problem with ABC; reuse a History item. | none | **E3** forms (App Privacy, Age Rating) |
-| **6** | **Polish + launch prep.** Safe areas and small phones, VoiceOver labels, fast-typing check, the critic review and docs. Also Part H's code items: **remove BETA** and **swap the "Q" placeholder for the cube logo**. Commit. | Full D1-style pass on Solve. | **Production build** (D2), since all native changes are in | **D3** internal TestFlight, then **E1** screenshots on that build (they now show the final keyboard and logo) |
+| **1** | **Prove the core.** Install `react-native-webview` + MathLive. Build the offline dark-themed math-field page. Check that templates, slots and arrows work and the iOS keyboard stays hidden, served on your Wi-Fi. Add the guarded `MathInput` component. | Open the test page in **Safari on your phone**: type with the on-screen test buttons, insert a fraction, move between slots, confirm no iOS keyboard. | **Dev build** (adds the WebView) | **C3** RevenueCat setup (send me the `appl_` key) |
+| **2** | **Field in Solve + 123 tab.** `MathInput` replaces the type box, plus the bridge, the bottom row (← → ⌫ Solve) and the full 123 tab. Solve sends LaTeX; deploy the `solve` regex update. | On the new dev build: type and solve `4(a^10 ÷ a^4) ÷ 2(a^3 × a^2) − 3a^0` using only the keypad. | none (JS over Metro) | **C5** RevenueCat webhook (I do C4 at the start of this session) |
+| **3** | **Templates + Functions tab.** Fraction, `x²`, `xⁿ`, `√`, `ⁿ√`, `|x|`, `eˣ`, `f(x)` with slots; the Functions tab; slot-aware arrows. | Build `√(x²+1)/2`, `log₂ 8`, `sin²θ` from the keypad. | none | Check **A1** with Apple; **restore/check Supabase** (H) |
+| **4** | **Calculus + Symbols tabs + long-press.** ∫, definite ∫, d/dx, lim, Σ, ∞; the Symbols tab; the long-press popover with alternates and haptics. | Solve `∫₀¹ x² dx` and `lim x→0 sin x / x`; long-press `sin`, `(`, `x²`. | none | **E2** review the listing text I draft |
+| **5** | **History + ABC.** The History tab (typeset, tap to reuse), typed history on-device and cleared on sign-out, ABC mode (Plan A, else B). | Solve a word problem with ABC; reuse a History item. | none | Rest, or **D1** spot-checks of other tabs |
+| **6** | **Fix a misread scan.** After a scan, show "We read: ⟨typeset problem⟩" with an **Edit** button. Edit loads `problemLatex` into the keypad field in Type mode, the user corrects it, and re-solves. | Scan a problem, tap Edit, change a number, re-solve. | none | **C6** sandbox purchase test (if A1 is Active by now) |
 
-About 6 hours over about 6 working days, so you'll finish around early November with plenty of slack before the Dec 15 submit date. A1 (Apple's entity fix) is the item to watch, not the code.
+| **7** | **Polish + launch prep.** Safe areas and small phones, VoiceOver labels, fast-typing check, the critic review and docs. Also Part H's code items: **remove BETA** and **swap the "Q" placeholder for the cube logo**. Commit. | Full D1-style pass on Solve. | **Production build** (D2), since all native changes are in | **D3** internal TestFlight, then **E1** screenshots on that build (they now show the final keyboard and logo) |
+
+About 7 hours over about 7 working days, so you'll finish around early November with plenty of slack before the Dec 15 submit date. A1 (Apple's entity fix) is the item to watch, not the code.
 
 ## Testing Strategy
 - **Session 1:** the standalone page in phone Safari (keyboard suppression, slots, theme) before any native work depends on it.
 - **Each session:** the "You can test" column on the dev build over Metro, plus `expo export --platform ios` to confirm the bundle builds.
 - **Live `solve`** with LaTeX input, for the test expression, an integral, a limit and a word problem via ABC.
-- **Session 6:** a full manual pass, a fast-typing check, small-screen layout (iPhone SE size), and VoiceOver on a few keys.
+- **Session 7:** a full manual pass, a fast-typing check, small-screen layout (iPhone SE size), and VoiceOver on a few keys.
 
 ## Open Questions
-1. Approve **MathLive in a WebView + native keypad**, including one more dev build in Session 1?
-2. **ABC:** is mixed words + math in one field (Plan A) worth trying first, or go straight to the simpler plain text box for word problems (Plan B)?
-3. **History:** only problems typed on this phone (on-device, like Recent), or should it sync for signed-in users? I recommend on-device for launch.
-4. **Photo modes** (Scan/Upload) are unchanged. Should the keypad also be used to **edit a scanned problem** before solving? I'd leave that until after launch.
+All answered 2026-10-25 (see Status at the top). Session 6 question answered 2026-11-14: **re-solving an edited scan is free within 2 minutes** of the original scan. After that it counts as a new solve.

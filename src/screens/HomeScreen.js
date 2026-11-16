@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import FloatingSymbols from '../components/FloatingSymbols';
 import SoftAuthWall from '../components/SoftAuthWall';
 import RecentSolveModal, { formatSolvedAt } from '../components/RecentSolveModal';
@@ -21,6 +21,7 @@ import { getRecentSolves, recentSolveTitle } from '../lib/recentSolves';
 import { toPlainMath } from '../lib/plainMath';
 import { warmMath } from '../lib/mathjax';
 import { useAuth } from '../hooks/useAuth';
+import BrandLogo from '../components/BrandLogo';
 import { colors, spacing, radius, typography } from '../theme';
 
 // Shown once, after the intro animation finishes, only to guests who've never seen it.
@@ -224,6 +225,9 @@ const CARD_ROUTES = { ai: 'scan', practice: 'practice' };
 export default function HomeScreen({ navigation }) {
   const { session, loading: authLoading } = useAuth();
   const [showWelcomePrompt, setShowWelcomePrompt] = useState(false);
+  // The prompt is a global Modal: without this it would pop up over whatever tab
+  // the user switched to during Home's entrance animation. It waits for Home.
+  const isFocused = useIsFocused();
   const [recentSolves, setRecentSolves]   = useState([]);
   const [openRecent, setOpenRecent]       = useState(null);
   const [recentVisible, setRecentVisible] = useState(false);
@@ -365,14 +369,7 @@ export default function HomeScreen({ navigation }) {
               { opacity: logoOpacity, transform: [{ scale: logoScale }] },
             ]}
           >
-            <LinearGradient
-              colors={[colors.blue, colors.blueDark]}
-              style={styles.logoBadge}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.logoLetter}>Q</Text>
-            </LinearGradient>
+            <BrandLogo size={48} />
 
             <View style={styles.logoTextWrap}>
               <Text style={styles.logoWordmark}>QUBE</Text>
@@ -475,7 +472,7 @@ export default function HomeScreen({ navigation }) {
       </SafeAreaView>
 
       <SoftAuthWall
-        visible={showWelcomePrompt}
+        visible={showWelcomePrompt && isFocused}
         onClose={dismissWelcomePrompt}
         onCreateAccount={() => { dismissWelcomePrompt(); navigation.navigate('SignUp'); }}
         onLogin={() => { dismissWelcomePrompt(); navigation.navigate('Login'); }}
@@ -539,24 +536,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.lg + 4,
     marginTop: spacing.xs,
-  },
-  logoBadge: {
-    width: 42,
-    height: 42,
-    borderRadius: radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: colors.blue,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  logoLetter: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: colors.white,
-    letterSpacing: -1,
   },
   logoTextWrap: {
     flexDirection: 'row',

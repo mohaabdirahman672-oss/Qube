@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import FloatingSymbols from '../../components/FloatingSymbols';
 import AuthInput from '../../components/AuthInput';
 import { useAuth } from '../../hooks/useAuth';
+import BrandLogo from '../../components/BrandLogo';
 import { colors, spacing, radius } from '../../theme';
 
 export default function LoginScreen({ navigation }) {
@@ -105,14 +106,7 @@ export default function LoginScreen({ navigation }) {
           >
             {/* ── Brand ─────────────────────────── */}
             <View style={styles.brand}>
-              <LinearGradient
-                colors={[colors.blue, colors.blueDark]}
-                style={styles.logoBadge}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Text style={styles.logoLetter}>Q</Text>
-              </LinearGradient>
+              <BrandLogo size={72} style={{ marginBottom: spacing.lg }} />
               <Text style={styles.wordmark}>QUBE</Text>
               <Text style={styles.tagline}>Math. Every Dimension.</Text>
             </View>
@@ -287,25 +281,6 @@ const styles = StyleSheet.create({
   brand: {
     alignItems: 'center',
     paddingTop: spacing.xxl + spacing.lg,
-  },
-  logoBadge: {
-    width: 88,
-    height: 88,
-    borderRadius: radius.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-    shadowColor: colors.blue,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.55,
-    shadowRadius: 22,
-    elevation: 14,
-  },
-  logoLetter: {
-    fontSize: 46,
-    fontWeight: '900',
-    color: colors.white,
-    letterSpacing: -2,
   },
   wordmark: {
     fontSize: 38,
