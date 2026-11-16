@@ -42,6 +42,7 @@ export function StepContent({ step, explanationStyle }) {
 // onTryNext is optional: without it, "Try this next" shows the question only.
 export default function SolutionView({ result, onTryNext }) {
   const typeset = isTypesetResult(result);
+  const partial = result.status === 'partial';
   return (
     <>
       {/* Type + difficulty */}
@@ -85,8 +86,37 @@ export default function SolutionView({ result, onTryNext }) {
         </View>
       ))}
 
+      {/* Couldn't finish (status "partial", docs/plans/solve-quality.md): an
+          honest card instead of the gold Answer box — never dress a non-answer
+          up as a result. The steps above show how far it got. */}
+      {partial ? (
+        <View style={styles.partialBox} testID="solve-partial">
+          <View style={styles.noteHeader}>
+            <Ionicons name="hourglass-outline" size={16} color={colors.textSub} />
+            <Text style={styles.partialLabel}>COULDN'T FINISH</Text>
+          </View>
+          <Text style={styles.partialText}>
+            {toPlainMath(result.answer || "I couldn't finish this one. Here's how far I got.")}
+          </Text>
+          {result.stuckReason ? (
+            <Text style={styles.partialReason}>{toPlainMath(result.stuckReason)}</Text>
+          ) : null}
+          <Text style={styles.partialHint}>This one wasn't counted against your free solves.</Text>
+        </View>
+      ) : null}
+
+      {/* Server-side check failed even after a retry (verified === false). */}
+      {!partial && result.verified === false ? (
+        <View style={styles.unverifiedBox} testID="solve-unverified">
+          <Ionicons name="alert-circle-outline" size={16} color={colors.gold} />
+          <Text style={styles.unverifiedText}>
+            We couldn't double-check this answer, so check it yourself before you rely on it.
+          </Text>
+        </View>
+      ) : null}
+
       {/* Answer */}
-      {result.answerLatex || result.answer ? (
+      {!partial && (result.answerLatex || result.answer) ? (
         <LinearGradient
           colors={[colors.goldDark + '22', colors.gold + '11']}
           style={styles.answerBox}
@@ -174,6 +204,15 @@ const styles = StyleSheet.create({
   answerMath:  { alignSelf: 'stretch', marginTop: spacing.xs },
   answerLabel: { fontSize: 9, fontWeight: '800', color: colors.gold, letterSpacing: 1.5, marginBottom: 4 },
   answerValue: { fontSize: 20, fontWeight: '800', color: colors.gold, letterSpacing: -0.3 },
+
+  noteHeader:    { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2, marginBottom: spacing.xs },
+  partialBox:    { backgroundColor: colors.surfaceHigh, borderRadius: radius.lg, padding: spacing.md, borderWidth: 1, borderColor: colors.border },
+  partialLabel:  { fontSize: 9, fontWeight: '800', color: colors.textSub, letterSpacing: 1.5 },
+  partialText:   { ...typography.body, color: colors.textPrimary, lineHeight: 22 },
+  partialReason: { ...typography.caption, color: colors.textSub, lineHeight: 18, marginTop: spacing.xs },
+  partialHint:   { ...typography.caption, color: colors.textMuted, marginTop: spacing.sm },
+  unverifiedBox:  { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start', backgroundColor: colors.gold + '0F', borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.gold + '25' },
+  unverifiedText: { ...typography.caption, color: colors.textSub, lineHeight: 18, flex: 1 },
 
   mistakeBox:      { flexDirection: 'row', gap: spacing.sm, backgroundColor: colors.gold + '0F', borderRadius: radius.md, padding: spacing.md, borderWidth: 1, borderColor: colors.gold + '25', alignItems: 'flex-start' },
   mistakeTextWrap: { flex: 1 },

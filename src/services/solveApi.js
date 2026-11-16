@@ -1,7 +1,9 @@
 import { supabase } from '../lib/supabase';
 import { getDeviceId } from '../lib/weeklyUsage';
 
-const REQUEST_TIMEOUT_MS = 45000;
+// The server caps a solve (including its one verification retry) at 80 s
+// (supabase/functions/solve/pipeline.js budgetMs), so this leaves headroom.
+const REQUEST_TIMEOUT_MS = 90000;
 
 export async function solveMathProblem({ text, imageBase64, imageMimeType }) {
   if (!text && !imageBase64) throw new Error('No input provided.');

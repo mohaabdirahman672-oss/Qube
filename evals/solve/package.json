@@ -1,0 +1,12 @@
+{
+  "name": "qube-solve-eval",
+  "private": true,
+  "type": "module",
+  "description": "Accuracy eval for the solve function. Not part of the app bundle. See README.md.",
+  "scripts": {
+    "eval": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON run.js"
+  },
+  "dependencies": {
+    "mathjs": "15.2.0"
+  }
+}
