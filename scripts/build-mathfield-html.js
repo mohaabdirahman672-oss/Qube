@@ -40,12 +40,17 @@ html{color-scheme:dark}
 html,body{margin:0;padding:0;background:transparent;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 math-field{display:block;width:100%;box-sizing:border-box;font-size:24px;padding:10px 6px;background:transparent;border:none;outline:none;color:${colors.textPrimary};
   --caret-color:${colors.gold};--primary:${colors.gold};--selection-background-color:${colors.blue}55;--selection-color:${colors.textPrimary};
-  --placeholder-color:${colors.gold};--placeholder-opacity:0.9;--contains-highlight-background-color:${colors.blue}1f;--smart-fence-color:${colors.textSub};--smart-fence-opacity:0.6}
+  /* MathLive tints text-mode runs (here the \\text{} placeholder) while focused,
+     which read as a stuck selection box. Manual selection is unaffected: it uses
+     --selection-background-color above. */
+  --placeholder-color:${colors.gold};--placeholder-opacity:0.9;--contains-highlight-background-color:${colors.blue}1f;--smart-fence-color:${colors.textSub};--smart-fence-opacity:0.6;
+  --text-highlight-background-color:transparent;--highlight-text:transparent}
 math-field:focus-within{outline:none}
 math-field::part(menu-toggle),math-field::part(virtual-keyboard-toggle){display:none}
 math-field::part(content){padding:0}
 math-field::part(placeholder){color:${colors.textMuted};opacity:1;font-size:18px;background:transparent}
 math-field::selection,math-field *::selection{background:transparent}
+.ML__keyboard{display:none!important}
 </style></head><body>
 <script>
 // MathLive looks up its own script URL at load time (for relative font/sound
@@ -64,10 +69,23 @@ window.__qubeRestoreConsole();
   MathfieldElement.soundsDirectory = null;  // no keypress sounds
   var mf = new MathfieldElement();
   mf.id = 'mf';
-  mf.setAttribute('math-virtual-keyboard-policy', 'manual');
   mf.setAttribute('smart-fence', 'true');
   mf.setAttribute('placeholder', '\\\\text{Type a problem}');
   document.body.appendChild(mf);
+  // MathLive's OWN virtual keyboard must never show: Qube's native keypad
+  // replaces it. Set as a property AFTER appendChild. MathLive applies its
+  // defaults when the element connects, so a policy attribute set before that is
+  // silently reset to "auto", and on touch devices "auto" pops the keyboard up
+  // 300 ms after focus, clipped inside this small WebView (found on the phone
+  // 2026-11-16; desktop browsers aren't touch devices, so web tests missed it).
+  mf.mathVirtualKeyboardPolicy = 'manual';
+  // Belt and braces: if anything still asks it to show, hide it straight away
+  // (the CSS above also keeps it from ever rendering).
+  if (window.mathVirtualKeyboard) {
+    window.mathVirtualKeyboard.addEventListener('geometrychange', function(){
+      if (window.mathVirtualKeyboard.visible) window.mathVirtualKeyboard.hide({ animate: false });
+    });
+  }
   mf.menuItems = [];                        // no long-press context menu
   mf.mathModeSpace = '\\\\,';
   function send(m){

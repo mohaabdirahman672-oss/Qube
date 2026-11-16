@@ -91,6 +91,40 @@ await sleep(300);
 await dismissWelcome();
 ok('keypad opens on tapping the field', opened);
 ok('tab bar hidden while keypad open', !(await tabBarVisible()));
+// Regression (found on the phone 2026-11-16): on touch devices MathLive popped up
+// its OWN virtual keyboard inside the field (clipped, covering the expression),
+// because its "manual" policy was set before connect and got reset to "auto".
+// MathLive shows it 300 ms after focus, so wait past that.
+await sleep(700);
+const vk = await frame.evaluate(() => ({
+  coarse: matchMedia('(pointer: coarse)').matches,
+  policy: document.getElementById('mf').mathVirtualKeyboardPolicy,
+  visible: !!window.mathVirtualKeyboard?.visible,
+  rendered: !!document.querySelector('.ML__keyboard') && getComputedStyle(document.querySelector('.ML__keyboard')).display !== 'none',
+}));
+ok("MathLive's own keyboard never shows inside the field (touch device)", vk.coarse && vk.policy === 'manual' && !vk.visible && !vk.rendered, JSON.stringify(vk));
+// Regression (2026-11-16): the focused empty field painted a blue box behind the
+// "Type a problem" placeholder (MathLive's text-run tint). It must be plain text,
+// while a real selection still highlights.
+const paintedBackgrounds = () => frame.evaluate(() => {
+  const out = [];
+  const walk = (root) => root.querySelectorAll('*').forEach((el) => {
+    const bg = getComputedStyle(el).backgroundColor;
+    const r = el.getBoundingClientRect();
+    if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent' && r.width && r.height) out.push({ cls: String(el.className), bg });
+    if (el.shadowRoot) walk(el.shadowRoot);
+  });
+  walk(document.getElementById('mf').shadowRoot);
+  return out;
+});
+const placeholderBgs = await paintedBackgrounds();
+ok('empty focused field: placeholder has no highlight box', placeholderBgs.length === 0, JSON.stringify(placeholderBgs));
+await setField('x+1');
+await frame.evaluate(() => document.getElementById('mf').executeCommand('selectAll'));
+await sleep(200);
+const selectionBgs = await paintedBackgrounds();
+ok('manual selection still highlights', selectionBgs.length > 0, JSON.stringify(selectionBgs.slice(0, 2)));
+await setField('');
 await page.screenshot({ path: SHOTS + '01b-keypad.png' });
 
 // Type x² + 3/4 with keys.
@@ -219,6 +253,33 @@ v = await latex();
 ok('Edit loads the read problem into the math field with the keypad open', v.includes('x') && v.includes('=') && !!(await byTestId('math-keypad')), v);
 await page.screenshot({ path: SHOTS + '11-edit-read.png' });
 await tap('keypad-dismiss');
+
+// Long and tall input stays readable: the field grows for stacked fractions, and
+// a long line scrolls inside the field with the caret kept in view; the page
+// itself never scrolls sideways.
+await frame.click('#mf');
+await sleep(300);
+const fieldHeight = async () => (await page.$('iframe[data-testid="math-field-frame"]')).evaluate((f) => f.getBoundingClientRect().height);
+await setField('x+1=2');
+await sleep(400);
+const oneLine = await fieldHeight();
+await setField('\\frac{\\frac{x+1}{x-1}}{\\frac{x^{2}+1}{2}}=\\frac{3}{4}');
+await sleep(600);
+const tall = await fieldHeight();
+ok('field grows to fit tall math (nested fractions)', tall > oneLine + 10, `${oneLine} → ${tall}`);
+await setField('2(x+1)^{2}+3(x-4)^{3}-5(x+7)^{2}+11x-13=17x^{2}-19x+23-29(x-31)^{2}');
+await (await fieldFrame()).evaluate(() => { const mf = document.getElementById('mf'); mf.focus(); mf.position = mf.lastOffset; });
+await sleep(500);
+const longLine = await (await fieldFrame()).evaluate(() => {
+  const caret = document.getElementById('mf').shadowRoot?.querySelector('.ML__caret');
+  const r = caret?.getBoundingClientRect();
+  return { caret: !!r, caretInView: !!r && r.right <= innerWidth + 1 && r.left >= -1, vk: !!window.mathVirtualKeyboard?.visible };
+});
+const pageW = await page.evaluate(() => ({ docW: document.documentElement.scrollWidth, w: innerWidth }));
+ok('long expression: caret stays in view, no MathLive keyboard, no page sideways scroll', longLine.caretInView && !longLine.vk && pageW.docW <= pageW.w, JSON.stringify({ ...longLine, ...pageW }));
+await page.screenshot({ path: SHOTS + '12-long-expression.png' });
+await setField('');
+await tap('keypad-dismiss').catch(() => {});
 
 // Small phone (iPhone SE).
 await page.setViewport({ width: 320, height: 568, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
