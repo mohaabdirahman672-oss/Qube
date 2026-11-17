@@ -57,7 +57,7 @@ Nothing can be sold, not even a free trial, until this says **Active**.
 ## Part B: Code work (Claude does these once you say go)
 
 ### B1. In-app account deletion [#1, KI-15]
-> **Status (2026-11-14):** built, **deployed** (confirmed live 2026-11-14), and the **Apple key is done** (key `XY2XK3W779`, secrets set 2026-09-29). See `docs/reviews/account-deletion.md`. **Only the on-device test is left** (D1's "Delete account" row): throwaway email, Apple (including cancel), and Google accounts. Then close KI-15. The "You do" steps below are already done.
+> **Status (2026-11-17):** ✅ **Done.** Built, deployed, Apple key set, and **tested on device by the owner** (throwaway email, Google and Apple, all passed). KI-15 closed (KI-R37). One follow-up remains in Part H: republish the hosted legal pages when the build ships.
 
 Apple rejects apps where deletion is "email us" (guideline 5.1.1(v)).
 **Claude builds:**
@@ -151,7 +151,7 @@ For anything broken, send Claude a screenshot and what you tapped.
 - [ ] **Home**: the stat pills are right. Recent items open.
 - [ ] **Profile**: Privacy and Terms open and close. Contact Us opens Mail. Restore Purchases works. Sign Out works.
 - [ ] **Auth**: email sign-up works and the confirm link opens the app. Sign in works. Forgot password: the link opens the reset screen and the new password works. Google works. Apple works, and cancelling does no harm. Guest solves carry over after signing in.
-- [ ] **Delete account** (after B1): the account is gone and you can't sign back in with it.
+- [x] **Delete account** (after B1, passed 2026-11-17): the account is gone and you can't sign back in with it.
 
 ### D2. Production build [#7]
 1. Claude commits everything (including the new splash) and runs `eas build --profile production --platform ios`. It takes about 20–40 minutes.
@@ -266,6 +266,7 @@ The old OpenAI key had been hard-coded in `preview.html` since June. It was foun
 ---
 
 ## Part H: Before submitting (do all of these before F1)
+- [ ] **Republish the hosted legal pages** (`docs/legal/privacy-policy.html`, `terms-of-service.html`, `support.html`) to their existing URLs once the build with account deletion ships. They already say Profile → Settings → Delete Account.
 - [ ] **Restore Supabase before any testing or submission.** The free tier auto-pauses after about a week without activity. In **supabase.com/dashboard → project → Restore** (it was live on 2026-10-25). If it pauses during App Review, sign-in and solving break for the reviewer. Restore it right before submitting, and consider the paid tier (or a weekly ping) for review week and launch.
 - [ ] **Remove the BETA badge** and "· Beta" text:
   - `HomeScreen.js` (logo BETA pill)

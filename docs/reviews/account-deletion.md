@@ -66,6 +66,6 @@ The function:
 
 1. ~~Deploy~~ Done 2026-09-29 (`delete-account` v2, `solve` v11; KI-14 closes after one solve on device).
 2. ~~Apple key~~ Done 2026-09-29: key `XY2XK3W779`, primary App ID `com.qube.mathapp`, secrets `APPLE_TEAM_ID`/`APPLE_KEY_ID`/`APPLE_CLIENT_ID`/`APPLE_PRIVATE_KEY` set. `user_id` confirmed on `saved_problems` and `custom_flashcards` (PostgREST column check).
-3. **Test on device** with throwaway accounts: email, Apple (including cancel), Google and offline. See the plan's Testing Strategy.
+3. ~~Test on device~~ Done 2026-11-17: owner confirmed throwaway email, Google and Apple deletions all worked on the Nov 15 dev build.
 4. **Republish** `docs/legal/privacy-policy.html`, `terms-of-service.html` and `support.html` to their existing URLs when the build ships.
-5. **Close KI-15** once 1–3 pass.
+5. ~~Close KI-15~~ Done 2026-11-17 (now KI-R37).
